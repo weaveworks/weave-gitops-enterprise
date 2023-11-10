@@ -1,7 +1,6 @@
 package steps
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -159,7 +158,8 @@ type Config struct {
 
 	WGEVersion string // user want this version in the cluster
 
-	Password string // cluster user password
+	ClusterUserAuth ClusterUserAuthConfig
+	//Password string // cluster user password
 
 	DomainType string
 	UserDomain string
@@ -208,8 +208,10 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		}
 	}
 
-	if cb.password != "" && len(cb.password) < 6 {
-		return Config{}, errors.New("password minimum characters should be >= 6")
+	// cluster user configuration
+	clusterUserAuthConfig, err := NewClusterUserAuthConfig(cb.password, kubeHttp.Client)
+	if err != nil {
+		return Config{}, fmt.Errorf("cannot configure cluster user auth:%v", err)
 	}
 
 	// parse repo scheme
@@ -225,7 +227,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 	return Config{
 		KubernetesClient:        kubeHttp.Client,
 		WGEVersion:              cb.wgeVersion,
-		Password:                cb.password,
+		ClusterUserAuth:         clusterUserAuthConfig,
 		Logger:                  cb.logger,
 		DomainType:              cb.domainType,
 		UserDomain:              cb.domain,

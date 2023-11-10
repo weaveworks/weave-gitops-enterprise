@@ -7,6 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -32,6 +33,23 @@ var getPasswordInputConfig = StepInputConfig{
 	Required:     true,
 }
 
+type ClusterUserAuthConfig struct {
+	Username         string
+	Password         string
+	ExistCredentials bool
+}
+
+func NewClusterUserAuthConfig(password string, client k8s_client.Client) (ClusterUserAuthConfig, error) {
+	if password != "" && len(password) < 6 {
+		return ClusterUserAuthConfig{}, fmt.Errorf("password minimum characters should be >= 6")
+	}
+	return ClusterUserAuthConfig{
+		Username:         defaultAdminUsername,
+		Password:         password,
+		ExistCredentials: isExistingAdminSecret(client),
+	}, nil
+}
+
 // NewAskAdminCredsSecretStep asks user about admin  password.
 // admin password are you used for accessing WGE Dashboard
 // for emergency access. OIDC can be used instead.
@@ -39,22 +57,14 @@ var getPasswordInputConfig = StepInputConfig{
 // if the creds already exist. user will be asked to continue with the current creds
 // Or existing and deleting the creds then re-run the bootstrap process
 func NewAskAdminCredsSecretStep(config Config) (BootstrapStep, error) {
-	inputs := []StepInput{
-		{
-			Name:            inExistingCreds,
-			Type:            confirmInput,
-			Msg:             existingCredsMsg,
-			StepInformation: fmt.Sprintf(adminSecretExistsMsgFormat, adminSecretName, WGEDefaultNamespace),
-			DefaultValue:    "",
-			Enabled:         isExistingAdminSecret,
-		},
-	}
+	inputs := []StepInput{}
 
 	if config.Password == "" {
 		getPasswordInput, err := NewStepInput(&getPasswordInputConfig)
 		if err != nil {
-			return BootstrapStep{}
+			return BootstrapStep{}, fmt.Errorf("cannot create password input: %v", err)
 		}
+
 		inputs = append(inputs, getPasswordInput)
 	}
 
@@ -62,7 +72,7 @@ func NewAskAdminCredsSecretStep(config Config) (BootstrapStep, error) {
 		Name:  "user authentication",
 		Input: inputs,
 		Step:  createCredentials,
-	}
+	}, nil
 }
 
 func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
@@ -124,8 +134,8 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 // isExistingAdminSecret checks for admin secret on management cluster
 // returns true if admin secret is already on the cluster
 // returns false if no admin secret on the cluster
-func isExistingAdminSecret(input []StepInput, c *Config) bool {
-	_, err := utils.GetSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace)
+func isExistingAdminSecret(client k8s_client.Client) bool {
+	_, err := utils.GetSecret(client, adminSecretName, WGEDefaultNamespace)
 	return err == nil
 }
 

@@ -50,11 +50,13 @@ type StepInput struct {
 // NewStepInput creates a new step input from the parameters. Creation process do three things
 // Create does three things: generate structure, resolve existing value, create suggested value
 func NewStepInput(sc *StepInputConfig) (StepInput, error) {
-	// structure
-
 	// resolve existing value
 
 	// create suggested from suggested value or default
+	return StepInput{
+		Name: sc.Name,
+		Msg:  sc.Msg,
+	}, nil
 
 }
 
