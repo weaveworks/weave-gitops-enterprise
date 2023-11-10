@@ -32,7 +32,7 @@ func TestGetPipeline(t *testing.T) {
 	pipelineNamespace := pipetesting.NewNamespace(ctx, t, kclient)
 	targetNamespace := pipetesting.NewNamespace(ctx, t, kclient)
 
-	factory := grpctesting.MakeClustersManager(kclient, "management", fmt.Sprintf("%s/cluster-1", pipelineNamespace.Name))
+	factory := grpctesting.MakeClustersManager(kclient, nil, "management", fmt.Sprintf("%s/cluster-1", pipelineNamespace.Name))
 	serverClient := pipetesting.SetupServer(t, factory, kclient, "management", "", nil)
 
 	hr := createHelmRelease(ctx, t, kclient, "app-1", targetNamespace.Name)

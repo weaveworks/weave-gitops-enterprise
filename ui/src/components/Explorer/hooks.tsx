@@ -10,7 +10,7 @@ export type QueryState = {
   limit: number;
   offset: number;
   orderBy: string;
-  orderAscending: boolean;
+  orderDescending: boolean;
 };
 
 export const columnHeaderHandler =
@@ -28,8 +28,8 @@ export const columnHeaderHandler =
     setQueryState({
       ...queryState,
       orderBy: col as string,
-      orderAscending:
-        queryState.orderBy === col ? !queryState.orderAscending : false,
+      orderDescending:
+        queryState.orderBy === col ? !queryState.orderDescending : false,
     });
   };
 

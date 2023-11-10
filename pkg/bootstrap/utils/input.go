@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/manifoldco/promptui"
 )
@@ -29,6 +30,7 @@ func GetPasswordInput(msg string, required bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	result = strings.TrimSpace(result)
 
 	return result, nil
 }
@@ -78,7 +80,7 @@ func GetStringInput(msg string, defaultValue string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
+	result = strings.TrimSpace(result)
 	return result, nil
 }
 
@@ -93,6 +95,6 @@ func GetConfirmInput(msg string) string {
 	if err != nil {
 		return "n"
 	}
-
+	result = strings.TrimSpace(result)
 	return result
 }
