@@ -237,7 +237,7 @@ This will be addressed in the following [ticket](https://github.com/weaveworks/w
 
 ## Enable/Disable one or more input from step inputs
 
-Field [`Enabled`](https://github.com/weaveworks/weave-gitops-enterprise/blob/80667a419c286ee7d45178b639e36a2015533cb6/pkg/bootstrap/steps/ask_bootstrap_flux.go#L14) is added to the step input to allow/disallow this input from being processd
+Field [`Enabled`](https://github.com/weaveworks/weave-gitops-enterprise/blob/80667a419c286ee7d45178b639e36a2015533cb6/pkg/bootstrap/steps/ask_bootstrap_flux.go#L14) is added to the step input to allow/disallow this input from being processed
 
 This field should receive a function that takes the step input, config object and returns boolean value 
 

@@ -23,7 +23,7 @@ const (
 	defaultAdminUsername = "wego-admin"
 )
 
-var getPasswordInput = StepInput{
+var getPasswordInputConfig = StepInputConfig{
 	Name:         inPassword,
 	Type:         passwordInput,
 	Msg:          adminPasswordMsg,
@@ -38,19 +38,23 @@ var getPasswordInput = StepInput{
 // there an option to revert these creds in case OIDC setup is successful
 // if the creds already exist. user will be asked to continue with the current creds
 // Or existing and deleting the creds then re-run the bootstrap process
-func NewAskAdminCredsSecretStep(config Config) BootstrapStep {
+func NewAskAdminCredsSecretStep(config Config) (BootstrapStep, error) {
 	inputs := []StepInput{
 		{
 			Name:            inExistingCreds,
 			Type:            confirmInput,
 			Msg:             existingCredsMsg,
+			StepInformation: fmt.Sprintf(adminSecretExistsMsgFormat, adminSecretName, WGEDefaultNamespace),
 			DefaultValue:    "",
 			Enabled:         isExistingAdminSecret,
-			StepInformation: fmt.Sprintf(adminSecretExistsMsgFormat, adminSecretName, WGEDefaultNamespace),
 		},
 	}
 
 	if config.Password == "" {
+		getPasswordInput, err := NewStepInput(&getPasswordInputConfig)
+		if err != nil {
+			return BootstrapStep{}
+		}
 		inputs = append(inputs, getPasswordInput)
 	}
 
