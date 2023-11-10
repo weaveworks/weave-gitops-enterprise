@@ -7,13 +7,14 @@ import { useReadQueryState, useSetQueryState } from './hooks';
 
 type Props = {
   className?: string;
+  innerRef?: React.RefObject<HTMLInputElement>;
 };
 
 const debouncedInputHandler = _.debounce((fn, val) => {
   fn(val);
 }, 500);
 
-function QueryInput({ className }: Props) {
+function QueryInput({ className, innerRef }: Props) {
   const queryState = useReadQueryState();
   const setQueryState = useSetQueryState();
   const [textInput, setTextInput] = useState(queryState.terms || '');
@@ -39,6 +40,7 @@ function QueryInput({ className }: Props) {
           <Input
             placeholder="Search"
             value={textInput}
+            inputRef={innerRef}
             onChange={handleTextInput}
           />
         </FormControl>

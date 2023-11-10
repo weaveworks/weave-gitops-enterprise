@@ -178,6 +178,12 @@ integration-tests:
 	go test -v ./cmd/clusters-service/... -tags=integration
 	go test -v ./pkg/git/... -tags=integration
 	go test -v ./pkg/query/... -tags=integration
+	go test -v ./pkg/bootstrap/... -tags=integration
+
+
+cli-acceptance-tests:
+	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/test-dependencies.toml
+	go test -v ./cmd/gitops/app/... -tags=acceptance
 
 clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true
@@ -245,6 +251,15 @@ swagger-docs:
 	-v $(CURRENT_DIR)/cmd/clusters-service/api:/usr/share/nginx/html/clusters-service-api \
 	-v $(CURRENT_DIR)/api:/usr/share/nginx/html/api \
 	swaggerapi/swagger-ui
+
+.PHONY: user-guide-apis
+user-guide-apis:
+	cp cmd/clusters-service/api/cluster_services.swagger.json ../weave-gitops/website/static/swagger/
+	cp api/gitauth/gitauth.swagger.json ../weave-gitops/website/static/swagger/
+	cp api/gitopssets/gitopssets.swagger.json ../weave-gitops/website/static/swagger/
+	cp api/pipelines/pipelines.swagger.json ../weave-gitops/website/static/swagger/
+	cp api/query/query.swagger.json ../weave-gitops/website/static/swagger/
+	cp api/terraform/terraform.swagger.json ../weave-gitops/website/static/swagger/
 
 
 FORCE:

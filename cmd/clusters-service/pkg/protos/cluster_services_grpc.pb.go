@@ -46,9 +46,13 @@ type ClustersServiceClient interface {
 	//
 	// Add kustomizations, helm releases, external secrets, policy configs, and sops secrets
 	CreateAutomationsPullRequest(ctx context.Context, in *CreateAutomationsPullRequestRequest, opts ...grpc.CallOption) (*CreateAutomationsPullRequestResponse, error)
-	// List available credentials
+	// List available CAPI identities
 	//
-	// These templates can be used when renderer certain templates
+	// Search the cluster for available CAPI identities:
+	// - `AWSClusterStaticIdentity`
+	// - `AWSClusterRoleIdentity`
+	// - `AzureClusterIdentity`
+	// - `VSphereClusterIdentity`
 	ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error)
 	// Creates a pull request from a tfcontroller template.
 	//
@@ -438,9 +442,13 @@ type ClustersServiceServer interface {
 	//
 	// Add kustomizations, helm releases, external secrets, policy configs, and sops secrets
 	CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error)
-	// List available credentials
+	// List available CAPI identities
 	//
-	// These templates can be used when renderer certain templates
+	// Search the cluster for available CAPI identities:
+	// - `AWSClusterStaticIdentity`
+	// - `AWSClusterRoleIdentity`
+	// - `AzureClusterIdentity`
+	// - `VSphereClusterIdentity`
 	ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error)
 	// Creates a pull request from a tfcontroller template.
 	//

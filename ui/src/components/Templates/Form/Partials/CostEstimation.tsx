@@ -1,91 +1,148 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
-import { Button, Flex, LoadingPage } from '@weaveworks/weave-gitops';
-import React, { Dispatch, FC } from 'react';
+import { Button } from '@weaveworks/weave-gitops';
+import React, { Dispatch, FC, useCallback, useEffect, useState } from 'react';
+import {
+  Kustomization,
+  ProfileValues,
+  Credential,
+} from '../../../../cluster-services/cluster_services.pb';
+import useNotifications from '../../../../contexts/Notifications';
+import useTemplates from '../../../../hooks/templates';
+import { TemplateEnriched } from '../../../../types/custom';
+import { validateFormData } from '../../../../utils/form';
+import { getFormattedCostEstimate } from '../../../../utils/formatters';
+
+const useStyles = makeStyles(() =>
+  createStyles({
+    costWrapper: {
+      marginRight: '12px',
+      fontWeight: 'bold',
+    },
+    errorMessage: {
+      marginTop: '8px',
+      marginRight: '12px',
+      borderRadius: '4px',
+    },
+  }),
+);
 
 const CostEstimation: FC<{
-  costEstimate: string;
-  isCostEstimationLoading: boolean;
-  costEstimateMessage: string;
-  handleCostEstimation: () => Promise<void>;
+  template: TemplateEnriched;
+  formData: any;
+  profiles: ProfileValues[];
+  credentials: Credential | undefined;
+  kustomizations: Kustomization[];
   setFormError: Dispatch<React.SetStateAction<string>>;
-  setSubmitType: Dispatch<React.SetStateAction<string>>;
 }> = ({
-  costEstimate,
-  isCostEstimationLoading,
-  costEstimateMessage,
-  setSubmitType,
+  template,
+  formData,
+  profiles,
+  credentials,
+  kustomizations,
+  setFormError,
 }) => {
-  const useStyles = makeStyles(() =>
-    createStyles({
-      costWrapper: {
-        marginRight: '12px',
-        fontWeight: 'bold',
-      },
-      previewLoading: {
-        padding: '16px',
-      },
-      errorMessage: {
-        marginTop: '8px',
-        marginRight: '12px',
-        borderRadius: '4px',
-      },
-    }),
-  );
   const classes = useStyles();
+  const { setNotifications } = useNotifications();
+  const { renderTemplate } = useTemplates();
+  const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
+  const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
+  const [costEstimationLoading, setCostEstimationLoading] =
+    useState<boolean>(false);
+
+  const handleCostEstimation = useCallback(() => {
+    const { parameterValues } = formData;
+    setCostEstimationLoading(true);
+    return renderTemplate({
+      templateName: template.name,
+      templateNamespace: template.namespace,
+      values: parameterValues,
+      profiles,
+      credentials,
+      kustomizations,
+      templateKind: template.templateKind,
+    })
+      .then(data => {
+        const { costEstimate } = data;
+        setCostEstimate(getFormattedCostEstimate(costEstimate));
+        setCostEstimateMessage(costEstimate?.message || '');
+      })
+      .catch(err =>
+        setNotifications([
+          {
+            message: { text: err.message },
+            severity: 'error',
+            display: 'bottom',
+          },
+        ]),
+      )
+      .finally(() => setCostEstimationLoading(false));
+  }, [
+    formData,
+    renderTemplate,
+    template.name,
+    template.templateKind,
+    template.namespace,
+    setNotifications,
+    profiles,
+    credentials,
+    kustomizations,
+  ]);
+
+  useEffect(() => {
+    setCostEstimate('00.00 USD');
+  }, [formData.parameterValues]);
+
   return (
     <>
       <h2>Cost Estimation</h2>
-      {isCostEstimationLoading ? (
-        <LoadingPage className={classes.previewLoading} />
-      ) : (
-        <Grid alignItems="center" container>
-          <Grid item xs={6} sm={6} md={6} lg={6}>
-            <Grid container>
-              <Grid
-                item
-                xs={6}
-                justifyContent="flex-start"
-                alignItems="center"
-                container
-              >
-                <div>Monthly Cost:</div>
-              </Grid>
-              <Grid
-                item
-                xs={6}
-                justifyContent="flex-end"
-                alignItems="center"
-                container
-              >
-                <div className={classes.costWrapper}>{costEstimate}</div>
-              </Grid>
+      <Grid alignItems="center" container style={{ paddingRight: '24px' }}>
+        <Grid item xs={6} sm={6} md={6} lg={6}>
+          <Grid container>
+            <Grid
+              item
+              xs={6}
+              justifyContent="flex-start"
+              alignItems="center"
+              container
+            >
+              <div>Monthly Cost:</div>
+            </Grid>
+            <Grid
+              item
+              xs={6}
+              justifyContent="flex-end"
+              alignItems="center"
+              container
+            >
+              <div className={classes.costWrapper}>{costEstimate}</div>
             </Grid>
           </Grid>
-          <Grid
-            item
-            xs={6}
-            justifyContent="flex-end"
-            alignItems="center"
-            container
-          >
-            <Flex end className="preview-cta">
-              <Button
-                id="get-estimation"
-                type="submit"
-                onClick={() => setSubmitType('Get cost estimation')}
-              >
-                GET ESTIMATION
-              </Button>
-            </Flex>
-          </Grid>
-          {costEstimateMessage && (
-            <Alert className={classes.errorMessage} severity="warning">
-              {costEstimateMessage}
-            </Alert>
-          )}
         </Grid>
-      )}
+        <Grid
+          item
+          xs={6}
+          justifyContent="flex-end"
+          alignItems="center"
+          container
+        >
+          <Button
+            id="get-estimation"
+            loading={costEstimationLoading}
+            disabled={costEstimationLoading}
+            onClick={event =>
+              validateFormData(event, handleCostEstimation, setFormError)
+            }
+          >
+            GET ESTIMATION
+          </Button>
+        </Grid>
+        {costEstimateMessage && (
+          <Alert className={classes.errorMessage} severity="warning">
+            {costEstimateMessage}
+          </Alert>
+        )}
+      </Grid>
     </>
   );
 };

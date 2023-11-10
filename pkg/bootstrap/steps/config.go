@@ -10,46 +10,75 @@ import (
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// auth types
 const (
-	defaultAdminUsername = "wego-admin"
+	AuthOIDC = "oidc"
+)
+
+const (
 	defaultAdminPassword = "password"
+)
+
+// git schemes
+const (
+	httpsScheme = "https"
+	sshScheme   = "ssh"
 )
 
 // inputs names
 const (
-	UserName           = "username"
-	Password           = "password"
-	WGEVersion         = "wgeVersion"
-	UserDomain         = "userDomain"
-	PrivateKeyPath     = "privateKeyPath"
-	PrivateKeyPassword = "privateKeyPassword"
-	existingCreds      = "existingCreds"
-	domainType         = "domainType"
+	inPassword           = "password"
+	inWGEVersion         = "wgeVersion"
+	inUserDomain         = "userDomain"
+	inPrivateKeyPath     = "privateKeyPath"
+	inPrivateKeyPassword = "privateKeyPassword"
+	inExistingCreds      = "existingCreds"
+	inDomainType         = "domainType"
+	inDiscoveryURL       = "discoveryURL"
+	inClientID           = "clientID"
+	inClientSecret       = "clientSecret"
+	inOidcInstalled      = "oidcInstalled"
+	inExistingOIDC       = "existingOIDC"
+	inRepoURL            = "repoURL"
+	inBranch             = "branch"
+	inRepoPath           = "repoPath"
+	inGitUserName        = "username"
+	inGitPassword        = "gitPassowrd"
+	inBootstrapFlux      = "bootstrapFlux"
 )
 
 // input/output types
 const (
-	failureMsg           = "failureMsg"
 	multiSelectionChoice = "multiSelect"
 	stringInput          = "string"
 	passwordInput        = "password"
 	confirmInput         = "confirm"
 	typeSecret           = "secret"
 	typeFile             = "file"
-	typePortforward      = "portforward"
 )
 
 // ConfigBuilder contains all the different configuration options that a user can introduce
 type ConfigBuilder struct {
-	logger             logger.Logger
-	kubeconfig         string
-	username           string
-	password           string
-	wGEVersion         string
-	domainType         string
-	domain             string
-	privateKeyPath     string
-	privateKeyPassword string
+	logger                  logger.Logger
+	kubeconfig              string
+	password                string
+	wgeVersion              string
+	domainType              string
+	domain                  string
+	privateKeyPath          string
+	privateKeyPassword      string
+	silent                  bool
+	gitUsername             string
+	gitToken                string
+	repoURL                 string
+	branch                  string
+	repoPath                string
+	authType                string
+	installOIDC             string
+	discoveryURL            string
+	clientID                string
+	clientSecret            string
+	PromptedForDiscoveryURL bool
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -58,11 +87,6 @@ func NewConfigBuilder() *ConfigBuilder {
 
 func (c *ConfigBuilder) WithLogWriter(logger logger.Logger) *ConfigBuilder {
 	c.logger = logger
-	return c
-}
-
-func (c *ConfigBuilder) WithUsername(username string) *ConfigBuilder {
-	c.username = username
 	return c
 }
 
@@ -77,7 +101,7 @@ func (c *ConfigBuilder) WithKubeconfig(kubeconfig string) *ConfigBuilder {
 }
 
 func (c *ConfigBuilder) WithVersion(version string) *ConfigBuilder {
-	c.wGEVersion = version
+	c.wgeVersion = version
 	return c
 }
 
@@ -93,9 +117,37 @@ func (c *ConfigBuilder) WithDomain(domain string) *ConfigBuilder {
 
 }
 
-func (c *ConfigBuilder) WithPrivateKey(privateKeyPath string, privateKeyPassword string) *ConfigBuilder {
+func (c *ConfigBuilder) WithGitAuthentication(privateKeyPath, privateKeyPassword, gitUsername, gitToken string) *ConfigBuilder {
 	c.privateKeyPath = privateKeyPath
 	c.privateKeyPassword = privateKeyPassword
+	c.gitUsername = gitUsername
+	c.gitToken = gitToken
+
+	return c
+}
+
+func (c *ConfigBuilder) WithGitRepository(repoURL, branch, repoPath string) *ConfigBuilder {
+	c.repoURL = repoURL
+	c.branch = branch
+	c.repoPath = repoPath
+	return c
+}
+
+func (c *ConfigBuilder) WithOIDCConfig(discoveryURL string, clientID string, clientSecret string, prompted bool) *ConfigBuilder {
+	c.authType = AuthOIDC
+	c.discoveryURL = discoveryURL
+	c.clientID = clientID
+	c.clientSecret = clientSecret
+	if discoveryURL != "" && clientID != "" && clientSecret != "" {
+		prompted = false
+	}
+	c.PromptedForDiscoveryURL = prompted
+	c.installOIDC = "y" // todo: change to parameter
+	return c
+}
+
+func (c *ConfigBuilder) WithSilentFlag(silent bool) *ConfigBuilder {
+	c.silent = silent
 	return c
 }
 
@@ -105,17 +157,36 @@ type Config struct {
 	KubernetesClient k8s_client.Client
 	Logger           logger.Logger
 
-	ExistsWgeVersion string // existing wge version in the cluster
-	WGEVersion       string // user want this version in the cluster
+	WGEVersion string // user want this version in the cluster
 
-	Username string // cluster user username
 	Password string // cluster user password
 
 	DomainType string
 	UserDomain string
 
+	GitScheme string
+
+	Silent bool
+
+	FluxInstallated    bool
 	PrivateKeyPath     string
 	PrivateKeyPassword string
+
+	GitUsername string
+	GitToken    string
+
+	RepoURL  string
+	Branch   string
+	RepoPath string
+
+	AuthType                string
+	InstallOIDC             string
+	DiscoveryURL            string
+	IssuerURL               string
+	ClientID                string
+	ClientSecret            string
+	RedirectURL             string
+	PromptedForDiscoveryURL bool
 }
 
 // Builds creates a valid config so boostrap could be executed. It uses values introduced
@@ -123,15 +194,11 @@ type Config struct {
 func (cb *ConfigBuilder) Build() (Config, error) {
 	l := cb.logger
 	l.Actionf("creating client to cluster")
-	kubernetesClient, err := utils.GetKubernetesClient(cb.kubeconfig)
+	kubeHttp, err := utils.GetKubernetesHttp(cb.kubeconfig)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to get kubernetes client. error: %s", err)
 	}
-	context, err := utils.GetCurrentContext(cb.kubeconfig)
-	if err != nil {
-		return Config{}, fmt.Errorf("failed to get kubernetes current context. error: %s", err)
-	}
-	l.Successf("created client to cluster %s", context)
+	l.Successf("created client to cluster: %s", kubeHttp.ClusterName)
 
 	// validate ssh keys
 	if cb.privateKeyPath != "" {
@@ -145,17 +212,38 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		return Config{}, errors.New("password minimum characters should be >= 6")
 	}
 
+	// parse repo scheme
+	var scheme string
+	if cb.repoURL != "" {
+		scheme, err = parseRepoScheme(cb.repoURL)
+		if err != nil {
+			return Config{}, err
+		}
+	}
+
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
-		KubernetesClient:   kubernetesClient,
-		WGEVersion:         cb.wGEVersion,
-		Username:           cb.username,
-		Password:           cb.password,
-		Logger:             cb.logger,
-		DomainType:         cb.domainType,
-		UserDomain:         cb.domain,
-		PrivateKeyPath:     cb.privateKeyPath,
-		PrivateKeyPassword: cb.privateKeyPassword,
+		KubernetesClient:        kubeHttp.Client,
+		WGEVersion:              cb.wgeVersion,
+		Password:                cb.password,
+		Logger:                  cb.logger,
+		DomainType:              cb.domainType,
+		UserDomain:              cb.domain,
+		GitScheme:               scheme,
+		Branch:                  cb.branch,
+		Silent:                  cb.silent,
+		RepoPath:                cb.repoPath,
+		RepoURL:                 cb.repoURL,
+		PrivateKeyPath:          cb.privateKeyPath,
+		PrivateKeyPassword:      cb.privateKeyPassword,
+		GitUsername:             cb.gitUsername,
+		GitToken:                cb.gitToken,
+		AuthType:                cb.authType,
+		InstallOIDC:             cb.installOIDC,
+		DiscoveryURL:            cb.discoveryURL,
+		ClientID:                cb.clientID,
+		ClientSecret:            cb.clientSecret,
+		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
 	}, nil
 
 }

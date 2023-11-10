@@ -1,7 +1,12 @@
+import { useFeatureFlags } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import { useContext } from 'react';
 import { useQuery } from 'react-query';
-import { QueryResponse } from '../api/query/query.pb';
+import {
+  DoQueryResponse,
+  EnabledComponent,
+  ListEnabledComponentsResponse,
+} from '../api/query/query.pb';
 import { QueryServiceContext } from '../contexts/QueryService';
 
 type QueryOpts = {
@@ -11,7 +16,7 @@ type QueryOpts = {
   offset?: number;
   orderBy?: string;
   category?: string;
-  ascending?: boolean;
+  descending?: boolean;
 };
 
 // We want to "OR" filters of the same field, but "AND" filters of different fields.
@@ -49,7 +54,7 @@ export function useQueryService({
   offset,
   orderBy,
   category,
-  ascending,
+  descending,
 }: QueryOpts) {
   const api = useContext(QueryServiceContext);
 
@@ -59,8 +64,8 @@ export function useQueryService({
     formatted = _.concat(formatted, ['category:' + category]);
   }
 
-  return useQuery<QueryResponse, Error>(
-    ['query', { terms, filters, limit, offset, orderBy, ascending }],
+  return useQuery<DoQueryResponse, Error>(
+    ['query', { terms, filters, limit, offset, orderBy, descending }],
     () => {
       return api.DoQuery({
         terms,
@@ -68,7 +73,7 @@ export function useQueryService({
         limit,
         offset,
         orderBy,
-        ascending,
+        descending,
       });
     },
     {
@@ -92,4 +97,23 @@ export function useListFacets() {
     refetchIntervalInBackground: true,
     refetchInterval: 10000,
   });
+}
+
+function useListEnabledComponents() {
+  const api = useContext(QueryServiceContext);
+
+  const { isFlagEnabled } = useFeatureFlags();
+  const isExplorerEnabled = isFlagEnabled('WEAVE_GITOPS_FEATURE_EXPLORER');
+
+  return useQuery<ListEnabledComponentsResponse, Error>(
+    ['enabledComponents', isExplorerEnabled],
+    () => api.ListEnabledComponents({}),
+    { enabled: isExplorerEnabled },
+  );
+}
+
+export function useIsEnabledForComponent(cmp: EnabledComponent) {
+  const { data } = useListEnabledComponents();
+
+  return data?.components?.includes(cmp);
 }

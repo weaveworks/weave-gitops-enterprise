@@ -3,7 +3,7 @@ package rolecollector
 import (
 	"testing"
 
-	"github.com/go-logr/logr/testr"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
@@ -14,7 +14,7 @@ import (
 
 func TestRoleCollector_defaultProcessRecords(t *testing.T) {
 	g := NewWithT(t)
-	log := testr.New(t)
+	log := logr.Discard()
 	fakeStore := &storefakes.FakeStore{}
 
 	//setup data

@@ -66,6 +66,7 @@ import {
   ListPolicyConfigsResponse,
   ListTemplatesResponse,
   ListWorkspacesResponse,
+  RenderTemplateResponse,
 } from '../cluster-services/cluster_services.pb';
 
 import {
@@ -73,8 +74,8 @@ import {
   DebugGetAccessRulesResponse,
   ListFacetsRequest,
   ListFacetsResponse,
-  QueryRequest,
-  QueryResponse,
+  DoQueryRequest,
+  DoQueryResponse,
 } from '../api/query/query.pb';
 
 import Compose from '../components/ProvidersCompose';
@@ -285,6 +286,19 @@ export class ApplicationsClientMock {
     return promisify(this.ValidateProviderTokenReturn);
   }
 }
+
+export class ClustersServiceClientMock {
+  constructor() {
+    this.RenderTemplate = this.RenderTemplate.bind(this);
+  }
+
+  RenderTemplateReturns: RenderTemplateResponse = {};
+
+  RenderTemplate() {
+    return promisify(this.RenderTemplateReturns);
+  }
+}
+
 export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
   constructor() {
     this.ListCanaries = this.ListCanaries.bind(this);
@@ -427,11 +441,11 @@ export class SecretsClientMock {
 }
 
 export class MockQueryService {
-  DoQueryReturns: QueryResponse = {};
+  DoQueryReturns: DoQueryResponse = {};
   DebugGetAccessRulesReturns: DebugGetAccessRulesResponse = {};
   ListFacetsReturns: ListFacetsResponse = {};
 
-  DoQuery(req: QueryRequest, initReq?: any): Promise<QueryResponse> {
+  DoQuery(req: DoQueryRequest, initReq?: any): Promise<DoQueryResponse> {
     return promisify(this.DoQueryReturns);
   }
 

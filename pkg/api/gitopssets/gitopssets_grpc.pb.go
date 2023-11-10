@@ -34,15 +34,15 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GitOpsSetsClient interface {
+	// List GitOpsSets across all clusters
 	ListGitOpsSets(ctx context.Context, in *ListGitOpsSetsRequest, opts ...grpc.CallOption) (*ListGitOpsSetsResponse, error)
+	// Get a GitOpsSet
 	GetGitOpsSet(ctx context.Context, in *GetGitOpsSetRequest, opts ...grpc.CallOption) (*GetGitOpsSetResponse, error)
+	// Toggle suspend on a GitOpsSet
 	ToggleSuspendGitOpsSet(ctx context.Context, in *ToggleSuspendGitOpsSetRequest, opts ...grpc.CallOption) (*ToggleSuspendGitOpsSetResponse, error)
-	//
-	// GetReconciledObjects returns a list of objects
-	// that were created as a result a Flux automation.
-	// This list is derived by looking at the Kustomization
-	// or HelmRelease specified in the request body.
+	// Get the reconciled objects for a GitOpsSet
 	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
+	// Trigger reconciliation of a GitOpsSet
 	SyncGitOpsSet(ctx context.Context, in *SyncGitOpsSetRequest, opts ...grpc.CallOption) (*SyncGitOpsSetResponse, error)
 }
 
@@ -103,15 +103,15 @@ func (c *gitOpsSetsClient) SyncGitOpsSet(ctx context.Context, in *SyncGitOpsSetR
 // All implementations must embed UnimplementedGitOpsSetsServer
 // for forward compatibility
 type GitOpsSetsServer interface {
+	// List GitOpsSets across all clusters
 	ListGitOpsSets(context.Context, *ListGitOpsSetsRequest) (*ListGitOpsSetsResponse, error)
+	// Get a GitOpsSet
 	GetGitOpsSet(context.Context, *GetGitOpsSetRequest) (*GetGitOpsSetResponse, error)
+	// Toggle suspend on a GitOpsSet
 	ToggleSuspendGitOpsSet(context.Context, *ToggleSuspendGitOpsSetRequest) (*ToggleSuspendGitOpsSetResponse, error)
-	//
-	// GetReconciledObjects returns a list of objects
-	// that were created as a result a Flux automation.
-	// This list is derived by looking at the Kustomization
-	// or HelmRelease specified in the request body.
+	// Get the reconciled objects for a GitOpsSet
 	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
+	// Trigger reconciliation of a GitOpsSet
 	SyncGitOpsSet(context.Context, *SyncGitOpsSetRequest) (*SyncGitOpsSetResponse, error)
 	mustEmbedUnimplementedGitOpsSetsServer()
 }

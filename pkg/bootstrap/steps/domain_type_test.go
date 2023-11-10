@@ -1,10 +1,7 @@
 package steps
 
 import (
-	"os"
 	"testing"
-
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 func TestSelectDomainType(t *testing.T) {
@@ -17,7 +14,7 @@ func TestSelectDomainType(t *testing.T) {
 			name: "domain type exist",
 			input: []StepInput{
 				{
-					Name:  domainType,
+					Name:  inDomainType,
 					Value: "localhost",
 				},
 			},
@@ -36,10 +33,8 @@ func TestSelectDomainType(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cliLogger := logger.NewCLILogger(os.Stdout)
-			config := Config{
-				Logger: cliLogger,
-			}
+			config := makeTestConfig(t, Config{})
+
 			_, err := selectDomainType(tt.input, &config)
 			if err != nil {
 				if tt.err {

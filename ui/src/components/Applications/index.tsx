@@ -6,29 +6,27 @@ import {
   Icon,
   IconType,
   Link,
-  useFeatureFlags,
   useListAutomations,
-  V2Routes,
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import React, { FC } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { Object } from '../../api/query/query.pb';
-import { Routes } from '../../utils/nav';
+import { EnabledComponent, Object } from '../../api/query/query.pb';
+import { useIsEnabledForComponent } from '../../hooks/query';
+import { getKindRoute, Routes } from '../../utils/nav';
 import OpenedPullRequest from '../Clusters/OpenedPullRequest';
 import Explorer from '../Explorer/Explorer';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const WGApplicationsDashboard: FC = ({ className }: any) => {
-  const { isFlagEnabled } = useFeatureFlags();
-  const useQueryServiceBackend = isFlagEnabled(
-    'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
+  const isExplorerEnabled = useIsEnabledForComponent(
+    EnabledComponent.applications,
   );
 
   const { data: automations, isLoading } = useListAutomations('', {
-    enabled: !useQueryServiceBackend,
+    enabled: isExplorerEnabled,
     retry: false,
     refetchInterval: 5000,
   });
@@ -39,7 +37,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
 
   return (
     <Page
-      loading={isLoading}
+      loading={!isExplorerEnabled && isLoading}
       path={[
         {
           label: 'Applications',
@@ -60,7 +58,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
             <OpenedPullRequest />
           </Flex>
           <div className={className}>
-            {useQueryServiceBackend ? (
+            {isExplorerEnabled ? (
               <Explorer
                 category="automation"
                 enableBatchSync
@@ -71,26 +69,29 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
                     value: (o: Object & { parsed: any }) => {
                       const sourceAddr =
                         o.kind === 'HelmRelease'
-                          ? 'spec.chart.spec.sourceRef.name'
-                          : 'spec.sourceRef.name';
+                          ? 'spec.chart.spec.sourceRef'
+                          : 'spec.sourceRef';
 
-                      const url = formatURL(V2Routes.Sources, {
-                        name: o.name,
+                      const sourceName = _.get(o.parsed, `${sourceAddr}.name`);
+                      const sourceKind = _.get(o.parsed, `${sourceAddr}.kind`);
+
+                      if (!sourceName || !sourceKind) {
+                        return '-';
+                      }
+
+                      const kind = getKindRoute(sourceKind || '');
+
+                      if (!kind) {
+                        return sourceName;
+                      }
+
+                      const url = formatURL(kind, {
+                        name: sourceName,
                         namespace: o.namespace,
                         clusterName: o.cluster,
                       });
 
-                      const sourceName = _.get(o.parsed, sourceAddr);
-
-                      if (!sourceName) {
-                        return '-';
-                      }
-
-                      return (
-                        <Link to={url}>
-                          {o.namespace}/{sourceName}
-                        </Link>
-                      );
+                      return <Link to={url}>{sourceName}</Link>;
                     },
                   },
                 ]}
@@ -105,4 +106,8 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
   );
 };
 
-export default styled(WGApplicationsDashboard)``;
+export default styled(WGApplicationsDashboard)`
+  tbody tr td:nth-child(6) {
+    white-space: nowrap;
+  }
+`;

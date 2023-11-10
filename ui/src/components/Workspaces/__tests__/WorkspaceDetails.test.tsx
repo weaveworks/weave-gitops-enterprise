@@ -141,39 +141,6 @@ describe('WorkspaceDetails', () => {
     ]);
   });
 
-  it('renders get Workspace details', async () => {
-    const workspace = MockWorkspaceResponse.workspace;
-    api.GetWorkspaceReturns = MockWorkspaceResponse.workspace;
-    await act(async () => {
-      const c = wrap(
-        <WorkspaceDetails
-          clusterName={workspace.clusterName}
-          workspaceName={workspace.name}
-        />,
-      );
-      render(c);
-    });
-
-    //check Tabs
-    const tabs = screen.getAllByRole('tab');
-    expect(screen.getByTitle(workspace.name)).toBeTruthy();
-    expect(workspace.clusterName).toBeDefined();
-    expect(tabs).toHaveLength(4);
-    expect(tabs[0]).toHaveTextContent('Service Accounts');
-    expect(tabs[1]).toHaveTextContent('Roles');
-    expect(tabs[2]).toHaveTextContent('Role Bindings');
-    expect(tabs[3]).toHaveTextContent('Policies');
-
-    expect(screen.getByTestId('Workspace Name')).toHaveTextContent(
-      workspace.name,
-    );
-
-    const namespaces = document.querySelectorAll(
-      '#workspace-details-header-namespaces span',
-    );
-    expect(namespaces).toHaveLength(workspace.namespaces.length);
-  });
-
   it('renders service accounts tab', async () => {
     const filterTable = new TestFilterableTable(
       'service-accounts-list',

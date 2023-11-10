@@ -1,0 +1,48 @@
+/*
+ * This file holds the protobuf definitions for the Preview API 
+ * that can be used to generate previews of known Kubernetes 
+ * resources in YAML.
+ */
+
+syntax = "proto3";
+
+package preview.v1;
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+import "api/preview/types.proto";
+
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/preview/api";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+      title: "Weave GitOps Preview API",
+      version: "0.1";
+      description: "This API enables previews (for example in YAML) for known Kubernetes resources";
+    };
+    consumes: "application/json";
+    produces: "application/json";
+};
+
+/*
+ * PreviewService defines operations that are used for previewing YAML 
+ * representations of known Kubernetes resources.
+ */
+service PreviewService {
+    // FIXME
+    rpc GetYAML(GetYAMLRequest) returns (GetYAMLResponse) {
+        option (google.api.http) = {
+            post : "/v1/preview/yaml"
+            body: "*"
+        };
+    }
+
+    // FIXME
+    rpc CreatePullRequest(CreatePullRequestRequest) returns (CreatePullRequestResponse){
+        option (google.api.http) = {
+            post : "/v1/preview/pull-requests"
+            body: "*"
+        };
+    }
+}

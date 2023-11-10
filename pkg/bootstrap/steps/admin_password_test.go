@@ -1,26 +1,24 @@
 package steps
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"golang.org/x/crypto/bcrypt"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestCreateCredentials(t *testing.T) {
 	tests := []struct {
-		name     string
-		secret   *v1.Secret
-		input    []StepInput
-		password string
-		output   []StepOutput
-		err      bool
+		name       string
+		secret     *v1.Secret
+		input      []StepInput
+		password   string
+		output     []StepOutput
+		isExisting bool
+		canAsk     bool
+		err        bool
 	}{
 		{
 			name:     "secret doesn't exist",
@@ -28,15 +26,11 @@ func TestCreateCredentials(t *testing.T) {
 			password: "password",
 			input: []StepInput{
 				{
-					Name:  UserName,
-					Value: "wego-admin",
-				},
-				{
-					Name:  Password,
+					Name:  inPassword,
 					Value: "password",
 				},
 				{
-					Name:  existingCreds,
+					Name:  inExistingCreds,
 					Value: false,
 				},
 			},
@@ -50,12 +44,14 @@ func TestCreateCredentials(t *testing.T) {
 							Namespace: WGEDefaultNamespace,
 						},
 						Data: map[string][]byte{
-							"username": []byte("wego-admin"),
+							"username": []byte(defaultAdminUsername),
 						},
 					},
 				},
 			},
-			err: false,
+			err:        false,
+			isExisting: false,
+			canAsk:     true,
 		},
 		{
 			name: "secret exist and user refuse to continue",
@@ -63,26 +59,24 @@ func TestCreateCredentials(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{Name: adminSecretName, Namespace: WGEDefaultNamespace},
 				Type:       "Opaque",
 				Data: map[string][]byte{
-					"username": []byte("test-username"),
+					"username": []byte(defaultAdminUsername),
 					"password": []byte("test-password"),
 				},
 			},
 			password: "password",
 			input: []StepInput{
 				{
-					Name:  UserName,
-					Value: "wego-admin",
-				},
-				{
-					Name:  Password,
+					Name:  inPassword,
 					Value: "password",
 				},
 				{
-					Name:  existingCreds,
+					Name:  inExistingCreds,
 					Value: "n",
 				},
 			},
-			err: true,
+			err:        true,
+			isExisting: true,
+			canAsk:     true,
 		},
 		{
 			name: "secret exist and user continue",
@@ -90,22 +84,18 @@ func TestCreateCredentials(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{Name: adminSecretName, Namespace: WGEDefaultNamespace},
 				Type:       "Opaque",
 				Data: map[string][]byte{
-					"username": []byte("test-username"),
+					"username": []byte(defaultAdminUsername),
 					"password": []byte("test-password"),
 				},
 			},
 			password: "password",
 			input: []StepInput{
 				{
-					Name:  UserName,
-					Value: "wego-admin",
-				},
-				{
-					Name:  Password,
+					Name:  inPassword,
 					Value: "password",
 				},
 				{
-					Name:  existingCreds,
+					Name:  inExistingCreds,
 					Value: "y",
 				},
 			},
@@ -119,32 +109,21 @@ func TestCreateCredentials(t *testing.T) {
 							Namespace: WGEDefaultNamespace,
 						},
 						Data: map[string][]byte{
-							"username": []byte("wego-admin"),
+							"username": []byte(defaultAdminUsername),
 						},
 					},
 				},
 			},
-			err: false,
+			err:        false,
+			isExisting: true,
+			canAsk:     false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			scheme := runtime.NewScheme()
-			schemeBuilder := runtime.SchemeBuilder{
-				v1.AddToScheme,
-			}
-			err := schemeBuilder.AddToScheme(scheme)
-			if err != nil {
-				t.Fatal(err)
-			}
-			fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.secret).Build()
-			cliLogger := logger.NewCLILogger(os.Stdout)
+			config := makeTestConfig(t, Config{}, tt.secret)
 
-			config := Config{
-				KubernetesClient: fakeClient,
-				Logger:           cliLogger,
-			}
 			out, err := createCredentials(tt.input, &config)
 			if err != nil {
 				if tt.err {
@@ -169,6 +148,11 @@ func TestCreateCredentials(t *testing.T) {
 				assert.Equal(t, outSecret.Data["username"], inSecret.Data["username"], "mismatch username")
 				assert.NoError(t, bcrypt.CompareHashAndPassword(outSecret.Data["password"], []byte(tt.password)), "mismatch password")
 			}
+			isExisting := isExistingAdminSecret(tt.input, &config)
+			assert.Equal(t, tt.isExisting, isExisting, "incorrect result")
+
+			canAsk := canAskForCreds(tt.input, &config)
+			assert.Equal(t, tt.canAsk, canAsk, "incorrect result")
 		})
 	}
 }

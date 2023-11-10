@@ -1,10 +1,4 @@
-import {
-  Button,
-  Flex,
-  GitRepository,
-  Link,
-  Page,
-} from '@weaveworks/weave-gitops';
+import { Flex, GitRepository, Link, Page } from '@weaveworks/weave-gitops';
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
@@ -23,7 +17,7 @@ import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import { getRepositoryUrl } from '../../Templates/Form/utils';
 import ListClusters from '../Shared/ListClusters';
-import { PreviewModal, SecretType } from '../Shared/PreviewModal';
+import { Preview, SecretType } from '../Shared/Preview';
 import {
   ExternalSecret,
   FormWrapperSecret,
@@ -223,23 +217,21 @@ const CreateExternalSecret = () => {
               validateForm={validateForm}
             />
             <GitOps
+              loading={loading}
+              isAuthenticated={isAuthenticated}
               formData={formData}
               setFormData={setFormData}
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
               formError={formError}
               enableGitRepoSelection={true}
-            />
-            <Flex end className="gitops-cta">
-              <Button
-                loading={loading}
-                type="submit"
-                disabled={!isAuthenticated || loading}
-              >
-                CREATE PULL REQUEST
-              </Button>
-              <PreviewModal formData={formData} secretType={SecretType.ES} />
-            </Flex>
+            >
+              <Preview
+                formData={formData}
+                secretType={SecretType.ES}
+                setFormError={setFormError}
+              />
+            </GitOps>
           </FormWrapperSecret>
         </NotificationsWrapper>
       </CallbackStateContextProvider>

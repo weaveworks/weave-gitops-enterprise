@@ -47,7 +47,7 @@ func TestGetListPullRequest(t *testing.T) {
 	prs := []*git.PullRequest{gitfakes.NewPullRequest(0, "testing", pipelineNamespace.Name+"/pipe-2/env-1", "http://example.com/foo/bar/pulls/1", false, "main")}
 	fakeGitProvider := gitfakes.NewFakeGitProvider("", nil, nil, nil, prs)
 
-	factory := grpctesting.MakeClustersManager(kclient, "management", fmt.Sprintf("%s/cluster-1", pipelineNamespace.Name))
+	factory := grpctesting.MakeClustersManager(kclient, nil, "management", fmt.Sprintf("%s/cluster-1", pipelineNamespace.Name))
 	serverClient := pipetesting.SetupServer(t, factory, kclient, "management", "", fakeGitProvider)
 
 	res, err := serverClient.ListPullRequests(context.Background(), &pb.ListPullRequestsRequest{

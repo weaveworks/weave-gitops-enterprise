@@ -868,7 +868,7 @@ export class ClustersService {
     return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
-    return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/templates/pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}/pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static CreateDeletionPullRequest(req: CreateDeletionPullRequestRequest, initReq?: fm.InitReq): Promise<CreateDeletionPullRequestResponse> {
     return fm.fetchReq<CreateDeletionPullRequestRequest, CreateDeletionPullRequestResponse>(`/v1/templates/deletion-pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -880,7 +880,7 @@ export class ClustersService {
     return fm.fetchReq<CreateAutomationsPullRequestRequest, CreateAutomationsPullRequestResponse>(`/v1/automations/pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListCredentials(req: ListCredentialsRequest, initReq?: fm.InitReq): Promise<ListCredentialsResponse> {
-    return fm.fetchReq<ListCredentialsRequest, ListCredentialsResponse>(`/v1/credentials?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListCredentialsRequest, ListCredentialsResponse>(`/v1/templates/capi-identities?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static CreateTfControllerPullRequest(req: CreateTfControllerPullRequestRequest, initReq?: fm.InitReq): Promise<CreateTfControllerPullRequestResponse> {
     return fm.fetchReq<CreateTfControllerPullRequestRequest, CreateTfControllerPullRequestResponse>(`/v1/tfcontrollers/pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -937,7 +937,7 @@ export class ClustersService {
     return fm.fetchReq<ListExternalSecretStoresRequest, ListExternalSecretStoresResponse>(`/v1/external-secrets-stores?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static SyncExternalSecrets(req: SyncExternalSecretsRequest, initReq?: fm.InitReq): Promise<SyncExternalSecretsResponse> {
-    return fm.fetchReq<SyncExternalSecretsRequest, SyncExternalSecretsResponse>(`/v1/external-secrets/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<SyncExternalSecretsRequest, SyncExternalSecretsResponse>(`/v1/external-secrets/sync`, {...initReq, method: "PATCH", body: JSON.stringify(req)})
   }
   static EncryptSopsSecret(req: EncryptSopsSecretRequest, initReq?: fm.InitReq): Promise<EncryptSopsSecretResponse> {
     return fm.fetchReq<EncryptSopsSecretRequest, EncryptSopsSecretResponse>(`/v1/encrypt-sops-secret`, {...initReq, method: "POST", body: JSON.stringify(req)})

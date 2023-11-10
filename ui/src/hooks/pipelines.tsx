@@ -24,8 +24,8 @@ export const useApprove = () => {
         {
           message: {
             component: (
-              <Link href={data.pullRequestURL} newTab>
-                {data.pullRequestURL ? 'Click to view PR' : 'No PR to Approve'}
+              <Link href={data.pullRequestUrl} newTab>
+                {data.pullRequestUrl ? 'Click to view PR' : 'No PR to Approve'}
               </Link>
             ),
           },

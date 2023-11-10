@@ -22,14 +22,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/alexedwards/scs/v2"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
-
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
-
-	queryserver "github.com/weaveworks/weave-gitops-enterprise/pkg/query/server"
-
 	"github.com/NYTimes/gziphandler"
+	"github.com/alexedwards/scs/v2"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
@@ -51,7 +45,7 @@ import (
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	csgit "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
@@ -61,11 +55,17 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	gitauth_server "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	gitopssets "github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
 	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/preview"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
+	queryserver "github.com/weaveworks/weave-gitops-enterprise/pkg/query/server"
 	tfserver "github.com/weaveworks/weave-gitops-enterprise/pkg/terraform"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -96,8 +96,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-
-	"net/http/pprof"
 )
 
 const (
@@ -160,10 +158,13 @@ type Params struct {
 	GitProviderCSRFCookieDuration     time.Duration             `mapstructure:"git-provider-csrf-cookie-duration"`
 	CollectorServiceAccountName       string                    `mapstructure:"collector-serviceaccount-name"`
 	CollectorServiceAccountNamespace  string                    `mapstructure:"collector-serviceaccount-namespace"`
-	MetricsEnabled                    bool                      `mapstructure:"metrics-enabled"`
-	MetricsBindAddress                string                    `mapstructure:"metrics-bind-address"`
+	MonitoringEnabled                 bool                      `mapstructure:"monitoring-enabled"`
+	MonitoringBindAddress             string                    `mapstructure:"monitoring-bind-address"`
+	MetricsEnabled                    bool                      `mapstructure:"monitoring-metrics-enabled"`
+	ProfilingEnabled                  bool                      `mapstructure:"monitoring-profiling-enabled"`
 	EnableObjectCleaner               bool                      `mapstructure:"enable-object-cleaner"`
 	NoAuthUser                        string                    `mapstructure:"insecure-no-authentication-user"`
+	ExplorerEnabledFor                []string                  `mapstructure:"explorer-enabled-for"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -266,10 +267,13 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("collector-serviceaccount-name", "", "name of the serviceaccount that collector impersonates to watch leaf clusters.")
 	cmdFlags.String("collector-serviceaccount-namespace", "", "namespace of the serviceaccount that collector impersonates to watch leaf clusters.")
 	cmdFlags.Bool("explorer-cleaner-disabled", false, "Enables the Explorer object cleaner that manages retaining objects")
+	cmdFlags.StringSlice("explorer-enabled-for", []string{}, "List of components that the Explorer is enabled for")
 
-	// Metrics
-	cmdFlags.Bool("metrics-enabled", false, "creates prometheus metrics endpoint")
-	cmdFlags.String("metrics-bind-address", "", "The address the metric endpoint binds to.")
+	// Monitoring
+	cmdFlags.Bool("monitoring-enabled", false, "creates monitoring server")
+	cmdFlags.String("monitoring-bind-address", "", "monitoring server binding address")
+	cmdFlags.Bool("monitoring-metrics-enabled", false, "exposes metrics endpoint in monitoring server. requires monitoring enabled.")
+	cmdFlags.Bool("monitoring-profiling-enabled", false, "exposes profiling endpoint in monitoring server. requires monitoring enabled.")
 
 	cmdFlags.VisitAll(func(fl *flag.Flag) {
 		if strings.HasPrefix(fl.Name, "cost-estimation") {
@@ -547,7 +551,7 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		}),
 		WithKubernetesClient(kubeClient),
 		WithDiscoveryClient(discoveryClient),
-		WithGitProvider(git.NewGitProviderService(log)),
+		WithGitProvider(csgit.NewGitProviderService(log)),
 		WithApplicationsConfig(appsConfig),
 		WithCoreConfig(coreCfg),
 		WithGrpcRuntimeOptions(
@@ -572,8 +576,9 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		WithUIConfig(p.UIConfig),
 		WithPipelineControllerAddress(p.PipelineControllerAddress),
 		WithCollectorServiceAccount(p.CollectorServiceAccountName, p.CollectorServiceAccountNamespace),
-		WithMetrics(p.MetricsEnabled, p.MetricsBindAddress, log),
+		WithMonitoring(p.MonitoringEnabled, p.MonitoringBindAddress, p.MetricsEnabled, p.ProfilingEnabled, log),
 		WithObjectCleaner(p.EnableObjectCleaner),
+		WithExplorerEnabledFor(p.ExplorerEnabledFor),
 	)
 }
 
@@ -694,6 +699,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ObjectKinds:         configuration.SupportedObjectKinds,
 			ServiceAccount:      args.CollectorServiceAccount,
 			EnableObjectCleaner: args.EnableObjectCleaner,
+			EnabledFor:          args.ExplorerEnabledFor,
 		})
 		if err != nil {
 			return fmt.Errorf("hydrating query server: %w", err)
@@ -728,6 +734,13 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		ClientsFactory: args.ClustersManager,
 	}); err != nil {
 		return fmt.Errorf("hydrating gitopssets server: %w", err)
+	}
+
+	if err := preview.Hydrate(ctx, grpcMux, preview.ServerOpts{
+		Logger:          args.Log,
+		ProviderCreator: git.NewFactory(args.Log),
+	}); err != nil {
+		return fmt.Errorf("hydrating preview server")
 	}
 
 	// UI
@@ -816,16 +829,20 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Secure `/v1` and `/gitops/api` API routes
 	grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes(), args.SessionManager)
 
-	var metricsServer *http.Server
-
-	if args.MetricsOptions.Enabled {
-		metricsServer = metrics.NewPrometheusServer(args.MetricsOptions)
+	// monitoring server
+	var monitoringServer *http.Server
+	if args.MonitoringOptions.Enabled {
+		monitoringServer, err = monitoring.NewServer(args.MonitoringOptions)
+		if err != nil {
+			return fmt.Errorf("cannot create monitoring server: %w", err)
+		}
+		args.Log.Info("monitoring server started")
 	}
 
 	commonMiddleware := func(mux http.Handler) http.Handler {
 		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
 
-		if args.MetricsOptions.Enabled {
+		if args.MonitoringOptions.MetricsOptions.Enabled {
 			wrapperHandler = metrics.WithHttpMetrics(wrapperHandler)
 		}
 
@@ -839,10 +856,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
-
-	if os.Getenv("WEAVE_GITOPS_ENABLE_PROFILING") == "true" {
-		mux.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
-	}
 
 	staticAssetsWithGz := gziphandler.GzipHandler(staticAssets)
 
@@ -869,9 +882,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		if err := s.Shutdown(context.Background()); err != nil {
 			args.Log.Error(err, "Failed to shutdown http gateway server")
 		}
-		if args.MetricsOptions.Enabled && metricsServer != nil {
-			if err := metricsServer.Shutdown(ctx); err != nil {
-				args.Log.Error(err, "Failed to shutdown metrics server")
+		if args.MonitoringOptions.Enabled && monitoringServer != nil {
+			if err := monitoringServer.Shutdown(ctx); err != nil {
+				args.Log.Error(err, "Failed to shutdown management server")
 			}
 		}
 	}()

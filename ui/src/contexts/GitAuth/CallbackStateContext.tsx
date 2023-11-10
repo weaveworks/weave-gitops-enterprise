@@ -19,5 +19,9 @@ export default function CallbackStateContextProvider({
   const value: CallbackStateContextType = {
     callbackState,
   };
-  return <CallbackStateContext.Provider value={value} children={children} />;
+  return (
+    <CallbackStateContext.Provider value={value}>
+      {children}
+    </CallbackStateContext.Provider>
+  );
 }

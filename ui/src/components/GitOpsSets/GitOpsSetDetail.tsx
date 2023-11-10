@@ -16,6 +16,7 @@ import {
   RequestStateHandler,
   RouterTab,
   SubRouterTabs,
+  SyncControls,
   YamlView,
 } from '@weaveworks/weave-gitops';
 import { GroupVersionKind } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
@@ -131,7 +132,6 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   } = useGetReconciledTree(
     gs?.name || '',
     gs?.namespace || '',
-    'GitOpsSet',
     (getInventory(gs) as GroupVersionKind[]) || [],
     gs?.clusterName || '',
   );
@@ -158,6 +158,8 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     clusterName: gs.clusterName || '',
   };
 
+  const suspended = gs?.suspended;
+
   return (
     <Page
       loading={gitOpsSetLoading || isLoading}
@@ -179,26 +181,16 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           />
         </Box>
         <Box paddingBottom={3}>
-          <Flex>
-            <Button
-              loading={syncing}
-              variant="outlined"
-              onClick={handleSyncClick}
-              style={{ marginRight: 0, textTransform: 'uppercase' }}
-            >
-              Sync
-            </Button>
-            <Box paddingLeft={1}>
-              <Button
-                loading={suspending}
-                variant="outlined"
-                onClick={handleSuspendClick}
-                style={{ marginRight: 0, textTransform: 'uppercase' }}
-              >
-                {gs?.suspended ? 'Resume' : 'Suspend'}
-              </Button>
-            </Box>
-          </Flex>
+          <SyncControls
+            hideSyncOptions
+            syncLoading={syncing}
+            syncDisabled={suspended}
+            suspendDisabled={suspending || suspended}
+            resumeDisabled={suspending || !suspended}
+            onSyncClick={handleSyncClick}
+            onSuspendClick={handleSuspendClick}
+            onResumeClick={handleSuspendClick}
+          />
         </Box>
         <SubRouterTabs rootPath={`${path}/details`}>
           <RouterTab name="Details" path={`${path}/details`}>
@@ -208,7 +200,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
                 items={[
                   ['Observed generation', gs?.observedGeneration],
                   ['Cluster', gs?.clusterName],
-                  ['Suspended', gs?.suspended ? 'True' : 'False'],
+                  ['Suspended', suspended ? 'True' : 'False'],
                 ]}
               />
               <Metadata metadata={getMetadata(gs)} labels={getLabels(gs)} />

@@ -1,4 +1,4 @@
-import { formatURL } from '@weaveworks/weave-gitops';
+import { Text, formatURL } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import { Routes } from '../../utils/nav';
 
@@ -37,5 +37,9 @@ export function ClusterDashboardLink({
   namespace,
 }: Props): JSX.Element {
   const clsUrl = formatClusterDashboardUrl({ clusterName, namespace });
-  return <>{clsUrl ? <Link to={clsUrl}>{clusterName}</Link> : clusterName}</>;
+  return clsUrl ? (
+    <Link to={clsUrl}>{clusterName}</Link>
+  ) : (
+    <Text>{clusterName}</Text>
+  );
 }

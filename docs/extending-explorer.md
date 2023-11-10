@@ -17,6 +17,12 @@ Things to know:
 kind manages to meet the [FluxObject interface](https://github.com/weaveworks/weave-gitops-enterprise/blob/9534aa348ac40928e18fe741de0c7b3c0bb89d14/pkg/query/configuration/objectkind.go#L83)
 3. Add an [RBAC entry](https://github.com/weaveworks/weave-gitops-enterprise/blob/9101b60a487e1f999b4e988e9ca27bdde4ac7538/charts/mccp/templates/clusters-service/collector.yaml#L13) to WeGO ServiceAccount for your kind
 
+### Support for labels
+
+Add the labels that you want to have available for searching in Explorer. See [GitopsTemplate](https://github.com/weaveworks/weave-gitops-enterprise/blob/01c5017a4032374487af27fd50dfacd38a4593b2/pkg/query/configuration/objectkind.go#L275) as an example. 
+- Searching works by filtering by label indexed field which is `labels.labelKey`.
+- Further support to map indexed fields to api field will be added so you could be abstracted of the indexer details. 
+
 ## Using the default Explorer UI component
 
 If you would like to use default Explorer view with your Kind:

@@ -92,4 +92,5 @@ func TestObjectKind_Validate(t *testing.T) {
 		}
 		g.Expect(kind.Validate().Error()).To(Equal("missing message func"))
 	})
+
 }

@@ -218,6 +218,7 @@ func createFakeClient(t *testing.T, clusterState ...runtime.Object) client.Clien
 	c := fake.NewClientBuilder().
 		WithScheme(scheme).
 		WithRuntimeObjects(clusterState...).
+		WithStatusSubresource(&sourcev1.HelmChart{}).
 		Build()
 
 	return c
