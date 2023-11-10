@@ -20,7 +20,7 @@ jobs:
     needs: build
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         fetch-depth: 0
     - name: Build Changelog
@@ -42,11 +42,11 @@ jobs:
     needs: releaser
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       with:
         fetch-depth: 0
     - name: Setup Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
       with:
         go-version: 1.20.x
     - name: Configure git for private modules
@@ -61,13 +61,13 @@ jobs:
         echo "GORELEASER_PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))" >> $GITHUB_ENV
         echo "GORELEASER_CURRENT_TAG=$(git describe --abbrev=0 --tags)" >> $GITHUB_ENV
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v1-node16
+      uses: aws-actions/configure-aws-credentials@010d0da01d0b5a38af31e9c3470dbfdabdecca3a # v4.0.1
       with:
         aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-central-1
     - name: Run GoReleaser
-      uses: goreleaser/goreleaser-action@v1
+      uses: goreleaser/goreleaser-action@7ec5c2b0c6cdda6e8bbb49444bc797dd33d74dd8 # v5.0.0
       with:
         version: latest
         args: release --rm-dist
