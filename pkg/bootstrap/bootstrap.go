@@ -9,7 +9,7 @@ import (
 // Bootstrap initiated by the command runs the WGE bootstrap workflow
 func Bootstrap(config steps.Config) error {
 
-	adminCredentials, err := steps.NewAskAdminCredsSecretStep(config)
+	adminCredentials, err := steps.NewAskAdminCredsSecretStep(config.ClusterUserAuth)
 	if err != nil {
 		return fmt.Errorf("cannot create ask admin creds step: %v", err)
 	}

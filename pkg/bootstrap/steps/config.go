@@ -208,7 +208,6 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		}
 	}
 
-	// cluster user configuration
 	clusterUserAuthConfig, err := NewClusterUserAuthConfig(cb.password, kubeHttp.Client)
 	if err != nil {
 		return Config{}, fmt.Errorf("cannot configure cluster user auth:%v", err)

@@ -17,8 +17,9 @@ type BootstrapStep struct {
 	Step   func(input []StepInput, c *Config) ([]StepOutput, error)
 }
 
-// StepInputConfig represent the config structure for an input step
-type StepInputConfig struct {
+// StepInput represents an input an step requires to execute it. for example the
+// user needs to introduce an string or a password.
+type StepInput struct {
 	Name            string
 	Msg             string
 	StepInformation string
@@ -29,35 +30,6 @@ type StepInputConfig struct {
 	Valuesfn        func(input []StepInput, c *Config) (interface{}, error)
 	Enabled         func(input []StepInput, c *Config) bool
 	Required        bool
-}
-
-// StepInput represents an input asked to a user
-type StepInput struct {
-	// Name is the step input name to be used for is puproses
-	Name string
-	// Msg is the message to be displayed to the user
-	Msg string
-	// StepInformation is the message to be displayed to the user before asking for the input
-	StepInformation string
-	// Type is the type of the input
-	Type string
-	// Value is value introduced by the user during the interactive session
-	Value any
-	// SuggestedValue is the value that the user will see suggest as part of their interactive question. It would be selected by default.
-	SuggestedValue any
-}
-
-// NewStepInput creates a new step input from the parameters. Creation process do three things
-// Create does three things: generate structure, resolve existing value, create suggested value
-func NewStepInput(sc *StepInputConfig) (StepInput, error) {
-	// resolve existing value
-
-	// create suggested from suggested value or default
-	return StepInput{
-		Name: sc.Name,
-		Msg:  sc.Msg,
-	}, nil
-
 }
 
 // StepOutput represents an output generated out of the execution of a step.

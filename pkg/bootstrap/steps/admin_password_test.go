@@ -3,6 +3,7 @@ package steps
 import (
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 	v1 "k8s.io/api/core/v1"
@@ -148,11 +149,65 @@ func TestCreateCredentials(t *testing.T) {
 				assert.Equal(t, outSecret.Data["username"], inSecret.Data["username"], "mismatch username")
 				assert.NoError(t, bcrypt.CompareHashAndPassword(outSecret.Data["password"], []byte(tt.password)), "mismatch password")
 			}
-			isExisting := isExistingAdminSecret(tt.input, &config)
+			isExisting := isExistingAdminSecret(config.KubernetesClient)
 			assert.Equal(t, tt.isExisting, isExisting, "incorrect result")
 
 			canAsk := canAskForCreds(tt.input, &config)
 			assert.Equal(t, tt.canAsk, canAsk, "incorrect result")
+		})
+	}
+}
+
+func TestNewAskAdminCredsSecretStep(t *testing.T) {
+	tests := []struct {
+		name string
+
+		config ClusterUserAuthConfig
+		silent bool
+
+		want    BootstrapStep
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name: "day0/1 interactive - ask suggest default - <no existing, no values, no silent>",
+			config: ClusterUserAuthConfig{
+				ExistCredentials: false,
+			},
+			silent: false,
+			want: BootstrapStep{
+				Name: "user authentication",
+				Input: []StepInput{
+					getPasswordInput2,
+				},
+			},
+		},
+		{
+			name: "day1 no-interactive - no ask use input - <no existing, values, silent>",
+		},
+		{
+			name: "day1 no-interactive - no ask use existing - <existing, no values, silent>",
+		},
+		{
+			name: "day1 no-interactive - overwrite - <existing, values, silent>",
+		},
+		{
+			name: "day1 interactive - ask suggest previous value - <existing, no values, no silent>",
+		},
+		{
+			name: "day1 interactive - ask conflict - <existing, values, no silent>",
+		},
+		{
+			name: "day1 interactive - no ask use input - <no existing, values, no silent>",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewAskAdminCredsSecretStep(tt.config, tt.silent)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want.Name, got.Name)
+			if diff := cmp.Diff(tt.want.Input, got.Input); diff != "" {
+				t.Fatalf("different step expected:\n%s", diff)
+			}
 		})
 	}
 }

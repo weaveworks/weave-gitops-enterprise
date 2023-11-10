@@ -24,7 +24,7 @@ const (
 	defaultAdminUsername = "wego-admin"
 )
 
-var getPasswordInputConfig = StepInputConfig{
+var getPasswordInput = StepInput{
 	Name:         inPassword,
 	Type:         passwordInput,
 	Msg:          adminPasswordMsg,
@@ -33,12 +33,20 @@ var getPasswordInputConfig = StepInputConfig{
 	Required:     true,
 }
 
+var getPasswordInput2 = StepInput{
+	Name:         inPassword,
+	Type:         passwordInput,
+	Msg:          adminPasswordMsg,
+	DefaultValue: defaultAdminPassword,
+}
+
 type ClusterUserAuthConfig struct {
 	Username         string
 	Password         string
 	ExistCredentials bool
 }
 
+// NewClusterUserAuthConfig creates new configuration out of the user input and discovered state
 func NewClusterUserAuthConfig(password string, client k8s_client.Client) (ClusterUserAuthConfig, error) {
 	if password != "" && len(password) < 6 {
 		return ClusterUserAuthConfig{}, fmt.Errorf("password minimum characters should be >= 6")
@@ -50,22 +58,18 @@ func NewClusterUserAuthConfig(password string, client k8s_client.Client) (Cluste
 	}, nil
 }
 
-// NewAskAdminCredsSecretStep asks user about admin  password.
-// admin password are you used for accessing WGE Dashboard
-// for emergency access. OIDC can be used instead.
-// there an option to revert these creds in case OIDC setup is successful
-// if the creds already exist. user will be asked to continue with the current creds
-// Or existing and deleting the creds then re-run the bootstrap process
-func NewAskAdminCredsSecretStep(config Config) (BootstrapStep, error) {
+// NewAskAdminCredsSecretStep asks user about admin password.
+// Admin password are you used for accessing WGE Dashboard for emergency access.
+// Users will be asked to continue with the current creds or overriding existing credentials during bootstrapping.
+func NewAskAdminCredsSecretStep(config ClusterUserAuthConfig, silent bool) (BootstrapStep, error) {
 	inputs := []StepInput{}
 
-	if config.Password == "" {
-		getPasswordInput, err := NewStepInput(&getPasswordInputConfig)
-		if err != nil {
-			return BootstrapStep{}, fmt.Errorf("cannot create password input: %v", err)
+	if !silent {
+		if !config.ExistCredentials {
+			if config.Password == "" {
+				inputs = append(inputs, getPasswordInput2)
+			}
 		}
-
-		inputs = append(inputs, getPasswordInput)
 	}
 
 	return BootstrapStep{
@@ -82,7 +86,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 		if param.Name == inPassword {
 			password, ok := param.Value.(string)
 			if ok {
-				c.Password = password
+				c.ClusterUserAuth.Password = password
 			}
 		}
 		if param.Name == inExistingCreds {
@@ -93,7 +97,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 		}
 	}
 
-	if existing := isExistingAdminSecret(input, c); existing {
+	if existing := isExistingAdminSecret(c.KubernetesClient); existing {
 		if continueWithExistingCreds != confirmYes {
 			return []StepOutput{}, fmt.Errorf(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
 		} else {
@@ -101,7 +105,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 		}
 	}
 
-	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(c.Password), bcrypt.DefaultCost)
+	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(c.ClusterUserAuth.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
@@ -140,5 +144,5 @@ func isExistingAdminSecret(client k8s_client.Client) bool {
 }
 
 func canAskForCreds(input []StepInput, c *Config) bool {
-	return !isExistingAdminSecret(input, c)
+	return !isExistingAdminSecret(c.KubernetesClient)
 }

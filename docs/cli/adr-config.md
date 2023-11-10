@@ -23,17 +23,24 @@ explicit demand of the user.
 
 We then analysis options and give recommendations. 
 
+## Validation scenarios.
+
+1. `Day-0-Likely`: A user that haven't bootstrapped yet and wants to bootstrap interactive: `flux bootstrap`
+   - ask - the common case where you have little knowledge
+2. `Day-0-UnLikely`:A user that havent bootstrapped yet and wants non-interactive or silent: `flux bootstrap -s`
+   - ignore: it is rare cause there is conflicting principle that is unlikely that you would get the journey completed without
+     several attempts as there are many flags to introduce. Non-interactive scenarios are more likely for day1 journeys.
+3. `Day-1-Likely`: a user that have bootstrapped and wants non-interactive (silent) mode
+    - no ask - use input: you dont have previous values and have signaled that you want to use flag values.
+    - no ask - use existing: you do have previous values and no new values.
+    - no ask - overwrite: you have already previous values and have signaled that you want to use flag values. 
+4. `Day-1-Likely`: a user that have bootstrapped but wants interactive
+    - ask suggest previous value: you have previous values no values introduced
+    - ask conflict: you have previous values and values introduced
+    - no ask - use values: you dont have previous values and values introduced
+
 ## Option A: there is no default values configuration layer
 
-### Validation scenarios. 
-
-1. `Day-0-Likely`: A user that havent bootstrapped yet and wants to bootstrap interactive: `flux bootstrap`
-- the common case where you have little knowledge
-2. `Day-0-UnLikely`:A user that havent bootstrapped yet and wants to bootstrap non-interactive: `flux bootstrap --flags as ui`
-- it is rare cause there is conflicting principle that is unlikely that you would get the journey completed without 
-several attempts as there are many flags to introduce. Non-interactive scenarios are more likely for day1 journeys. 
-3. `Day-1-Likely`: a user that have bootstrapped and wants to overwrite non-interactive:
-4. `Day-1-Likely `: a user that have bootstrapped and wants to overwrite interactive:
 
 ### How it looks like 
 
