@@ -137,7 +137,7 @@ export function useGetKubeconfig() {
     (req: Required<GetKubeconfigRequest>, filename: string) => {
       return rawRequest(
         'GET',
-        `/v1/namespaces/${req.clusterNamespace}/clusters/${req.clusterName}/kubeconfig`,
+        `/v1/namespaces/${req.namespace}/clusters/${req.name}/kubeconfig`,
         {
           headers: {
             Accept: 'application/octet-stream',

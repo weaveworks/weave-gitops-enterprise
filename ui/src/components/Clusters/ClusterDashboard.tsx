@@ -57,15 +57,11 @@ const ClusterDashboard = ({
 
   const handleClick = () => {
     setDisabled(true);
-    getKubeconfig(
-      {
-        clusterName: currentCluster.name,
-        clusterNamespace: currentCluster.namespace,
+    getKubeconfig(currentCluster, `${currentCluster?.name}.kubeconfig`).finally(
+      () => {
+        setDisabled(false);
       },
-      `${currentCluster?.name}.kubeconfig`,
-    ).finally(() => {
-      setDisabled(false);
-    });
+    );
   };
 
   const info = [
