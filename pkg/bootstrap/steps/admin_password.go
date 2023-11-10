@@ -33,11 +33,26 @@ var getPasswordInput = StepInput{
 	Required:     true,
 }
 
-var getPasswordInput2 = StepInput{
+var getPasswordWithDefaultInput = StepInput{
 	Name:         inPassword,
 	Type:         passwordInput,
 	Msg:          adminPasswordMsg,
 	DefaultValue: defaultAdminPassword,
+}
+
+var getPasswordWithExisting = StepInput{
+	Name:         inPassword,
+	Type:         passwordInput,
+	Msg:          adminPasswordMsg,
+	DefaultValue: defaultAdminPassword,
+}
+
+var getPasswordWithExistingAndUserInput = StepInput{
+	Name:         inPassword,
+	Type:         passwordInput,
+	Msg:          adminPasswordMsg,
+	DefaultValue: defaultAdminPassword,
+	AlreadyExist: true,
 }
 
 type ClusterUserAuthConfig struct {
@@ -63,15 +78,19 @@ func NewClusterUserAuthConfig(password string, client k8s_client.Client) (Cluste
 // Users will be asked to continue with the current creds or overriding existing credentials during bootstrapping.
 func NewAskAdminCredsSecretStep(config ClusterUserAuthConfig, silent bool) (BootstrapStep, error) {
 	inputs := []StepInput{}
-
+	// TODO: refactor as this is general ... if not silent ask the user whether to create or update
 	if !silent {
+		// current state layer
 		if !config.ExistCredentials {
+			// insert
 			if config.Password == "" {
-				inputs = append(inputs, getPasswordInput2)
+				inputs = append(inputs, getPasswordWithDefaultInput)
 			}
+		} else {
+			// update
+			inputs = append(inputs, getPasswordWithExistingAndUserInput)
 		}
 	}
-
 	return BootstrapStep{
 		Name:  "user authentication",
 		Input: inputs,

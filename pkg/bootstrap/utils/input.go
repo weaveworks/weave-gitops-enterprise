@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"io"
 	"strings"
 
 	"github.com/manifoldco/promptui"
@@ -85,10 +86,12 @@ func GetStringInput(msg string, defaultValue string) (string, error) {
 }
 
 // GetConfirmInput prompt to get yes or no input.
-func GetConfirmInput(msg string) string {
+func GetConfirmInput(msg string, stdin io.ReadCloser) string {
+
 	prompt := promptui.Prompt{
 		Label:     msg,
 		IsConfirm: true,
+		Stdin:     stdin,
 	}
 
 	result, err := prompt.Run()

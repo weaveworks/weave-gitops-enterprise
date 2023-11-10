@@ -169,35 +169,86 @@ func TestNewAskAdminCredsSecretStep(t *testing.T) {
 		wantErr assert.ErrorAssertionFunc
 	}{
 		{
-			name: "day0/1 interactive - ask suggest default - <no existing, no values, no silent>",
+			name:   "day0/1 interactive - ask suggest default - <no silent, no existing, no values >",
+			silent: false,
 			config: ClusterUserAuthConfig{
 				ExistCredentials: false,
 			},
-			silent: false,
 			want: BootstrapStep{
 				Name: "user authentication",
 				Input: []StepInput{
-					getPasswordInput2,
+					getPasswordWithDefaultInput,
 				},
 			},
 		},
 		{
-			name: "day1 no-interactive - no ask use input - <no existing, values, silent>",
+			name:   "day1 interactive - no ask use input - <no silent, no existing, values>",
+			silent: false,
+			config: ClusterUserAuthConfig{
+				ExistCredentials: false,
+				Password:         "password123",
+			},
+			want: BootstrapStep{
+				Name:  "user authentication",
+				Input: []StepInput{},
+			},
 		},
 		{
-			name: "day1 no-interactive - no ask use existing - <existing, no values, silent>",
+			name:   "day1 interactive - ask suggest previous value - <no silent, existing, no values>",
+			silent: false,
+			config: ClusterUserAuthConfig{
+				ExistCredentials: true,
+			},
+			want: BootstrapStep{
+				Name:  "user authentication",
+				Input: []StepInput{getPasswordWithExistingAndUserInput},
+			},
 		},
 		{
-			name: "day1 no-interactive - overwrite - <existing, values, silent>",
+			name:   "day1 interactive - ask conflict - <no silent, existing, values>",
+			silent: false,
+			config: ClusterUserAuthConfig{
+				ExistCredentials: true,
+				Password:         "password123",
+			},
+			want: BootstrapStep{
+				Name:  "user authentication",
+				Input: []StepInput{getPasswordWithExistingAndUserInput},
+			},
 		},
 		{
-			name: "day1 interactive - ask suggest previous value - <existing, no values, no silent>",
+			name:   "day1 no-interactive - no ask use input - <silent, no existing, values>",
+			silent: true,
+			config: ClusterUserAuthConfig{
+				ExistCredentials: false,
+				Password:         "password123",
+			},
+			want: BootstrapStep{
+				Name:  "user authentication",
+				Input: []StepInput{},
+			},
 		},
 		{
-			name: "day1 interactive - ask conflict - <existing, values, no silent>",
+			name:   "day1 no-interactive - no ask use existing - <silent, existing, no values>",
+			silent: true,
+			config: ClusterUserAuthConfig{
+				ExistCredentials: true,
+			},
+			want: BootstrapStep{
+				Name:  "user authentication",
+				Input: []StepInput{},
+			},
 		},
 		{
-			name: "day1 interactive - no ask use input - <no existing, values, no silent>",
+			name:   "day1 no-interactive - overwrite - <silent, existing, values>",
+			silent: true,
+			config: ClusterUserAuthConfig{
+				ExistCredentials: true,
+			},
+			want: BootstrapStep{
+				Name:  "user authentication",
+				Input: []StepInput{},
+			},
 		},
 	}
 	for _, tt := range tests {

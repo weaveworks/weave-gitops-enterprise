@@ -2,6 +2,8 @@ package steps
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	v1 "k8s.io/api/core/v1"
@@ -24,12 +26,17 @@ type StepInput struct {
 	Msg             string
 	StepInformation string
 	Type            string
-	DefaultValue    any
-	Value           any
-	Values          []string
-	Valuesfn        func(input []StepInput, c *Config) (interface{}, error)
-	Enabled         func(input []StepInput, c *Config) bool
-	Required        bool
+
+	Value    any
+	Values   []string
+	Valuesfn func(input []StepInput, c *Config) (interface{}, error)
+
+	Enabled  func(input []StepInput, c *Config) bool
+	Required bool
+
+	// indicate whether the value already exists so you could reuse it
+	AlreadyExist bool
+	DefaultValue any
 }
 
 // StepOutput represents an output generated out of the execution of a step.
@@ -58,16 +65,27 @@ func (s BootstrapStep) Execute(c *Config) error {
 	return nil
 }
 
+// isUpdate returns true if the input exists and the user wants to update it
+// return false otherwise (does not exist or user want to use the existing value)
+func isUpdate(input StepInput, stdin io.ReadCloser) bool {
+	if input.AlreadyExist {
+		return (utils.GetConfirmInput(input.Msg, stdin) == "y")
+	}
+	return false
+}
+
 func defaultInputStep(inputs []StepInput, c *Config) ([]StepInput, error) {
 	processedInputs := []StepInput{}
 	for _, input := range inputs {
+
+		if !isUpdate(input, os.Stdin) {
+			fmt.Println("will use existing value", input.Name)
+			processedInputs = append(processedInputs, input)
+			continue
+		}
+
 		switch input.Type {
 		case stringInput:
-			// verify the input is enabled by executing the function
-			if input.Enabled != nil && !input.Enabled(nil, c) {
-				continue
-			}
-
 			if input.StepInformation != "" {
 				c.Logger.Warningf(input.StepInformation)
 			}
@@ -80,6 +98,7 @@ func defaultInputStep(inputs []StepInput, c *Config) ([]StepInput, error) {
 				}
 				input.Value = paramValue
 			}
+
 			// fill the new inputs
 			processedInputs = append(processedInputs, input)
 		case passwordInput:
@@ -117,7 +136,7 @@ func defaultInputStep(inputs []StepInput, c *Config) ([]StepInput, error) {
 
 			// get the value from user otherwise
 			if input.Value == nil {
-				input.Value = utils.GetConfirmInput(input.Msg)
+				input.Value = utils.GetConfirmInput(input.Msg, os.Stdin)
 			}
 			processedInputs = append(processedInputs, input)
 		case multiSelectionChoice:
