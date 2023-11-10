@@ -54,7 +54,7 @@ several attempts as there are many flags to introduce. Non-interactive scenarios
       - if existing state value is not empty -> existing state value
       - otherwise default value
 
-Suggested Values is created during configuration as part of StepInput
+Suggested Values is created during configuration as part of StepInput. The suggested value should ensure it is a safe option. 
 
 From 
 
@@ -90,10 +90,9 @@ type StepInput struct {
 }
 ```
 
-
 #### Validation scenarios.
 
-1. `Day-0-Likely`: A user that havent bootstrapped yet and wants to bootstrap interactive: `flux bootstrap`
+1. `Day-0-Likely`: A user that haven't bootstrapped yet and wants to bootstrap interactive: `flux bootstrap`
 
 - existing state: no
 - user introduced values via flags: no
@@ -102,7 +101,6 @@ type StepInput struct {
 
 The user will be able to complete the configuration journey based on the interactive session
 
-
 2. `Day-1-Likely`: a user that have bootstrapped and wants to overwrite non-interactive:
 
 - existing state: yes
@@ -110,26 +108,20 @@ The user will be able to complete the configuration journey based on the interac
 - user introduced values via interactive questions: yes
 - default values: yes
 
-- The user will be able to ovewrite the existing state cause during the interactive session the suggested value 
+The user will be able to overwrite the existing state cause during the interactive session the suggested value 
 will be the existing state values instead of the default.
-
 
 
 3. `Day-1-Likely `: a user that have bootstrapped and wants to overwrite interactive:
 
+- existing state: yes
+- user introduced values via flags: yes
+- user introduced values via interactive questions: yes
+- default values: yes
 
-
-
-
-Scenarios: 
-
-- I want to 
-
-Pro:
-    - Complete chain
-    - Simplified experience as 
-        - if user knows the value s
-Cons:
+The user will be able:
+    - overwrite via flags
+    - overwrite via interactive 
 
 
 ### Analysis
