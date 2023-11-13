@@ -11,7 +11,6 @@ import {
   HelmRelease,
   Kustomization,
   Provider,
-  coreClient,
 } from '@weaveworks/weave-gitops';
 import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
@@ -117,21 +116,12 @@ export function useGetReconciledTree(
 ) {
   return useQuery<any[], RequestError>(
     ['inventory', { name, namespace, type }],
-    () =>
-      getChildren(
-        // coreClient,
-        GitOpsSets,
-        name,
-        namespace,
-        clusterName,
-        withChildren,
-      ),
+    () => getChildren(GitOpsSets, name, namespace, clusterName, withChildren),
     { retry: false, refetchInterval: 5000 },
   );
 }
 
 export const getChildren = async (
-  // core: typeof coreClient,
   client: typeof GitOpsSets,
   name: string,
   namespace: string,
