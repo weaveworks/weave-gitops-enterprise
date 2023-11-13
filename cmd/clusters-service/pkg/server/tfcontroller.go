@@ -9,17 +9,17 @@ import (
 
 func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.CreateTfControllerPullRequestRequest) (*proto.CreateTfControllerPullRequestResponse, error) {
 	res, err := s.CreatePullRequest(ctx, &proto.CreatePullRequestRequest{
-		RepositoryUrl:     msg.RepositoryUrl,
-		HeadBranch:        msg.HeadBranch,
-		BaseBranch:        msg.BaseBranch,
-		Title:             msg.Title,
-		Description:       msg.Description,
-		TemplateName:      msg.TemplateName,
-		TemplateNamespace: msg.TemplateNamespace,
-		ParameterValues:   msg.ParameterValues,
-		CommitMessage:     msg.CommitMessage,
-		RepositoryApiUrl:  msg.RepositoryApiUrl,
-		TemplateKind:      gapiv1.Kind,
+		RepositoryUrl:    msg.RepositoryUrl,
+		HeadBranch:       msg.HeadBranch,
+		BaseBranch:       msg.BaseBranch,
+		Title:            msg.Title,
+		Description:      msg.Description,
+		Name:             msg.Name,
+		Namespace:        msg.Namespace,
+		ParameterValues:  msg.ParameterValues,
+		CommitMessage:    msg.CommitMessage,
+		RepositoryApiUrl: msg.RepositoryApiUrl,
+		TemplateKind:     gapiv1.Kind,
 	})
 
 	var tfRes *proto.CreateTfControllerPullRequestResponse

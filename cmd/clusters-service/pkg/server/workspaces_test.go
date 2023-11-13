@@ -193,8 +193,8 @@ func TestGetWorkspace(t *testing.T) {
 	}{
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-a",
-				ClusterName:   "management",
+				Name:        "tenant-a",
+				ClusterName: "management",
 			},
 			response: &capiv1_proto.GetWorkspaceResponse{
 				Name:        "tenant-a",
@@ -204,8 +204,8 @@ func TestGetWorkspace(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-x",
-				ClusterName:   "leaf-1",
+				Name:        "tenant-x",
+				ClusterName: "leaf-1",
 			},
 			response: &capiv1_proto.GetWorkspaceResponse{
 				Name:        "tenant-x",
@@ -215,8 +215,8 @@ func TestGetWorkspace(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-y",
-				ClusterName:   "leaf-1",
+				Name:        "tenant-y",
+				ClusterName: "leaf-1",
 			},
 			response: &capiv1_proto.GetWorkspaceResponse{
 				Name:        "tenant-y",
@@ -226,15 +226,15 @@ func TestGetWorkspace(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: uuid.NewString(),
-				ClusterName:   "leaf-1",
+				Name:        uuid.NewString(),
+				ClusterName: "leaf-1",
 			},
 			err: true,
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: uuid.NewString(),
-				ClusterName:   uuid.NewString(),
+				Name:        uuid.NewString(),
+				ClusterName: uuid.NewString(),
 			},
 			err: true,
 		},
@@ -341,8 +341,8 @@ func TestListWorkspaceRoles(t *testing.T) {
 	}{
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-x",
-				ClusterName:   "management",
+				Name:        "tenant-x",
+				ClusterName: "management",
 			},
 			response: &capiv1_proto.GetWorkspaceRolesResponse{
 				Name:        "tenant-x",
@@ -357,8 +357,8 @@ func TestListWorkspaceRoles(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-y",
-				ClusterName:   "leaf-1",
+				Name:        "tenant-y",
+				ClusterName: "leaf-1",
 			},
 			response: &capiv1_proto.GetWorkspaceRolesResponse{
 				Name:        "tenant-y",
@@ -379,15 +379,15 @@ func TestListWorkspaceRoles(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-x",
-				ClusterName:   uuid.NewString(),
+				Name:        "tenant-x",
+				ClusterName: uuid.NewString(),
 			},
 			err: true,
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: uuid.NewString(),
-				ClusterName:   "managament",
+				Name:        uuid.NewString(),
+				ClusterName: "managament",
 			},
 			err: true,
 		},
@@ -527,8 +527,8 @@ func TestListtWorkspaceRoleBindings(t *testing.T) {
 	}{
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-x",
-				ClusterName:   "management",
+				Name:        "tenant-x",
+				ClusterName: "management",
 			},
 			response: &capiv1_proto.GetWorkspaceRoleBindingsResponse{
 				Name:        "tenant-x",
@@ -544,8 +544,8 @@ func TestListtWorkspaceRoleBindings(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-y",
-				ClusterName:   "leaf-1",
+				Name:        "tenant-y",
+				ClusterName: "leaf-1",
 			},
 			response: &capiv1_proto.GetWorkspaceRoleBindingsResponse{
 				Name:        "tenant-y",
@@ -566,15 +566,15 @@ func TestListtWorkspaceRoleBindings(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-x",
-				ClusterName:   uuid.NewString(),
+				Name:        "tenant-x",
+				ClusterName: uuid.NewString(),
 			},
 			err: true,
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: uuid.NewString(),
-				ClusterName:   "managament",
+				Name:        uuid.NewString(),
+				ClusterName: "managament",
 			},
 			err: true,
 		},
@@ -681,8 +681,8 @@ func TestListWorkspaceServiceAccounts(t *testing.T) {
 	}{
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-x",
-				ClusterName:   "management",
+				Name:        "tenant-x",
+				ClusterName: "management",
 			},
 			response: &capiv1_proto.GetWorkspaceServiceAccountsResponse{
 				Name:        "tenant-x",
@@ -698,8 +698,8 @@ func TestListWorkspaceServiceAccounts(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-y",
-				ClusterName:   "leaf-1",
+				Name:        "tenant-y",
+				ClusterName: "leaf-1",
 			},
 			response: &capiv1_proto.GetWorkspaceServiceAccountsResponse{
 				Name:        "tenant-y",
@@ -720,15 +720,15 @@ func TestListWorkspaceServiceAccounts(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-x",
-				ClusterName:   uuid.NewString(),
+				Name:        "tenant-x",
+				ClusterName: uuid.NewString(),
 			},
 			err: true,
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: uuid.NewString(),
-				ClusterName:   "managament",
+				Name:        uuid.NewString(),
+				ClusterName: "managament",
 			},
 			err: true,
 		},
@@ -860,8 +860,8 @@ func TestListtWorkspacePolicies(t *testing.T) {
 	}{
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-x",
-				ClusterName:   "management",
+				Name:        "tenant-x",
+				ClusterName: "management",
 			},
 			response: &capiv1_proto.GetWorkspacePoliciesResponse{
 				Name:        "tenant-x",
@@ -878,8 +878,8 @@ func TestListtWorkspacePolicies(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-y",
-				ClusterName:   "leaf-1",
+				Name:        "tenant-y",
+				ClusterName: "leaf-1",
 			},
 			response: &capiv1_proto.GetWorkspacePoliciesResponse{
 				Name:        "tenant-y",
@@ -902,15 +902,15 @@ func TestListtWorkspacePolicies(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: "tenant-x",
-				ClusterName:   uuid.NewString(),
+				Name:        "tenant-x",
+				ClusterName: uuid.NewString(),
 			},
 			err: true,
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: uuid.NewString(),
-				ClusterName:   "managament",
+				Name:        uuid.NewString(),
+				ClusterName: "managament",
 			},
 			err: true,
 		},

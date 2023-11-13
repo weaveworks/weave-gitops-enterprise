@@ -20,9 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
           go-version: 1.20.x
       - name: Configure git for private modules
@@ -38,9 +38,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
           go-version: 1.20.x
       - name: Configure git for private modules
@@ -56,9 +56,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
           go-version: 1.20.x
       - name: Configure git for private modules
@@ -93,9 +93,9 @@ jobs:
       GIT_PROVIDER_HOSTNAME: gitlab.git.dev.weave.works
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
           go-version: 1.20.x
       - name: Configure git for private modules
@@ -122,9 +122,9 @@ jobs:
           echo "go-build=$(go env GOCACHE)" >> $GITHUB_OUTPUT
           echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Yarn Cache
-        uses: actions/cache@v3.0.11
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
         with:
           path: ${{ steps.cache-paths.outputs.dir }}
           key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
