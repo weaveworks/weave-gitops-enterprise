@@ -3,6 +3,7 @@ package steps
 import (
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 	v1 "k8s.io/api/core/v1"
@@ -148,11 +149,116 @@ func TestCreateCredentials(t *testing.T) {
 				assert.Equal(t, outSecret.Data["username"], inSecret.Data["username"], "mismatch username")
 				assert.NoError(t, bcrypt.CompareHashAndPassword(outSecret.Data["password"], []byte(tt.password)), "mismatch password")
 			}
-			isExisting := isExistingAdminSecret(tt.input, &config)
+			isExisting := isExistingAdminSecret(config.KubernetesClient)
 			assert.Equal(t, tt.isExisting, isExisting, "incorrect result")
 
 			canAsk := canAskForCreds(tt.input, &config)
 			assert.Equal(t, tt.canAsk, canAsk, "incorrect result")
+		})
+	}
+}
+
+func TestNewAskAdminCredsSecretStep(t *testing.T) {
+	tests := []struct {
+		name string
+
+		config ClusterUserAuthConfig
+		silent bool
+
+		want    BootstrapStep
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name:   "day0/1 interactive - ask suggest default - <no silent, no existing, no values >",
+			silent: false,
+			config: ClusterUserAuthConfig{
+				ExistCredentials: false,
+			},
+			want: BootstrapStep{
+				Name: "user authentication",
+				Input: []StepInput{
+					getPasswordWithDefaultInput,
+				},
+			},
+		},
+		{
+			name:   "day1 interactive - no ask use input - <no silent, no existing, values>",
+			silent: false,
+			config: ClusterUserAuthConfig{
+				ExistCredentials: false,
+				Password:         "password123",
+			},
+			want: BootstrapStep{
+				Name:  "user authentication",
+				Input: []StepInput{},
+			},
+		},
+		{
+			name:   "day1 interactive - ask suggest previous value - <no silent, existing, no values>",
+			silent: false,
+			config: ClusterUserAuthConfig{
+				ExistCredentials: true,
+			},
+			want: BootstrapStep{
+				Name:  "user authentication",
+				Input: []StepInput{getPasswordWithExistingAndUserInput},
+			},
+		},
+		{
+			name:   "day1 interactive - ask conflict - <no silent, existing, values>",
+			silent: false,
+			config: ClusterUserAuthConfig{
+				ExistCredentials: true,
+				Password:         "password123",
+			},
+			want: BootstrapStep{
+				Name:  "user authentication",
+				Input: []StepInput{getPasswordWithExistingAndUserInput},
+			},
+		},
+		{
+			name:   "day1 no-interactive - no ask use input - <silent, no existing, values>",
+			silent: true,
+			config: ClusterUserAuthConfig{
+				ExistCredentials: false,
+				Password:         "password123",
+			},
+			want: BootstrapStep{
+				Name:  "user authentication",
+				Input: []StepInput{},
+			},
+		},
+		{
+			name:   "day1 no-interactive - no ask use existing - <silent, existing, no values>",
+			silent: true,
+			config: ClusterUserAuthConfig{
+				ExistCredentials: true,
+			},
+			want: BootstrapStep{
+				Name:  "user authentication",
+				Input: []StepInput{},
+			},
+		},
+		{
+			name:   "day1 no-interactive - overwrite - <silent, existing, values>",
+			silent: true,
+			config: ClusterUserAuthConfig{
+				ExistCredentials: true,
+			},
+			want: BootstrapStep{
+				Name:  "user authentication",
+				Input: []StepInput{},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewAskAdminCredsSecretStep(tt.config, tt.silent)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want.Name, got.Name)
+			if diff := cmp.Diff(tt.want.Input, got.Input); diff != "" {
+				t.Fatalf("different step expected:\n%s", diff)
+			}
 		})
 	}
 }

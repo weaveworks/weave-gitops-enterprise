@@ -427,5 +427,15 @@ replace (
 	k8s.io/client-go => k8s.io/client-go v0.27.7
 	k8s.io/component-base => k8s.io/component-base v0.26.3
 	k8s.io/component-helpers => k8s.io/component-helpers v0.26.3
+	k8s.io/controller-manager => k8s.io/controller-manager v0.26.3
+	k8s.io/csi-translation-lib => k8s.io/csi-translation-lib v0.26.3
+	k8s.io/dynamic-resource-allocation => k8s.io/dynamic-resource-allocation v0.26.3
+	k8s.io/kube-controller-manager => k8s.io/kube-controller-manager v0.26.3
+	k8s.io/kube-proxy => k8s.io/kube-proxy v0.26.3
+	k8s.io/kube-scheduler => k8s.io/kube-scheduler v0.26.3
 	k8s.io/kubectl => k8s.io/kubectl v0.26.3
+	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.26.3
+	k8s.io/mount-utils => k8s.io/mount-utils v0.26.3
+	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.26.3
+	k8s.io/cloud-provider => k8s.io/cloud-provider v0.26.3
 )
