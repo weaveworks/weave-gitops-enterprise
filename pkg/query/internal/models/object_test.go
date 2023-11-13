@@ -21,6 +21,11 @@ func Test_IsExpired(t *testing.T) {
 		expected bool
 	}{
 		{
+			name:     "object never expire if no policy",
+			obj:      Object{KubernetesDeletedAt: time.Now().Add(-2 * time.Hour)},
+			expected: false,
+		},
+		{
 			name:     "object is expired",
 			policy:   configuration.RetentionPolicy(1 * time.Hour),
 			obj:      Object{KubernetesDeletedAt: time.Now().Add(-2 * time.Hour)},

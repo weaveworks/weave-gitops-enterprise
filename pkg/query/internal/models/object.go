@@ -151,7 +151,13 @@ func NewNormalizedObject(obj client.Object, config configuration.ObjectKind) Nor
 	}
 }
 
+const neverExpire = configuration.RetentionPolicy(0)
+
 func IsExpired(policy configuration.RetentionPolicy, obj Object) bool {
+	if policy == neverExpire {
+		return false
+	}
+
 	currentTime := time.Now()
 	retention := time.Duration(policy)
 	expirationTime := currentTime.Add(-retention)
@@ -159,7 +165,7 @@ func IsExpired(policy configuration.RetentionPolicy, obj Object) bool {
 	ts := obj.KubernetesDeletedAt
 
 	if ts.IsZero() {
-		return true
+		return false
 	}
 
 	if ts.Before(expirationTime) {
