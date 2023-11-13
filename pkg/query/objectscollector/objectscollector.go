@@ -132,7 +132,7 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			// Objects like Events get removed in 1h by default on some cloud providers.
 			// Users want to be able to see these events for longer than that.
 			if !models.IsExpired(objTx.RetentionPolicy(), object) {
-				debug.Info("object is not expired, skipping", "object", object)
+				debug.Info("object is not expired, skipping", "object", object, "retensionPolicy", objTx.RetentionPolicy())
 				// We need to upsert here to catch the KubernetesDeletedAt timestamp
 				upsert = append(upsert, object)
 				continue

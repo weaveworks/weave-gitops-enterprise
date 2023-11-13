@@ -159,7 +159,7 @@ func IsExpired(policy configuration.RetentionPolicy, obj Object) bool {
 	ts := obj.KubernetesDeletedAt
 
 	if ts.IsZero() {
-		return false
+		return true
 	}
 
 	if ts.Before(expirationTime) {
