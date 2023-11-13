@@ -128,6 +128,13 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 		}
 
 		if objTx.TransactionType() == models.TransactionTypeDelete {
+			// Non-finalizer objects
+			if object.KubernetesDeletedAt.IsZero() {
+				// FIXME: get rid of the now() to test this better
+				// Add a tx.ts and use that?
+				object.KubernetesDeletedAt = time.Now()
+			}
+
 			// We want to retain some objects longer than kubernetes does.
 			// Objects like Events get removed in 1h by default on some cloud providers.
 			// Users want to be able to see these events for longer than that.

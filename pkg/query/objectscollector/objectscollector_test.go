@@ -173,9 +173,13 @@ func TestObjectsCollector_retention(t *testing.T) {
 	obj2.SetDeletionTimestamp(&metav1.Time{Time: time.Now().Add(5 * -time.Second)})
 
 	// ACD don't have finalizers, and we don't get a deletionTimestamp.
-	// Rentention policy is ignored for non-finalizer objects like this.
 	obj3 := models.NewNormalizedObject(
 		testutils.NewAutomatedClusterDiscovery("anyACD", "default"),
+		configuration.AutomatedClusterDiscoveryKind,
+	)
+
+	obj4 := models.NewNormalizedObject(
+		testutils.NewAutomatedClusterDiscovery("anyACD2", "default"),
 		configuration.AutomatedClusterDiscoveryKind,
 	)
 
@@ -196,6 +200,12 @@ func TestObjectsCollector_retention(t *testing.T) {
 			clusterName:     clusterName,
 			object:          obj3,
 			transactionType: models.TransactionTypeDelete,
+			// No retention policy here, should be deleted
+		},
+		&transaction{
+			clusterName:     clusterName,
+			object:          obj4,
+			transactionType: models.TransactionTypeDelete,
 			retentionPolicy: retentionPolicy,
 		},
 	}
@@ -211,9 +221,9 @@ func TestObjectsCollector_retention(t *testing.T) {
 
 	// Keep the object that was deleted but not expired.
 	_, storeResult := fakeStore.StoreObjectsArgsForCall(0)
-	g.Expect(storeResult).To(HaveLen(1))
+	g.Expect(storeResult).To(HaveLen(2))
 	g.Expect(storeResult[0].Name).To(Equal("anyHelmRelease2"))
-
+	g.Expect(storeResult[1].Name).To(Equal("anyACD2"))
 }
 
 type transaction struct {
