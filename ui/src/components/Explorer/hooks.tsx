@@ -2,6 +2,7 @@ import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import _ from 'lodash';
 import { createContext, useContext, useMemo } from 'react';
 import { Object } from '../../api/query/query.pb';
+import { ExplorerField } from './ExplorerTable';
 import { QueryStateManager } from './QueryStateManager';
 
 export type QueryState = {
@@ -16,15 +17,7 @@ export type QueryState = {
 export const columnHeaderHandler =
   (queryState: QueryState, setQueryState: (next: QueryState) => void) =>
   (field: Field) => {
-    let col = _.isFunction(field.value)
-      ? field.sortValue && field.sortValue(field.value)
-      : field.value;
-
-    // Override column name to maintain compatibility with the DataTable sync buttons
-    if (col === 'clusterName') {
-      col = 'cluster';
-    }
-
+    const col = (field as ExplorerField).id;
     setQueryState({
       ...queryState,
       orderBy: col as string,
