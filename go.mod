@@ -63,7 +63,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.16.0
 	github.com/tonglil/buflogr v1.0.1
-	github.com/weaveworks/cluster-controller v1.5.5-0.20231109120053-8d9b8827acaf
+	github.com/weaveworks/cluster-controller v1.5.5
 	github.com/weaveworks/cluster-reflector-controller v0.0.7
 	github.com/weaveworks/gitopssets-controller v0.16.4
 	github.com/weaveworks/policy-agent/api v1.0.5

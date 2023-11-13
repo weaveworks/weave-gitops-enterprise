@@ -204,7 +204,7 @@ cluster-controller:
     manager:
       image:
         repository: docker.io/weaveworks/cluster-controller
-        tag: v1.5.4
+        tag: v1.5.5
 
 cluster-reflector-controller:
   enabled: false

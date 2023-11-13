@@ -1211,6 +1211,8 @@ github.com/tonglil/buflogr v1.0.1/go.mod h1:yYWwvSpn/3uAaqjf6mJg/XMiAciaR0QcRJH2
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=
 github.com/weaveworks/cluster-controller v1.5.5-0.20231109120053-8d9b8827acaf h1:V3PfLFleaMN/PH65gvgxfrqTULLBuPfjko56vwNVWiE=
 github.com/weaveworks/cluster-controller v1.5.5-0.20231109120053-8d9b8827acaf/go.mod h1:x441gDOG1WfxZ7bzQz5OFph5RbU11SQC+INtNOyHd9w=
+github.com/weaveworks/cluster-controller v1.5.5 h1:mu0Wgeb0kwXV9iG+hW4A1X+7OFw3xLDzkxU0LsIFrcE=
+github.com/weaveworks/cluster-controller v1.5.5/go.mod h1:x441gDOG1WfxZ7bzQz5OFph5RbU11SQC+INtNOyHd9w=
 github.com/weaveworks/cluster-reflector-controller v0.0.7 h1:js5o/hw7n5DY+6M2QSQnZtxntwAx4cVws/Ie7CMehEE=
 github.com/weaveworks/cluster-reflector-controller v0.0.7/go.mod h1:Hj9FDhZXiy3YGJzOcuCKt+FBuPUCWkZxZzOhZ4irsNQ=
 github.com/weaveworks/cluster-reflector-controller v0.0.8-0.20231109120707-55c5023f803d h1:e57vL9zc0l1HTDtInskOjtqC207lTK3tkgpCkvOicb0=
