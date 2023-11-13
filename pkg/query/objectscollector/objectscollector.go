@@ -128,7 +128,9 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 		}
 
 		if objTx.TransactionType() == models.TransactionTypeDelete {
-			// Non-finalizer objects
+			// Non-finalizer objects will not have a deletion timestamp
+			// Synthesize one here based on the time we received the delete event
+			// Allows us to support retenion policies.
 			if object.KubernetesDeletedAt.IsZero() {
 				// FIXME: get rid of the now() to test this better
 				// Add a tx.ts and use that?
