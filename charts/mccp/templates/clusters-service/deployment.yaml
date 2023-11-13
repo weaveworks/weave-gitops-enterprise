@@ -101,6 +101,10 @@ spec:
             - name: WEAVE_GITOPS_FEATURE_RUN_UI
               value: "true"
             {{- end }}
+            {{- if (index .Values "cluster-reflector-controller").enabled }}
+            - name: WEAVE_GITOPS_FEATURE_CLUSTER_REFLECTOR_CONTROLLER
+              value: "true"
+            {{- end }}
             {{- if .Values.enableNewPipelines }}
             - name: WEAVE_GITOPS_FEATURE_NEW_PIPELINES
               value: "true"

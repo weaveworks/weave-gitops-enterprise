@@ -204,7 +204,10 @@ cluster-controller:
     manager:
       image:
         repository: docker.io/weaveworks/cluster-controller
-        tag: v1.5.2
+        tag: v1.5.5
+
+cluster-reflector-controller:
+  enabled: false
 
 cluster-bootstrap-controller:
   enabled: true
@@ -232,3 +235,4 @@ explorer:
     - sources
     - gitopssets
     - templates
+    - clusterdiscovery

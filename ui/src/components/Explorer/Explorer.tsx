@@ -26,7 +26,12 @@ import { QueryStateManager, URLQueryStateManager } from './QueryStateManager';
 
 type Props = {
   className?: string;
-  category?: 'automation' | 'source' | 'gitopsset' | 'template';
+  category?:
+    | 'automation'
+    | 'source'
+    | 'gitopsset'
+    | 'template'
+    | 'clusterdiscovery';
   enableBatchSync?: boolean;
   manager?: QueryStateManager;
   fields?: ExplorerField[];
@@ -178,11 +183,17 @@ const categoryKinds = {
   ],
   gitopsset: ['GitOpsSet'],
   template: ['Template'],
+  clusterdiscovery: ['AutomatedClusterDiscovery'],
 };
 
 function filterFacetsForCategory(
   facets?: Facet[],
-  category?: 'automation' | 'source' | 'gitopsset' | 'template',
+  category?:
+    | 'automation'
+    | 'source'
+    | 'gitopsset'
+    | 'template'
+    | 'clusterdiscovery',
 ): Facet[] {
   if (!category) {
     return _.sortBy(facets, 'field') as Facet[];

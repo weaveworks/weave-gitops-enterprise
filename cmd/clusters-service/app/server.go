@@ -36,6 +36,7 @@ import (
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	clusterreflectorv1alpha1 "github.com/weaveworks/cluster-reflector-controller/api/v1alpha1"
 	gitopssetsv1alpha1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
@@ -535,7 +536,12 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		log, rest, clusterName, clustersManager, healthChecker,
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not create core config: %w", err)
+	}
+
+	err = coreCfg.PrimaryKinds.Add("AutomatedClusterDiscovery", clusterreflectorv1alpha1.GroupVersion.WithKind("AutomatedClusterDiscovery"))
+	if err != nil {
+		return fmt.Errorf("could not add AutomatedClusterDiscovery to primary kinds: %w", err)
 	}
 
 	sessionManager := scs.New()

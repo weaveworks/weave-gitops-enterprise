@@ -10,6 +10,7 @@ import (
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
+	clusterreflectorv1alpha1 "github.com/weaveworks/cluster-reflector-controller/api/v1alpha1"
 	gitopssets "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
@@ -27,12 +28,13 @@ type FilterFunc func(obj client.Object) bool
 type ObjectCategory string
 
 const (
-	CategoryAutomation ObjectCategory = "automation"
-	CategorySource     ObjectCategory = "source"
-	CategoryEvent      ObjectCategory = "event"
-	CategoryGitopsSet  ObjectCategory = "gitopsset"
-	CategoryTemplate   ObjectCategory = "template"
-	CategoryRBAC       ObjectCategory = "rbac"
+	CategoryAutomation       ObjectCategory = "automation"
+	CategorySource           ObjectCategory = "source"
+	CategoryEvent            ObjectCategory = "event"
+	CategoryGitopsSet        ObjectCategory = "gitopsset"
+	CategoryTemplate         ObjectCategory = "template"
+	CategoryRBAC             ObjectCategory = "rbac"
+	CategoryClusterDiscovery ObjectCategory = "clusterdiscovery"
 )
 
 // ObjectKind is the main structur for a object that explorer is able to manage. It includes all the configuration and
@@ -295,6 +297,17 @@ var (
 		},
 		Category: CategoryTemplate,
 	}
+
+	AutomatedClusterDiscovery = ObjectKind{
+		Gvk: clusterreflectorv1alpha1.GroupVersion.WithKind("AutomatedClusterDiscovery"),
+		NewClientObjectFunc: func() client.Object {
+			return &clusterreflectorv1alpha1.AutomatedClusterDiscovery{}
+		},
+		AddToSchemeFunc: clusterreflectorv1alpha1.AddToScheme,
+		StatusFunc:      defaultFluxObjectStatusFunc,
+		MessageFunc:     defaultFluxObjectMessageFunc,
+		Category:        CategoryClusterDiscovery,
+	}
 )
 
 // SupportedObjectKinds list with the default supported Object resources to query.
@@ -310,6 +323,7 @@ var SupportedObjectKinds = []ObjectKind{
 	GitOpsSetsObjectKind,
 	GitopsTemplateObjectKind,
 	CapiTemplateObjectKind,
+	AutomatedClusterDiscovery,
 }
 
 // SupportedRbacKinds list with the default supported RBAC resources.
@@ -360,6 +374,15 @@ func defaultFluxObjectMessageFunc(obj client.Object) string {
 	return ""
 }
 
+type AutomatedClusterDiscoveryAdaptor struct {
+	client.Object
+}
+
+func (a *AutomatedClusterDiscoveryAdaptor) GetConditions() []metav1.Condition {
+	acd := a.Object.(*clusterreflectorv1alpha1.AutomatedClusterDiscovery)
+	return acd.Status.Conditions
+}
+
 func ToFluxObject(obj client.Object) (FluxObject, error) {
 	switch t := obj.(type) {
 	case *helmv2beta1.HelmRelease:
@@ -378,6 +401,8 @@ func ToFluxObject(obj client.Object) (FluxObject, error) {
 		return t, nil
 	case *gitopssets.GitOpsSet:
 		return t, nil
+	case *clusterreflectorv1alpha1.AutomatedClusterDiscovery:
+		return &AutomatedClusterDiscoveryAdaptor{Object: t}, nil
 	}
 
 	return nil, fmt.Errorf("unknown object type: %T", obj)

@@ -1,0 +1,10 @@
+apiVersion: clusters.weave.works/v1alpha1
+kind: AutomatedClusterDiscovery
+metadata:
+  name: aks-cluster-discovery
+  namespace: default
+spec:
+  type: aks
+  interval: 10m
+  aks:
+    subscriptionID: ace37984-3d07-4051-9002-d5a52c0ae14b

@@ -22,6 +22,8 @@ import WGNotifications from './components/Applications/Notifications';
 import WGNotificationsProvider from './components/Applications/NotificationsProvider';
 import WGApplicationsOCIRepository from './components/Applications/OCIRepository';
 import WGApplicationsSources from './components/Applications/Sources';
+import ClusterDiscovery from './components/ClusterDiscovery';
+import ClusterDiscoveryDetails from './components/ClusterDiscovery/ClusterDiscoveryDetails';
 import MCCP from './components/Clusters';
 import ClusterDetails from './components/Clusters/ClusterDetails';
 import Explorer from './components/Explorer';
@@ -233,6 +235,15 @@ const AppRoutes = () => {
         component={withSearchParams(WorkspaceDetails)}
       />
       <Route exact path={Routes.Secrets} component={SecretsList} />
+      <Route
+        exact
+        path={Routes.ClusterDiscovery}
+        component={ClusterDiscovery}
+      />
+      <Route
+        path={Routes.ClusterDiscoveryDetails}
+        component={withSearchParams(ClusterDiscoveryDetails)}
+      />
       <Route
         path={Routes.SecretDetails}
         component={withSearchParams(SecretDetails)}

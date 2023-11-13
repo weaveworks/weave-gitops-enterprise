@@ -44,6 +44,12 @@ function getParentNavRouteValueExtended(
     case Routes.SecretDetails:
     case Routes.CreateSecret:
       return Routes.Secrets;
+
+    //AutomatedClusterDiscovery
+    case Routes.ClusterDiscovery:
+    case Routes.ClusterDiscoveryDetails:
+      return Routes.ClusterDiscovery;
+
     //Terraform
     case Routes.TerraformObjects:
     case Routes.TerraformDetail:
@@ -154,6 +160,14 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
       link: { value: Routes.Explorer },
       icon: IconType.ExploreIcon,
       disabled: !isFlagEnabled('WEAVE_GITOPS_FEATURE_EXPLORER'),
+    },
+    {
+      label: 'Cluster Discovery',
+      link: { value: Routes.ClusterDiscovery },
+      icon: IconType.ClusterDiscoveryIcon,
+      disabled: !isFlagEnabled(
+        'WEAVE_GITOPS_FEATURE_CLUSTER_REFLECTOR_CONTROLLER',
+      ),
     },
     {
       label: 'Guardrails',
