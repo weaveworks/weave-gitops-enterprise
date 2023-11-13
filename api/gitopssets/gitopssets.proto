@@ -52,8 +52,25 @@ service GitOpsSets {
         }; 
     }
 
-    // Get the reconciled objects for a GitOpsSet
-    rpc GetReconciledObjects(GetReconciledObjectsRequest) returns (GetReconciledObjectsResponse) {
+    /**
+    * GetInventory returns a list of InventoryEntry
+    * objects and children,
+    * given the gitopsset name and namespace and cluster.
+    */
+    rpc GetInventory(GetInventoryRequest) returns (GetInventoryResponse) {
+        option (google.api.http) = {
+            get : "/v1/namespaces/{namespace}/gitopssets/{name}/inventory",
+        };
+    }
+
+    /**
+    * GetReconciledObjects returns a list of objects
+    * that were created as a result a Flux automation.
+    * This list is derived by looking at the Kustomization
+    * or HelmRelease specified in the request body.
+    */
+    rpc GetReconciledObjects(GetReconciledObjectsRequest)
+        returns (GetReconciledObjectsResponse) {
         option (google.api.http) = {
             post: "/v1/namespaces/{namespace}/gitopssets/{name}/reconciled-objects"
             body: "*"
@@ -65,8 +82,31 @@ service GitOpsSets {
         option (google.api.http) = {
             patch : "/v1/namespaces/{namespace}/gitopssets/{name}/sync"
             body: "*"
-        };  
+        };
     }    
+}
+message GetInventoryRequest {
+    string name         = 1;
+    string namespace    = 2;
+    string cluster_name  = 3;
+    bool   with_children = 4;
+}
+
+message GetInventoryResponse {
+    repeated InventoryEntry entries = 1;
+}
+
+message HealthStatus {
+    string status = 1;
+    string message = 2;
+}
+
+message InventoryEntry {
+    string payload = 1;
+    string tenant = 2;
+    string cluster_name = 3;
+    HealthStatus health = 4;
+    repeated InventoryEntry children = 5;
 }
 
 message ListGitOpsSetsRequest {

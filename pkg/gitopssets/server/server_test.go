@@ -23,6 +23,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/adapter"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
+	"github.com/weaveworks/weave-gitops/pkg/health"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -488,6 +489,122 @@ func TestGetReconciledObjects(t *testing.T) {
 	}
 }
 
+func TestGetInventory(t *testing.T) {
+	toConfigMapPayload := func(obj corev1.ConfigMap) string {
+		data, err := json.Marshal(obj)
+		assert.NoError(t, err)
+		return string(data)
+	}
+
+	tests := []struct {
+		name         string
+		request      *pb.GetInventoryRequest
+		expected     *pb.GetInventoryResponse
+		clusterState []runtime.Object
+	}{
+		{
+			name: "get inventory with one resource ",
+			expected: &pb.GetInventoryResponse{
+				Entries: []*pb.InventoryEntry{
+					{
+						Tenant:      "",
+						ClusterName: "management",
+						Health:      &pb.HealthStatus{Status: "Unknown", Message: ""},
+						Payload: toConfigMapPayload(corev1.ConfigMap{
+							TypeMeta: metav1.TypeMeta{
+								APIVersion: "v1",
+								Kind:       "ConfigMap",
+							},
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "my-configmap",
+								Namespace: "my-namespace",
+							},
+						}),
+					},
+				},
+			},
+			request: &pb.GetInventoryRequest{
+				Name:         "gitopsset-configmaps",
+				Namespace:    "default",
+				ClusterName:  "management",
+				WithChildren: true,
+			},
+			clusterState: []runtime.Object{
+				// add the gitopsstes
+				&ctrl.GitOpsSet{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "gitopsset-configmaps",
+						Namespace: "default",
+					},
+					// FIXME: if we migrate to controller-runtime 0.15/0.16 we might have to set the status explicitly
+					// in a follow up request?
+					Status: ctrl.GitOpsSetStatus{
+						// Inventory
+						Inventory: &ctrl.ResourceInventory{
+							Entries: []ctrl.ResourceRef{
+								{
+									Version: "v1",
+									// the inv format of name_namesspace_version_kind etc
+									ID: "my-namespace_my-configmap__ConfigMap",
+								},
+							},
+						},
+					},
+				},
+				// add the configmap it will generate
+				&corev1.ConfigMap{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "my-configmap",
+						Namespace: "my-namespace",
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			k8s := createClient(t, tt.clusterState...)
+			clusterClients := map[string]client.Client{
+				"management": k8s,
+			}
+			c := setup(t, clusterClients)
+
+			response, err := c.GetInventory(context.Background(), tt.request)
+
+			assert.NoError(t, err)
+			assert.Len(t, response.Entries, len(tt.expected.Entries))
+
+			for i, entry := range response.Entries {
+				assert.Equal(t, tt.expected.Entries[i].Tenant, entry.Tenant)
+				assert.Equal(t, tt.expected.Entries[i].ClusterName, entry.ClusterName)
+				assert.Equal(t, tt.expected.Entries[i].Health, entry.Health)
+
+				// unmarshal response entry payload to ConfigMap
+				var obj corev1.ConfigMap
+				err := json.Unmarshal([]byte(entry.Payload), &obj)
+				if err != nil {
+					t.Fatalf("failed to unmarshal payload: %v", err)
+				}
+				obj.ResourceVersion = ""
+
+				// unmarshal expected response to ConfigMap
+				var expectedObj corev1.ConfigMap
+				err = json.Unmarshal([]byte(tt.expected.Entries[i].Payload), &expectedObj)
+				if err != nil {
+					t.Fatalf("failed to unmarshal payload: %v", err)
+				}
+
+				// Compare!
+				if !assert.ObjectsAreEqual(obj, expectedObj) {
+					t.Errorf("expected:\n%+v\nbut got:\n%+v", expectedObj, obj)
+				}
+			}
+		})
+	}
+}
+
 func setup(t *testing.T, clusterClients map[string]client.Client, opts ...func(opts ServerOpts) ServerOpts) pb.GitOpsSetsClient {
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 	clientsPool.ClientsReturns(clusterClients)
@@ -508,9 +625,11 @@ func setup(t *testing.T, clusterClients map[string]client.Client, opts ...func(o
 	fakeFactory.GetUserNamespacesReturns(namespaces)
 
 	log := testr.New(t)
+	healthChecker := health.NewHealthChecker()
 	options := ServerOpts{
 		ClientsFactory: fakeFactory,
 		Logger:         log,
+		HealthChecker:  healthChecker,
 	}
 
 	for _, o := range opts {

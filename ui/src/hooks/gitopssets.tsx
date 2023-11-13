@@ -11,7 +11,6 @@ import {
   HelmRelease,
   Kustomization,
   Provider,
-  coreClient,
 } from '@weaveworks/weave-gitops';
 import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
@@ -111,85 +110,37 @@ export function useToggleSuspendGitOpsSet(params: DetailParams) {
 export function useGetReconciledTree(
   name: string,
   namespace: string,
-  kinds: GroupVersionKind[],
+  type: 'GitOpsSet',
   clusterName = 'Default',
+  withChildren = true,
 ) {
   return useQuery<any[], RequestError>(
-    ['reconciled_objects', { name, namespace, kinds }],
-    () =>
-      getChildren(coreClient, GitOpsSets, name, namespace, kinds, clusterName),
+    ['inventory', { name, namespace, type }],
+    () => getChildren(GitOpsSets, name, namespace, clusterName, withChildren),
     { retry: false, refetchInterval: 5000 },
   );
 }
 
 export const getChildren = async (
-  core: typeof coreClient,
   client: typeof GitOpsSets,
   name: string,
   namespace: string,
-  kinds: GroupVersionKind[],
   clusterName: string,
+  withChildren: boolean,
 ): Promise<FluxObject[]> => {
-  const { objects } = await client.GetReconciledObjects({
+  const { entries } = await client.GetInventory({
     name,
     namespace,
-    kinds,
     clusterName,
+    withChildren,
   });
-  const length = objects?.length || 0;
-  const result = [];
-  for (let o = 0; o < length; o++) {
-    const obj = convertResponse('', objects?.[o] || ({} as ResponseObject));
-    await getChildrenRecursive(
-      core,
-      namespace,
-      obj,
-      clusterName,
-      PARENT_CHILD_LOOKUP,
-    );
-    result.push(obj);
+  const length = entries?.length || 0;
+  const resEntries = [];
+  for (let q = 0; q < length; q++) {
+    const c = convertResponse('', entries?.[q] || ({} as ResponseObject));
+    resEntries.push(c);
   }
-  return _.flatten(result);
-};
-
-export const getChildrenRecursive = async (
-  core: typeof coreClient,
-  namespace: string,
-  object: FluxObject,
-  clusterName: string,
-  lookup: any,
-) => {
-  const children = [];
-
-  const k = lookup[object?.type || ''];
-
-  if (k && k.children) {
-    for (let i = 0; i < k.children.length; i++) {
-      const child: GroupVersionKind = k.children[i];
-
-      const res = await core.GetChildObjects({
-        parentUid: object.uid,
-        namespace,
-        groupVersionKind: child,
-        clusterName: clusterName,
-      });
-
-      const length = res?.objects?.length || 0;
-
-      for (let q = 0; q < length; q++) {
-        const c = convertResponse(
-          '',
-          res?.objects?.[q] || ({} as ResponseObject),
-        );
-        // Dive down one level and update the lookup accordingly.
-        await getChildrenRecursive(core, namespace, c, clusterName, {
-          [child.kind as string]: child,
-        });
-        children.push(c);
-      }
-    }
-  }
-  object.children = children;
+  return _.flatten(resEntries);
 };
 
 export function convertResponse(kind: Kind | string, response: ResponseObject) {
