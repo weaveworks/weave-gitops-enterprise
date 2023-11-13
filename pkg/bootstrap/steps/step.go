@@ -28,6 +28,7 @@ type StepInput struct {
 	Value           any
 	Values          []string
 	Valuesfn        func(input []StepInput, c *Config) (interface{}, error)
+	Enabled         func(input []StepInput, c *Config) bool
 	Required        bool
 }
 
@@ -63,16 +64,16 @@ func defaultInputStep(inputs []StepInput, c *Config) ([]StepInput, error) {
 		switch input.Type {
 		case stringInput:
 			// verify the input is enabled by executing the function
-			enable := true
-			if input.Valuesfn != nil {
-				res, _ := input.Valuesfn(inputs, c)
-				enable = res.(bool)
-				if enable && input.StepInformation != "" {
-					c.Logger.Warningf(input.StepInformation)
-				}
+			if input.Enabled != nil && !input.Enabled(nil, c) {
+				continue
 			}
+
+			if input.StepInformation != "" {
+				c.Logger.Warningf(input.StepInformation)
+			}
+
 			// get the value from user otherwise
-			if input.Value == nil && enable {
+			if input.Value == nil {
 				paramValue, err := utils.GetStringInput(input.Msg, input.DefaultValue.(string))
 				if err != nil {
 					return []StepInput{}, err
@@ -83,16 +84,16 @@ func defaultInputStep(inputs []StepInput, c *Config) ([]StepInput, error) {
 			processedInputs = append(processedInputs, input)
 		case passwordInput:
 			// verify the input is enabled by executing the function
-			enable := true
-			if input.Valuesfn != nil {
-				res, _ := input.Valuesfn(inputs, c)
-				enable = res.(bool)
-				if enable && input.StepInformation != "" {
-					c.Logger.Warningf(input.StepInformation)
-				}
+			if input.Enabled != nil && !input.Enabled(inputs, c) {
+				continue
 			}
+
+			if input.StepInformation != "" {
+				c.Logger.Warningf(input.StepInformation)
+			}
+
 			// get the value from user otherwise
-			if input.Value == nil && enable {
+			if input.Value == nil {
 				paramValue, err := utils.GetPasswordInput(input.Msg, input.Required)
 				if err != nil {
 					return []StepInput{}, err
@@ -102,20 +103,27 @@ func defaultInputStep(inputs []StepInput, c *Config) ([]StepInput, error) {
 			processedInputs = append(processedInputs, input)
 		case confirmInput:
 			// verify the input is enabled by executing the function
-			enable := true
-			if input.Valuesfn != nil {
-				res, _ := input.Valuesfn(inputs, c)
-				enable = res.(bool)
-				if enable && input.StepInformation != "" {
-					c.Logger.Warningf(input.StepInformation)
-				}
+			if input.Enabled != nil && !input.Enabled(inputs, c) {
+				continue
 			}
+
+			if input.StepInformation != "" {
+				c.Logger.Warningf(input.StepInformation)
+			}
+			// if silent mode is enabled, select yes
+			if c.Silent {
+				input.Value = confirmYes
+			}
+
 			// get the value from user otherwise
-			if input.Value == nil && enable {
+			if input.Value == nil {
 				input.Value = utils.GetConfirmInput(input.Msg)
 			}
 			processedInputs = append(processedInputs, input)
 		case multiSelectionChoice:
+			if input.Enabled != nil && !input.Enabled(inputs, c) {
+				continue
+			}
 			// process the values from the function
 			var values []string = input.Values
 			if input.Valuesfn != nil {
@@ -164,7 +172,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 				panic("unexpected internal error casting file")
 			}
 			c.Logger.Actionf("cloning flux git repo: %s/%s", WGEDefaultNamespace, WGEDefaultRepoName)
-			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.PrivateKeyPath, c.PrivateKeyPassword)
+			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.GitScheme, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
 			if err != nil {
 				return fmt.Errorf("cannot clone repo: %v", err)
 			}
@@ -176,7 +184,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 			}()
 			c.Logger.Successf("cloned flux git repo: %s/%s", WGEDefaultRepoName, WGEDefaultRepoName)
 
-			err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg, c.PrivateKeyPath, c.PrivateKeyPassword)
+			err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg, c.GitScheme, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
 			if err != nil {
 				return err
 			}

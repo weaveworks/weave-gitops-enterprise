@@ -24,7 +24,7 @@ export class URLQueryStateManager implements QueryStateManager {
   }
 
   read(): QueryState {
-    const { terms, qFilters, limit, orderBy, ascending, offset } = qs.parse(
+    const { terms, qFilters, limit, orderBy, descending, offset } = qs.parse(
       this.history.location.search,
       { arrayFormat: 'comma' },
     );
@@ -38,7 +38,7 @@ export class URLQueryStateManager implements QueryStateManager {
       offset: !_.isNaN(o) ? o : 0,
       filters: qFilters ? _.split(qFilters as string, ',') : [],
       orderBy: (orderBy as string) || '',
-      orderAscending: ascending === 'true',
+      orderDescending: descending === 'true',
     };
   }
 
@@ -56,7 +56,7 @@ export class URLQueryStateManager implements QueryStateManager {
         qFilters: queryState.filters,
         limit,
         offset,
-        ascending: queryState.orderAscending,
+        descending: queryState.orderDescending,
         orderBy: queryState.orderBy,
       },
       { skipNull: true, skipEmptyString: true, arrayFormat: 'comma' },

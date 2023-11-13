@@ -51,7 +51,7 @@ export const RolesTab = ({
     error,
   } = useGetWorkspaceRoles({
     clusterName,
-    workspaceName,
+    name: workspaceName,
   });
 
   return (

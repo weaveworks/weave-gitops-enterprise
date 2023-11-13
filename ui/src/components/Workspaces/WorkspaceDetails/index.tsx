@@ -15,7 +15,7 @@ const WorkspaceDetails = ({
   const { data: workspaceDetails, isLoading: isWorkspaceLoading } =
     useGetWorkspaceDetails({
       clusterName,
-      workspaceName,
+      name: workspaceName,
     });
 
   return (

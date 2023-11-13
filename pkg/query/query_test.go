@@ -8,11 +8,13 @@ import (
 	"testing"
 
 	"github.com/go-logr/logr"
+	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -93,7 +95,7 @@ func TestRunQuery(t *testing.T) {
 		},
 		{
 			name:  "pagination - no offset",
-			opts:  &query{limit: 1, offset: 0, orderBy: "name", ascending: false},
+			opts:  &query{limit: 1, offset: 0, orderBy: "name", descending: false},
 			query: &query{},
 			objects: []models.Object{
 				{
@@ -119,10 +121,10 @@ func TestRunQuery(t *testing.T) {
 			name:  "pagination - with offset",
 			query: &query{},
 			opts: &query{
-				limit:     1,
-				offset:    1,
-				orderBy:   "name",
-				ascending: false,
+				limit:      1,
+				offset:     1,
+				orderBy:    "name",
+				descending: false,
 			},
 			objects: []models.Object{
 				{
@@ -185,8 +187,8 @@ func TestRunQuery(t *testing.T) {
 				filters: []string{"kind:Kind1", "namespace:bravo"},
 			},
 			opts: &query{
-				orderBy:   "name",
-				ascending: false,
+				orderBy:    "name",
+				descending: false,
 			},
 			want: []string{"bar"},
 		},
@@ -266,8 +268,8 @@ func TestRunQuery(t *testing.T) {
 			},
 			query: &query{},
 			opts: &query{
-				orderBy:   "kind",
-				ascending: true,
+				orderBy:    "kind",
+				descending: true,
 			},
 			want: []string{"podinfo-b", "podinfo-a"},
 		},
@@ -293,8 +295,8 @@ func TestRunQuery(t *testing.T) {
 			},
 			query: &query{},
 			opts: &query{
-				orderBy:   "name",
-				ascending: true,
+				orderBy:    "name",
+				descending: false,
 			},
 			want: []string{"podinfo-a", "podinfo-b"},
 		},
@@ -320,8 +322,8 @@ func TestRunQuery(t *testing.T) {
 			},
 			query: &query{},
 			opts: &query{
-				orderBy:   "name",
-				ascending: false,
+				orderBy:    "name",
+				descending: true,
 			},
 			want: []string{"podinfo-b", "podinfo-a"},
 		},
@@ -354,7 +356,7 @@ func TestRunQuery(t *testing.T) {
 				},
 			},
 			query: &query{filters: []string{"kind:Kustomization"}},
-			opts:  &query{orderBy: "name", ascending: true},
+			opts:  &query{orderBy: "name", descending: false},
 			want:  []string{"podinfo-a", "podinfo-b"},
 		},
 		{
@@ -394,42 +396,8 @@ func TestRunQuery(t *testing.T) {
 				},
 			},
 			query: &query{filters: []string{"kind:/(HelmChart|HelmRepository)/", "namespace:namespace-a"}},
-			opts:  &query{orderBy: "name", ascending: true},
+			opts:  &query{orderBy: "name"},
 			want:  []string{"podinfo-a", "podinfo-b"},
-		},
-		{
-			name: "fuzzy terms",
-			objects: []models.Object{
-				{
-					Cluster:    "management",
-					Name:       "flux-system-ingress-nginx",
-					Namespace:  "flux-system",
-					Kind:       "HelmChart",
-					APIGroup:   "apps",
-					APIVersion: "v1",
-				},
-				{
-					Cluster:    "management",
-					Name:       "flux-stress-nginx-975",
-					Namespace:  "flux-stress",
-					Kind:       "HelmRepository",
-					APIGroup:   "apps",
-					APIVersion: "v1",
-					Category:   "bar",
-				},
-				{
-					Cluster:    "management",
-					Name:       "other-stress-nginx-975",
-					Namespace:  "other-stress",
-					Kind:       "HelmRepository",
-					APIGroup:   "apps",
-					APIVersion: "v1",
-					Category:   "bar",
-				},
-			},
-			query: &query{terms: "flux"},
-			opts:  &query{orderBy: "name", ascending: true},
-			want:  []string{"flux-system-ingress-nginx", "flux-stress-nginx-975"},
 		},
 		{
 			name: "uniqe hits only",
@@ -457,8 +425,25 @@ func TestRunQuery(t *testing.T) {
 				},
 			},
 			query: &query{terms: "", filters: []string{}},
-			opts:  &query{orderBy: "name", ascending: true},
+			opts:  &query{orderBy: "name", descending: true},
 			want:  []string{"some-name"},
+		},
+		{
+			name: "exact name matches",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Name:       "kube-prometheus-stack",
+					Namespace:  "namespace-1",
+					Kind:       "HelmChart",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+					Category:   configuration.CategoryAutomation,
+				},
+			},
+			query: &query{terms: "kube-prometheus-stack", filters: []string{}},
+			opts:  &query{orderBy: "name", descending: true, filters: []string{"category:automation"}},
+			want:  []string{"kube-prometheus-stack"},
 		},
 	}
 
@@ -686,13 +671,86 @@ func TestQueryIteration(t *testing.T) {
 	g.Expect(got).To(HaveEach(HaveField("Namespace", "namespace-a")), "all be in namespace-a")
 }
 
+func TestQueryOrdering_Realistic(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	dir, err := os.MkdirTemp("", "test")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	db, err := store.CreateSQLiteDB(dir)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, err := store.NewSQLiteStore(db, logr.Discard())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	idx, err := store.NewIndexer(s, dir, logr.Discard())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{
+		ID: "test",
+	})
+
+	ex, err := os.Getwd()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	data, err := os.ReadFile(ex + "/../../test/utils/data/explorer/sort_fixture.json")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	objects := []models.Object{}
+
+	if err := json.Unmarshal(data, &objects); err != nil {
+		t.Fatal(err)
+	}
+
+	g.Expect(store.SeedObjects(db, objects)).To(Succeed())
+	g.Expect(idx.Add(context.Background(), objects)).To(Succeed())
+
+	q := &qs{
+		log:        logr.Discard(),
+		debug:      logr.Discard(),
+		r:          s,
+		index:      idx,
+		authorizer: allowAll,
+	}
+
+	qy := &query{
+		orderBy: "name",
+	}
+
+	got, err := q.RunQuery(ctx, qy, qy)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	expected := []string{
+		"flux-dashboards",
+		"flux-system",
+		"kube-prometheus-stack",
+		"kube-prometheus-stack",
+		"monitoring-config",
+		"podinfo",
+		"podinfo",
+		"podinfo",
+		"podinfo",
+	}
+
+	actual := []string{}
+	for _, o := range got {
+		actual = append(actual, o.Name)
+	}
+
+	diff := cmp.Diff(expected, actual)
+
+	if diff != "" {
+		t.Fatalf("unexpected result (-want +got):\n%s", diff)
+	}
+}
+
 type query struct {
-	terms     string
-	filters   []string
-	offset    int32
-	limit     int32
-	orderBy   string
-	ascending bool
+	terms      string
+	filters    []string
+	offset     int32
+	limit      int32
+	orderBy    string
+	descending bool
 }
 
 func (q *query) GetTerms() string {
@@ -715,8 +773,8 @@ func (q *query) GetOrderBy() string {
 	return q.orderBy
 }
 
-func (q *query) GetAscending() bool {
-	return q.ascending
+func (q *query) GetDescending() bool {
+	return q.descending
 }
 
 func toUnstructured(obj client.Object) json.RawMessage {

@@ -54,8 +54,8 @@ const CostEstimation: FC<{
     const { parameterValues } = formData;
     setCostEstimationLoading(true);
     return renderTemplate({
-      templateName: template.name,
-      templateNamespace: template.namespace,
+      name: template.name,
+      namespace: template.namespace,
       values: parameterValues,
       profiles,
       credentials,

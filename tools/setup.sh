@@ -38,6 +38,7 @@ do_flux(){
     --owner="$GITHUB_USER" \
     --repository="$GITHUB_REPO" \
     --branch=main \
+    --components-extra=image-reflector-controller,image-automation-controller \
     --path=./clusters/management \
     --personal
 }

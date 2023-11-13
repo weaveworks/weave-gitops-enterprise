@@ -23,7 +23,7 @@ export const RoleBindingsTab = ({
     error,
   } = useGetWorkspaceRoleBinding({
     clusterName,
-    workspaceName,
+    name: workspaceName,
   });
 
   return (

@@ -77,6 +77,10 @@ var facetSuffix = ".facet"
 func addFieldMappings(index *mapping.IndexMappingImpl, fields []string) {
 	objMapping := bleve.NewDocumentMapping()
 
+	nameFieldMapping := bleve.NewTextFieldMapping()
+	nameFieldMapping.Analyzer = "keyword"
+	objMapping.AddFieldMappingsAt("name", nameFieldMapping)
+
 	for _, field := range commonFields {
 		// This mapping allows us to do query-string queries on the field.
 		// For example, we can do `cluster:foo` to get all objects in the `foo` cluster.
@@ -186,7 +190,7 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 	terms := q.GetTerms()
 
 	if terms != "" {
-		tq := bleve.NewMatchQuery(terms)
+		tq := bleve.NewTermQuery(terms)
 		query.AddQuery(tq)
 	}
 
@@ -216,27 +220,42 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 	// The query iterator will handle limiting the page size.
 	req.Size = int(count)
 
-	sortBy := "name"
-	tmpl := "-%v"
+	orders := search.SortOrder{}
 
 	if opts != nil {
-		// `-` reverses the order
-		if !opts.GetAscending() {
-			tmpl = "%v"
-		}
-
 		sort := opts.GetOrderBy()
 		if sort != "" {
-			sortBy = sort
+			sf := &search.SortField{
+				Field: sort,
+				Type:  search.SortFieldAsString,
+				// Desc behaves oddly in bleve. Setting .Desc to `true` will reverse the default order (descending).
+				Desc: opts.GetDescending(),
+			}
+
+			orders = append(orders, sf)
 		}
 
 		if opts.GetOffset() > 0 {
 			req.From = int(opts.GetOffset())
 		}
+	} else {
+		// Sort by name by default
+		sf := &search.SortField{
+			Field: "name",
+			Type:  search.SortFieldAsString,
+			Desc:  true,
+		}
 
+		orders = append(orders, sf)
 	}
 
-	req.SortBy([]string{fmt.Sprintf(tmpl, sortBy)})
+	// We order by score here so that we can get the most relevant results first.
+	orders = append(orders, &search.SortField{
+		Field: "_score",
+		Type:  search.SortFieldAuto,
+	})
+
+	req.SortByCustom(orders)
 
 	searchResults, err := i.idx.Search(req)
 	if err != nil {

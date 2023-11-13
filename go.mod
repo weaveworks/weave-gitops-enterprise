@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
-	github.com/weaveworks/weave-gitops v0.35.1-0.20231102103827-b9e6f12f92a7
+	github.com/weaveworks/weave-gitops v0.36.0
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -166,7 +166,6 @@ require (
 	github.com/fluxcd/image-reflector-controller/api v0.27.2 // indirect
 	github.com/fluxcd/notification-controller/api v1.0.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
-	github.com/gobuffalo/flect v1.0.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/pprof v0.0.0-20230811205829-9131a7e9cc17 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.5 // indirect

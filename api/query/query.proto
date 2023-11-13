@@ -71,7 +71,7 @@ message DoQueryRequest {
     int32    offset         = 3;
     int32    limit          = 4;
     string   order_by        = 5;
-    bool     ascending      = 6;
+    bool     descending      = 6;
 }
 
 message DoQueryResponse {

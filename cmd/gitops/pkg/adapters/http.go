@@ -250,7 +250,7 @@ func (c *HTTPClient) RetrieveTemplates(kind templates.TemplateKind) ([]templates
 
 // RetrieveTemplate returns a template from the cluster service.
 func (c *HTTPClient) RetrieveTemplate(name string, kind templates.TemplateKind, namespace string) (*templates.Template, error) {
-	endpoint := "v1/templates/{template_name}"
+	endpoint := "v1/templates/{name}"
 
 	type GetTemplateResponse struct {
 		Template *templates.Template
@@ -260,11 +260,11 @@ func (c *HTTPClient) RetrieveTemplate(name string, kind templates.TemplateKind, 
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
 		SetPathParams(map[string]string{
-			"template_name": name,
+			"name": name,
 		}).
 		SetQueryParams(map[string]string{
-			"template_kind":      kind.String(),
-			"template_namespace": namespace,
+			"template_kind": kind.String(),
+			"namespace":     namespace,
 		}).
 		SetResult(&template).
 		Get(endpoint)
@@ -322,7 +322,7 @@ func (c *HTTPClient) RetrieveTemplatesByProvider(kind templates.TemplateKind, pr
 // RetrieveTemplateParameters returns the list of all parameters of the
 // specified template.
 func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, name string, namespace string) ([]templates.TemplateParameter, error) {
-	endpoint := "v1/templates/{template_name}/params"
+	endpoint := "v1/templates/{name}/params"
 
 	type ListTemplateParametersResponse struct {
 		Parameters []*templates.TemplateParameter
@@ -332,11 +332,11 @@ func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, nam
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
 		SetPathParams(map[string]string{
-			"template_name": name,
+			"name": name,
 		}).
 		SetQueryParams(map[string]string{
-			"template_kind":      kind.String(),
-			"template_namespace": namespace,
+			"template_kind": kind.String(),
+			"namespace":     namespace,
 		}).
 		SetResult(&templateParametersList).
 		Get(endpoint)
@@ -731,7 +731,7 @@ func (c *HTTPClient) RetrieveTemplateProfiles(name string, namespace string) ([]
 			"name": name,
 		}).
 		SetQueryParams(map[string]string{
-			"template_namespace": namespace,
+			"namespace": namespace,
 		}).
 		SetResult(&templateProfilesList).
 		Get(endpoint)

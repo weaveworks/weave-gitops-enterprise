@@ -154,9 +154,9 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
 	}
-	tmpl, err := s.getTemplate(ctx, msg.TemplateName, msg.TemplateNamespace, msg.TemplateKind)
+	tmpl, err := s.getTemplate(ctx, msg.Name, msg.Namespace, msg.TemplateKind)
 	if err != nil {
-		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
+		return nil, fmt.Errorf("error looking up template %v: %v", msg.Name, err)
 	}
 
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
@@ -182,7 +182,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			tmpl,
 			GetFilesRequest{
 				ClusterNamespace: clusterNamespace,
-				TemplateName:     msg.TemplateName,
+				TemplateName:     msg.Name,
 				ParameterValues:  msg.PreviousValues.ParameterValues,
 				Credentials:      msg.PreviousValues.Credentials,
 				Profiles:         msg.PreviousValues.Values,
@@ -209,7 +209,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		tmpl,
 		GetFilesRequest{
 			ClusterNamespace: clusterNamespace,
-			TemplateName:     msg.TemplateName,
+			TemplateName:     msg.Name,
 			ParameterValues:  msg.ParameterValues,
 			Credentials:      msg.Credentials,
 			Profiles:         msg.Values,
@@ -269,7 +269,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to create pull request for %q: %w", msg.TemplateName, err)
+		return nil, fmt.Errorf("unable to create pull request for %q: %w", msg.Name, err)
 	}
 
 	return &capiv1_proto.CreatePullRequestResponse{
@@ -499,7 +499,7 @@ func secretByName(ctx context.Context, cl client.Client, name types.NamespacedNa
 
 // GetKubeconfig returns the Kubeconfig for the given workload cluster
 func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
-	val, err := s.kubeConfigForCluster(ctx, types.NamespacedName{Name: msg.ClusterName, Namespace: getClusterNamespace(msg.ClusterNamespace)})
+	val, err := s.kubeConfigForCluster(ctx, types.NamespacedName{Name: msg.Name, Namespace: getClusterNamespace(msg.Namespace)})
 	if err != nil {
 		return nil, err
 	}
@@ -851,7 +851,7 @@ func applyCreateClusterDefaults(msg *capiv1_proto.CreatePullRequestRequest) {
 func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 	var err error
 
-	if msg.TemplateName == "" {
+	if msg.Name == "" {
 		err = multierror.Append(err, errors.New("template name must be specified"))
 	}
 

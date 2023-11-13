@@ -24,13 +24,13 @@ func (s *server) ListPullRequests(ctx context.Context, msg *pb.ListPullRequestsR
 
 	p := ctrl.Pipeline{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      msg.PipelineName,
-			Namespace: msg.PipelineNamespace,
+			Name:      msg.Name,
+			Namespace: msg.Namespace,
 		},
 	}
 
 	if err := c.Get(ctx, s.cluster, client.ObjectKeyFromObject(&p), &p); err != nil {
-		return nil, fmt.Errorf("failed to find pipeline=%s in namespace=%s in cluster=%s: %w", msg.PipelineName, msg.PipelineNamespace, s.cluster, err)
+		return nil, fmt.Errorf("failed to find pipeline=%s in namespace=%s in cluster=%s: %w", msg.Name, msg.Namespace, s.cluster, err)
 	}
 	// client.Get does not always populate TypeMeta field, without this `kind` and
 	// `apiVersion` are not returned in YAML representation.
@@ -54,7 +54,7 @@ func (s *server) ListPullRequests(ctx context.Context, msg *pb.ListPullRequestsR
 
 		// getting provider token from pipeline definition
 		var secret corev1.Secret
-		if err := sc.Get(ctx, s.cluster, client.ObjectKey{Namespace: msg.PipelineNamespace, Name: promotion.Strategy.PullRequest.SecretRef.Name}, &secret); err != nil {
+		if err := sc.Get(ctx, s.cluster, client.ObjectKey{Namespace: msg.Namespace, Name: promotion.Strategy.PullRequest.SecretRef.Name}, &secret); err != nil {
 			return nil, fmt.Errorf("failed to fetch Secret: %w", err)
 		}
 
