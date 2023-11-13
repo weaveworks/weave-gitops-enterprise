@@ -12,6 +12,13 @@ config:
   # auth:
   #   noAuthentication:
   #     user: "wego-admin"
+  #
+  # un-comment to enable OIDC against dex-01
+  # oidc:
+  #   enabled: true
+  #   issuerURL: "https://dex-01.wge.dev.weave.works"
+  #   redirectURL: "http://localhost:3000/oauth2/callback"
+  #   clientCredentialsSecret: "oidc-auth"
 
 tls:
   enabled: false

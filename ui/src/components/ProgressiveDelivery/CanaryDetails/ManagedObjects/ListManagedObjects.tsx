@@ -1,7 +1,6 @@
 import { Alert } from '@material-ui/lab';
-import { LoadingPage } from '@weaveworks/weave-gitops';
+import { AlertListErrors, LoadingPage } from '@weaveworks/weave-gitops';
 import { useListFlaggerObjects, CanaryParams } from '../../../../contexts/ProgressiveDelivery';
-import { AlertListErrors } from '../../../Layout/AlertListErrors';
 import { ManagedObjectsTable } from './ManagedObjectsTable';
 
 type Props = CanaryParams;

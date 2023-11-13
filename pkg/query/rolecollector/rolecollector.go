@@ -52,7 +52,7 @@ func NewRoleCollector(w store.Store, mgr clusters.Subscriber, sa collector.Imper
 	return col, nil
 }
 
-func processRecords(objectTransactions []models.ObjectTransaction, store store.Store, debug logr.Logger) error {
+func processRecords(objectTransactions []models.ObjectTransaction, store store.Store, log logr.Logger) error {
 	ctx := context.Background()
 	deleteAll := []string{}
 
@@ -64,7 +64,7 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 
 	for _, obj := range objectTransactions {
 
-		debug.Info("processing object tx", "tx", obj.ClusterName())
+		log.Info("processing object tx", "tx", obj.ClusterName())
 
 		// Handle delete all tx first as does not hold objects
 		if obj.TransactionType() == models.TransactionTypeDeleteAll {
@@ -144,6 +144,6 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 		}
 	}
 
-	debug.Info("roles processed", "roles-upsert", roles, "roles-delete", rolesToDelete, "rolebindings-upsert", bindings, "rolebindings-delete", bindingsToDelete, "deleteAll", deleteAll)
+	log.Info("roles processed", "roles-upsert", roles, "roles-delete", rolesToDelete, "rolebindings-upsert", bindings, "rolebindings-delete", bindingsToDelete, "deleteAll", deleteAll)
 	return nil
 }

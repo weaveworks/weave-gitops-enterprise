@@ -6,10 +6,11 @@ import {
   IconType,
   Link,
 } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
 import { FC, useCallback, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { EnabledComponent } from '../../api/query/query.pb';
+import { EnabledComponent, Object } from '../../api/query/query.pb';
 import { Template } from '../../cluster-services/cluster_services.pb';
 import useNotifications, {
   NotificationData,
@@ -17,6 +18,10 @@ import useNotifications, {
 import { useIsEnabledForComponent } from '../../hooks/query';
 import useTemplates from '../../hooks/templates';
 import Explorer from '../Explorer/Explorer';
+import {
+  addFieldsWithIndex,
+  defaultExplorerFields,
+} from '../Explorer/ExplorerTable';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
@@ -32,9 +37,12 @@ const DocsLink = styled(Link)`
   padding-left: ${({ theme }) => theme.spacing.xxs};
 `;
 
-const TemplatesDashboard: FC<{
+type Props = {
+  className?: string;
   location: { state: { notification: NotificationData[] } };
-}> = ({ location }) => {
+};
+
+const TemplatesDashboard: FC<Props> = ({ location, className }) => {
   const isExplorerEnabled = useIsEnabledForComponent(
     EnabledComponent.templates,
   );
@@ -69,9 +77,44 @@ const TemplatesDashboard: FC<{
     [location?.state?.notification, setNotifications],
   );
 
+  const templateTableFields = defaultExplorerFields.filter(
+    field => !['name', 'status', 'tenant'].includes(field.id),
+  );
+
+  const fields = addFieldsWithIndex(templateTableFields, [
+    {
+      index: 0,
+      id: 'name',
+      label: 'Name',
+      value: 'name',
+    },
+    {
+      index: 3,
+      id: 'type',
+      label: 'Type',
+      value: (t: any) =>
+        t.parsed?.metadata?.labels?.['weave.works/template-type'] || '',
+    },
+    {
+      id: 'action',
+      label: '',
+      value: (t: Template) => (
+        <Button
+          id="create-resource"
+          startIcon={<Icon type={IconType.AddIcon} size="base" />}
+          onClick={event => handleAddCluster(event, t)}
+          disabled={Boolean(t.error)}
+        >
+          USE THIS TEMPLATE
+        </Button>
+      ),
+    },
+  ]);
+
   return (
     <Page
       loading={isLoading}
+      className={className}
       path={[
         {
           label: 'Templates',
@@ -83,27 +126,7 @@ const TemplatesDashboard: FC<{
           <Explorer
             category="template"
             enableBatchSync={false}
-            extraColumns={[
-              {
-                label: 'Type',
-                value: 'templateType',
-                sortValue: ({ name }) => name,
-              },
-              {
-                label: '',
-                value: (t: Template) => (
-                  <Button
-                    id="create-resource"
-                    startIcon={<Icon type={IconType.AddIcon} size="base" />}
-                    onClick={event => handleAddCluster(event, t)}
-                    disabled={Boolean(t.error)}
-                  >
-                    USE THIS TEMPLATE
-                  </Button>
-                ),
-              },
-            ]}
-            linkToObject={false}
+            fields={fields}
           />
         ) : (
           <DataTable

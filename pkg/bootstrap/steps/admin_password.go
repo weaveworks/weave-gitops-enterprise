@@ -10,7 +10,6 @@ import (
 )
 
 const (
-	adminUsernameMsg           = "dashboard admin username (default: wego-admin)"
 	adminPasswordMsg           = "dashboard admin password (minimum characters: 6)"
 	secretConfirmationMsg      = "admin login credentials has been created successfully!"
 	adminSecretExistsMsgFormat = "admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s', then try again"
@@ -19,29 +18,22 @@ const (
 )
 
 const (
-	adminSecretName = "cluster-user-auth"
-	confirmYes      = "y"
+	adminSecretName      = "cluster-user-auth"
+	confirmYes           = "y"
+	defaultAdminUsername = "wego-admin"
 )
 
-var getUsernameInput = StepInput{
-	Name:         UserName,
-	Type:         stringInput,
-	Msg:          adminUsernameMsg,
-	DefaultValue: defaultAdminUsername,
-	Valuesfn:     canAskForCreds,
-}
-
 var getPasswordInput = StepInput{
-	Name:         Password,
+	Name:         inPassword,
 	Type:         passwordInput,
 	Msg:          adminPasswordMsg,
 	DefaultValue: defaultAdminPassword,
-	Valuesfn:     canAskForCreds,
+	Enabled:      canAskForCreds,
 	Required:     true,
 }
 
-// NewAskAdminCredsSecretStep asks user about admin username and password.
-// admin username and password are you used for accessing WGE Dashboard
+// NewAskAdminCredsSecretStep asks user about admin  password.
+// admin password are you used for accessing WGE Dashboard
 // for emergency access. OIDC can be used instead.
 // there an option to revert these creds in case OIDC setup is successful
 // if the creds already exist. user will be asked to continue with the current creds
@@ -49,17 +41,13 @@ var getPasswordInput = StepInput{
 func NewAskAdminCredsSecretStep(config Config) BootstrapStep {
 	inputs := []StepInput{
 		{
-			Name:            existingCreds,
+			Name:            inExistingCreds,
 			Type:            confirmInput,
 			Msg:             existingCredsMsg,
 			DefaultValue:    "",
-			Valuesfn:        isExistingAdminSecret,
+			Enabled:         isExistingAdminSecret,
 			StepInformation: fmt.Sprintf(adminSecretExistsMsgFormat, adminSecretName, WGEDefaultNamespace),
 		},
-	}
-
-	if config.Username == "" {
-		inputs = append(inputs, getUsernameInput)
 	}
 
 	if config.Password == "" {
@@ -77,19 +65,13 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 	// search for existing admin credentials in secret cluster-user-auth
 	continueWithExistingCreds := confirmYes
 	for _, param := range input {
-		if param.Name == UserName {
-			username, ok := param.Value.(string)
-			if ok {
-				c.Username = username
-			}
-		}
-		if param.Name == Password {
+		if param.Name == inPassword {
 			password, ok := param.Value.(string)
 			if ok {
 				c.Password = password
 			}
 		}
-		if param.Name == existingCreds {
+		if param.Name == inExistingCreds {
 			existing, ok := param.Value.(string)
 			if ok {
 				continueWithExistingCreds = existing
@@ -97,7 +79,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 		}
 	}
 
-	if existing, _ := isExistingAdminSecret(input, c); existing.(bool) {
+	if existing := isExistingAdminSecret(input, c); existing {
 		if continueWithExistingCreds != confirmYes {
 			return []StepOutput{}, fmt.Errorf(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
 		} else {
@@ -111,10 +93,10 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 	}
 
 	data := map[string][]byte{
-		"username": []byte(c.Username),
+		"username": []byte(defaultAdminUsername),
 		"password": encryptedPassword,
 	}
-	c.Logger.Actionf("dashboard admin username: %s", c.Username)
+	c.Logger.Actionf("dashboard admin username: %s is configured", defaultAdminUsername)
 
 	secret := corev1.Secret{
 		ObjectMeta: v1.ObjectMeta{
@@ -138,17 +120,11 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 // isExistingAdminSecret checks for admin secret on management cluster
 // returns true if admin secret is already on the cluster
 // returns false if no admin secret on the cluster
-func isExistingAdminSecret(input []StepInput, c *Config) (interface{}, error) {
+func isExistingAdminSecret(input []StepInput, c *Config) bool {
 	_, err := utils.GetSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace)
-	if err != nil {
-		return false, nil
-	}
-	return true, nil
+	return err == nil
 }
 
-func canAskForCreds(input []StepInput, c *Config) (interface{}, error) {
-	if ask, _ := isExistingAdminSecret(input, c); ask.(bool) {
-		return false, nil
-	}
-	return true, nil
+func canAskForCreds(input []StepInput, c *Config) bool {
+	return !isExistingAdminSecret(input, c)
 }

@@ -1,16 +1,48 @@
 import {
-  RenderResult,
   act,
   queryByLabelText,
   render,
+  RenderResult,
 } from '@testing-library/react';
 import QueryServiceProvider from '../../../contexts/QueryService';
 import {
-  MockQueryService,
   defaultContexts,
+  MockQueryService,
   withContext,
 } from '../../../utils/test-utils';
 import Explorer from '../Explorer';
+import { addFieldsWithIndex } from '../ExplorerTable';
+
+describe('addExplorerFields', () => {
+  const newField = (id: string, index?: number) => ({
+    id,
+    label: id,
+    value: id,
+    index,
+  });
+
+  it('adds items to the end of the list if no index', () => {
+    const fields = [newField('foo')];
+    const fieldsToAdd = [newField('bar')];
+    const newFields = addFieldsWithIndex(fields, fieldsToAdd);
+
+    expect(newFields.map(field => field.id)).toEqual(['foo', 'bar']);
+  });
+
+  it('adds items to the beginning of the list if index is 0', () => {
+    const fields = [newField('foo')];
+    const fieldsToAdd = [newField('bar', 0)];
+    const newFields = addFieldsWithIndex(fields, fieldsToAdd);
+    expect(newFields.map(field => field.id)).toEqual(['bar', 'foo']);
+  });
+
+  it('adds item to middle of list if index is specified', () => {
+    const fields = [newField('foo'), newField('baz')];
+    const fieldsToAdd = [newField('bar', 1)];
+    const newFields = addFieldsWithIndex(fields, fieldsToAdd);
+    expect(newFields.map(field => field.id)).toEqual(['foo', 'bar', 'baz']);
+  });
+});
 
 describe('Explorer', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
@@ -101,7 +133,7 @@ describe('Explorer', () => {
         limit: 0,
         offset: 0,
         orderBy: '',
-        orderAscending: false,
+        orderDescending: false,
       })),
 
       write: jest.fn(),
@@ -124,7 +156,7 @@ describe('Explorer', () => {
 
     expect(input?.checked).toBeTruthy();
   });
-  it('shows extra columns', async () => {
+  it('you can configure the visible columns', async () => {
     const objects = [
       {
         kind: 'Kustomization',
@@ -144,8 +176,9 @@ describe('Explorer', () => {
       objects,
     };
 
-    const extraCols = [
+    const tableFields = [
       {
+        id: 'my-cool-column',
         label: 'My Cool Column',
         value: (o: any) => `${o.kind}-foo-bar`,
       },
@@ -153,100 +186,12 @@ describe('Explorer', () => {
 
     let result = {} as RenderResult;
     await act(async () => {
-      const c = wrap(<Explorer extraColumns={extraCols} />);
+      const c = wrap(<Explorer fields={tableFields} />);
       result = await render(c);
     });
 
     expect(result.container).toHaveTextContent('My Cool Column');
     expect(result.container).toHaveTextContent('Kustomization-foo-bar');
-  });
-  it("reorders extra columns according to 'index' property", async () => {
-    const objects = [
-      {
-        kind: 'Kustomization',
-        name: 'flux-system',
-        namespace: 'flux-system',
-        status: 'Ready',
-      },
-      {
-        kind: 'HelmRelease',
-        name: 'flux-system',
-        namespace: 'flux-system',
-        status: 'Ready',
-      },
-    ];
-
-    api.DoQueryReturns = {
-      objects,
-    };
-
-    const extraCols = [
-      {
-        label: 'My Cool Column',
-        value: (o: any) => `${o.kind}-foo-bar`,
-        index: 1,
-      },
-      {
-        label: 'My Other Cool Column',
-        value: (o: any) => `${o.kind}-foo-bar`,
-        index: 0,
-      },
-    ];
-
-    let result = {} as RenderResult;
-    await act(async () => {
-      const c = wrap(<Explorer extraColumns={extraCols} />);
-      result = await render(c);
-    });
-
-    const headers = result.container.querySelector('thead tr')
-      ?.children as HTMLCollection;
-
-    expect(headers.item(0)).toHaveTextContent('My Other Cool Column');
-    expect(headers.item(1)).toHaveTextContent('My Cool Column');
-    expect(headers.item(2)).toHaveTextContent('Name');
-  });
-  it('shows extra columns but preserves default column order', async () => {
-    const objects = [
-      {
-        kind: 'Kustomization',
-        name: 'flux-system',
-        namespace: 'flux-system',
-        status: 'Ready',
-      },
-      {
-        kind: 'HelmRelease',
-        name: 'flux-system',
-        namespace: 'flux-system',
-        status: 'Ready',
-      },
-    ];
-
-    api.DoQueryReturns = {
-      objects,
-    };
-
-    const extraCols = [
-      {
-        label: 'My Cool Column',
-        index: 4,
-        value: (o: any) => `${o.kind}-foo-bar`,
-      },
-    ];
-
-    let result = {} as RenderResult;
-    await act(async () => {
-      const c = wrap(<Explorer extraColumns={extraCols} />);
-      result = await render(c);
-    });
-
-    const headers = result.container.querySelectorAll('th');
-
-    expect(headers[0]).toHaveTextContent('Name');
-    expect(headers[1]).toHaveTextContent('Kind');
-    expect(headers[2]).toHaveTextContent('Namespace');
-    expect(headers[3]).toHaveTextContent('Cluster');
-    expect(headers[4]).toHaveTextContent('My Cool Column');
   });
 
   describe('snapshots', () => {

@@ -30,9 +30,9 @@ export type ListTemplatesResponse = {
 }
 
 export type GetTemplateRequest = {
-  templateName?: string
+  name?: string
   templateKind?: string
-  templateNamespace?: string
+  namespace?: string
 }
 
 export type GetTemplateResponse = {
@@ -40,9 +40,9 @@ export type GetTemplateResponse = {
 }
 
 export type ListTemplateParamsRequest = {
-  templateName?: string
+  name?: string
   templateKind?: string
-  templateNamespace?: string
+  namespace?: string
 }
 
 export type ListTemplateParamsResponse = {
@@ -51,9 +51,9 @@ export type ListTemplateParamsResponse = {
 }
 
 export type ListTemplateProfilesRequest = {
-  templateName?: string
+  name?: string
   templateKind?: string
-  templateNamespace?: string
+  namespace?: string
 }
 
 export type ListTemplateProfilesResponse = {
@@ -62,14 +62,14 @@ export type ListTemplateProfilesResponse = {
 }
 
 export type RenderTemplateRequest = {
-  templateName?: string
+  name?: string
   values?: {[key: string]: string}
   credentials?: Credential
   templateKind?: string
   clusterNamespace?: string
   profiles?: ProfileValues[]
   kustomizations?: Kustomization[]
-  templateNamespace?: string
+  namespace?: string
   externalSecrets?: ExternalSecret[]
 }
 
@@ -131,7 +131,7 @@ export type CreatePullRequestRequest = {
   baseBranch?: string
   title?: string
   description?: string
-  templateName?: string
+  name?: string
   parameterValues?: {[key: string]: string}
   commitMessage?: string
   credentials?: Credential
@@ -139,7 +139,7 @@ export type CreatePullRequestRequest = {
   repositoryApiUrl?: string
   clusterNamespace?: string
   kustomizations?: Kustomization[]
-  templateNamespace?: string
+  namespace?: string
   templateKind?: string
   previousValues?: PreviousValues
   externalSecrets?: ExternalSecret[]
@@ -167,11 +167,11 @@ export type CreateTfControllerPullRequestRequest = {
   baseBranch?: string
   title?: string
   description?: string
-  templateName?: string
+  name?: string
   parameterValues?: {[key: string]: string}
   commitMessage?: string
   repositoryApiUrl?: string
-  templateNamespace?: string
+  namespace?: string
 }
 
 export type CreateTfControllerPullRequestResponse = {
@@ -209,8 +209,8 @@ export type ListCredentialsResponse = {
 }
 
 export type GetKubeconfigRequest = {
-  clusterName?: string
-  clusterNamespace?: string
+  name?: string
+  namespace?: string
 }
 
 export type GetKubeconfigResponse = {
@@ -639,7 +639,7 @@ export type WorkspacePolicy = {
 
 export type GetWorkspaceRequest = {
   clusterName?: string
-  workspaceName?: string
+  name?: string
 }
 
 export type GetWorkspaceResponse = {
@@ -866,19 +866,19 @@ export class ClustersService {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetTemplate(req: GetTemplateRequest, initReq?: fm.InitReq): Promise<GetTemplateResponse> {
-    return fm.fetchReq<GetTemplateRequest, GetTemplateResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}?${fm.renderURLSearchParams(req, ["templateNamespace", "templateName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetTemplateRequest, GetTemplateResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static ListTemplateParams(req: ListTemplateParamsRequest, initReq?: fm.InitReq): Promise<ListTemplateParamsResponse> {
-    return fm.fetchReq<ListTemplateParamsRequest, ListTemplateParamsResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}/params?${fm.renderURLSearchParams(req, ["templateNamespace", "templateName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListTemplateParamsRequest, ListTemplateParamsResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}/params?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static ListTemplateProfiles(req: ListTemplateProfilesRequest, initReq?: fm.InitReq): Promise<ListTemplateProfilesResponse> {
-    return fm.fetchReq<ListTemplateProfilesRequest, ListTemplateProfilesResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}/profiles?${fm.renderURLSearchParams(req, ["templateNamespace", "templateName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListTemplateProfilesRequest, ListTemplateProfilesResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}/profiles?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
-    return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
-    return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/templates/pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}/pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static CreateDeletionPullRequest(req: CreateDeletionPullRequestRequest, initReq?: fm.InitReq): Promise<CreateDeletionPullRequestResponse> {
     return fm.fetchReq<CreateDeletionPullRequestRequest, CreateDeletionPullRequestResponse>(`/v1/templates/deletion-pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -890,7 +890,7 @@ export class ClustersService {
     return fm.fetchReq<CreateAutomationsPullRequestRequest, CreateAutomationsPullRequestResponse>(`/v1/automations/pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListCredentials(req: ListCredentialsRequest, initReq?: fm.InitReq): Promise<ListCredentialsResponse> {
-    return fm.fetchReq<ListCredentialsRequest, ListCredentialsResponse>(`/v1/credentials?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListCredentialsRequest, ListCredentialsResponse>(`/v1/templates/capi-identities?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static CreateTfControllerPullRequest(req: CreateTfControllerPullRequestRequest, initReq?: fm.InitReq): Promise<CreateTfControllerPullRequestResponse> {
     return fm.fetchReq<CreateTfControllerPullRequestRequest, CreateTfControllerPullRequestResponse>(`/v1/tfcontrollers/pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -899,7 +899,7 @@ export class ClustersService {
     return fm.fetchReq<ListGitopsClustersRequest, ListGitopsClustersResponse>(`/v1/clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetKubeconfig(req: GetKubeconfigRequest, initReq?: fm.InitReq): Promise<GoogleApiHttpbody.HttpBody> {
-    return fm.fetchReq<GetKubeconfigRequest, GoogleApiHttpbody.HttpBody>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/kubeconfig?${fm.renderURLSearchParams(req, ["clusterNamespace", "clusterName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetKubeconfigRequest, GoogleApiHttpbody.HttpBody>(`/v1/namespaces/${req["namespace"]}/clusters/${req["name"]}/kubeconfig?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static GetEnterpriseVersion(req: GetEnterpriseVersionRequest, initReq?: fm.InitReq): Promise<GetEnterpriseVersionResponse> {
     return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -923,19 +923,19 @@ export class ClustersService {
     return fm.fetchReq<ListWorkspacesRequest, ListWorkspacesResponse>(`/v1/workspaces?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetWorkspace(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceResponse> {
-    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceResponse>(`/v1/workspaces/${req["workspaceName"]}?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceResponse>(`/v1/workspaces/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static GetWorkspaceRoles(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceRolesResponse> {
-    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceRolesResponse>(`/v1/workspaces/${req["workspaceName"]}/roles?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceRolesResponse>(`/v1/workspaces/${req["name"]}/roles?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static GetWorkspaceRoleBindings(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceRoleBindingsResponse> {
-    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceRoleBindingsResponse>(`/v1/workspaces/${req["workspaceName"]}/rolebindings?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceRoleBindingsResponse>(`/v1/workspaces/${req["name"]}/rolebindings?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static GetWorkspaceServiceAccounts(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceServiceAccountsResponse> {
-    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceServiceAccountsResponse>(`/v1/workspaces/${req["workspaceName"]}/serviceaccounts?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceServiceAccountsResponse>(`/v1/workspaces/${req["name"]}/serviceaccounts?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static GetWorkspacePolicies(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspacePoliciesResponse> {
-    return fm.fetchReq<GetWorkspaceRequest, GetWorkspacePoliciesResponse>(`/v1/workspaces/${req["workspaceName"]}/policies?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspacePoliciesResponse>(`/v1/workspaces/${req["name"]}/policies?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static ListExternalSecrets(req: ListExternalSecretsRequest, initReq?: fm.InitReq): Promise<ListExternalSecretsResponse> {
     return fm.fetchReq<ListExternalSecretsRequest, ListExternalSecretsResponse>(`/v1/external-secrets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -947,7 +947,7 @@ export class ClustersService {
     return fm.fetchReq<ListExternalSecretStoresRequest, ListExternalSecretStoresResponse>(`/v1/external-secrets-stores?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static SyncExternalSecrets(req: SyncExternalSecretsRequest, initReq?: fm.InitReq): Promise<SyncExternalSecretsResponse> {
-    return fm.fetchReq<SyncExternalSecretsRequest, SyncExternalSecretsResponse>(`/v1/external-secrets/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<SyncExternalSecretsRequest, SyncExternalSecretsResponse>(`/v1/external-secrets/sync`, {...initReq, method: "PATCH", body: JSON.stringify(req)})
   }
   static EncryptSopsSecret(req: EncryptSopsSecretRequest, initReq?: fm.InitReq): Promise<EncryptSopsSecretResponse> {
     return fm.fetchReq<EncryptSopsSecretRequest, EncryptSopsSecretResponse>(`/v1/encrypt-sops-secret`, {...initReq, method: "POST", body: JSON.stringify(req)})

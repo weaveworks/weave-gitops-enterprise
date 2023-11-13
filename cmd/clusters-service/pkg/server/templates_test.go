@@ -480,7 +480,7 @@ func TestGetTemplate(t *testing.T) {
 				clusterState: tt.clusterState,
 				namespace:    "default",
 			})
-			getTemplateRes, err := s.GetTemplate(context.Background(), &capiv1_protos.GetTemplateRequest{TemplateName: "cluster-template-1", TemplateNamespace: "default"})
+			getTemplateRes, err := s.GetTemplate(context.Background(), &capiv1_protos.GetTemplateRequest{Name: "cluster-template-1", Namespace: "default"})
 			if err != nil && tt.err == nil {
 				t.Fatalf("failed to read the templates:\n%s", err)
 			} else if err != nil && tt.err != nil {
@@ -530,8 +530,8 @@ func TestListTemplateParams(t *testing.T) {
 			})
 
 			listTemplateParamsRequest := new(capiv1_protos.ListTemplateParamsRequest)
-			listTemplateParamsRequest.TemplateName = "cluster-template-1"
-			listTemplateParamsRequest.TemplateNamespace = "default"
+			listTemplateParamsRequest.Name = "cluster-template-1"
+			listTemplateParamsRequest.Namespace = "default"
 
 			listTemplateParamsResponse, err := s.ListTemplateParams(context.Background(), listTemplateParamsRequest)
 			if err != nil {
@@ -593,8 +593,8 @@ func TestListTemplateProfiles(t *testing.T) {
 			})
 
 			listTemplateProfilesRequest := new(capiv1_protos.ListTemplateProfilesRequest)
-			listTemplateProfilesRequest.TemplateName = "cluster-template-1"
-			listTemplateProfilesRequest.TemplateNamespace = "default"
+			listTemplateProfilesRequest.Name = "cluster-template-1"
+			listTemplateProfilesRequest.Namespace = "default"
 
 			listTemplateProfilesResponse, err := s.ListTemplateProfiles(context.Background(), listTemplateProfilesRequest)
 			if err != nil {
@@ -972,13 +972,13 @@ metadata:
 			})
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
-				TemplateName: "cluster-template-1",
+				Name: "cluster-template-1",
 				Values: map[string]string{
 					"CLUSTER_NAME": "test-cluster",
 				},
-				Credentials:       tt.credentials,
-				TemplateKind:      tt.templateKind,
-				TemplateNamespace: "default",
+				Credentials:  tt.credentials,
+				TemplateKind: tt.templateKind,
+				Namespace:    "default",
 			}
 
 			renderTemplateResponse, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
@@ -1078,12 +1078,12 @@ func TestCostEstimation(t *testing.T) {
 			})
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
-				TemplateName: "cluster-template-1",
+				Name: "cluster-template-1",
 				Values: map[string]string{
 					"CLUSTER_NAME": "test-cluster",
 				},
-				TemplateKind:      "CAPITemplate",
-				TemplateNamespace: "default",
+				TemplateKind: "CAPITemplate",
+				Namespace:    "default",
 			}
 
 			renderTemplateResponse, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
@@ -1129,12 +1129,12 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 				makeCAPITemplate(t),
 			},
 			req: &capiv1_protos.RenderTemplateRequest{
-				TemplateName: "cluster-template-1",
+				Name: "cluster-template-1",
 				Values: map[string]string{
 					"CLUSTER_NAME": "dev",
 					"NAMESPACE":    "clusters-namespace",
 				},
-				TemplateNamespace: "default",
+				Namespace: "default",
 				Kustomizations: []*capiv1_protos.Kustomization{
 					{
 						Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
@@ -1223,12 +1223,12 @@ status: {}
 				makeCAPITemplate(t),
 			},
 			req: &capiv1_protos.RenderTemplateRequest{
-				TemplateName: "cluster-template-1",
+				Name: "cluster-template-1",
 				Values: map[string]string{
 					"CLUSTER_NAME": "dev",
 					"NAMESPACE":    "clusters-namespace",
 				},
-				TemplateNamespace: "default",
+				Namespace: "default",
 				Profiles: []*capiv1_protos.ProfileValues{
 					{
 						Name:      "demo-profile",
@@ -1332,13 +1332,13 @@ status: {}
 				makeCAPITemplate(t),
 			},
 			req: &capiv1_protos.RenderTemplateRequest{
-				TemplateName: "cluster-template-1",
+				Name: "cluster-template-1",
 				Values: map[string]string{
 					"CLUSTER_NAME": "dev",
 					"NAMESPACE":    "clusters-namespace",
 				},
-				Profiles:          []*capiv1_protos.ProfileValues{},
-				TemplateNamespace: "default",
+				Profiles:  []*capiv1_protos.ProfileValues{},
+				Namespace: "default",
 			},
 			expected: &capiv1_protos.RenderTemplateResponse{
 				RenderedTemplates: []*capiv1_protos.CommitFile{
@@ -1733,7 +1733,7 @@ func TestRenderTemplate_MissingRequiredVariable(t *testing.T) {
 	})
 
 	renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
-		TemplateName: "cluster-template-1",
+		Name: "cluster-template-1",
 		Credentials: &capiv1_protos.Credential{
 			Group:     "",
 			Version:   "",
@@ -1741,7 +1741,7 @@ func TestRenderTemplate_MissingRequiredVariable(t *testing.T) {
 			Name:      "",
 			Namespace: "",
 		},
-		TemplateNamespace: "default",
+		Namespace: "default",
 	}
 
 	_, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
@@ -1815,11 +1815,11 @@ metadata:
 			})
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
-				TemplateName: "cluster-template-1",
+				Name: "cluster-template-1",
 				Values: map[string]string{
 					"CLUSTER_NAME": tt.clusterName,
 				},
-				TemplateNamespace: "default",
+				Namespace: "default",
 			}
 
 			renderTemplateResponse, err := s.RenderTemplate(context.Background(), renderTemplateRequest)

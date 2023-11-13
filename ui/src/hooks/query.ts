@@ -3,9 +3,9 @@ import _ from 'lodash';
 import { useContext } from 'react';
 import { useQuery } from 'react-query';
 import {
+  DoQueryResponse,
   EnabledComponent,
   ListEnabledComponentsResponse,
-  QueryResponse,
 } from '../api/query/query.pb';
 import { QueryServiceContext } from '../contexts/QueryService';
 
@@ -16,7 +16,7 @@ type QueryOpts = {
   offset?: number;
   orderBy?: string;
   category?: string;
-  ascending?: boolean;
+  descending?: boolean;
 };
 
 // We want to "OR" filters of the same field, but "AND" filters of different fields.
@@ -54,7 +54,7 @@ export function useQueryService({
   offset,
   orderBy,
   category,
-  ascending,
+  descending,
 }: QueryOpts) {
   const api = useContext(QueryServiceContext);
 
@@ -64,8 +64,8 @@ export function useQueryService({
     formatted = _.concat(formatted, ['category:' + category]);
   }
 
-  return useQuery<QueryResponse, Error>(
-    ['query', { terms, filters, limit, offset, orderBy, ascending }],
+  return useQuery<DoQueryResponse, Error>(
+    ['query', { terms, filters, limit, offset, orderBy, descending }],
     () => {
       return api.DoQuery({
         terms,
@@ -73,7 +73,7 @@ export function useQueryService({
         limit,
         offset,
         orderBy,
-        ascending,
+        descending,
       });
     },
     {

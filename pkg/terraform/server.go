@@ -81,7 +81,7 @@ func (s *server) ListTerraformObjects(ctx context.Context, msg *pb.ListTerraform
 
 	listErrors := []*pb.TerraformListError{}
 
-	if err := c.ClusteredList(ctx, clist, false, opts...); err != nil {
+	if err := c.ClusteredList(ctx, clist, true, opts...); err != nil {
 		var errs clustersmngr.ClusteredListError
 
 		if !errors.As(err, &errs) {

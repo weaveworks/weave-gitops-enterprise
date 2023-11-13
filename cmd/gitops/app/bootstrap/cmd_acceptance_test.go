@@ -74,8 +74,30 @@ func TestBootstrapCmd(t *testing.T) {
 
 	privateKeyFile := os.Getenv("GIT_PRIVATEKEY_PATH")
 	g.Expect(privateKeyFile).NotTo(BeEmpty())
+
+	repoURLSSH := os.Getenv("GIT_REPO_URL_SSH")
+	g.Expect(repoURLSSH).NotTo(BeEmpty())
+	repoURLHTTPS := os.Getenv("GIT_REPO_URL_HTTPS")
+	g.Expect(repoURLHTTPS).NotTo(BeEmpty())
+	gitUsername := os.Getenv("GIT_USERNAME")
+	g.Expect(gitUsername).NotTo(BeEmpty())
+	gitPassword := os.Getenv("GIT_PASSWORD")
+	g.Expect(gitPassword).NotTo(BeEmpty())
+	gitBranch := os.Getenv("GIT_BRANCH")
+	g.Expect(gitBranch).NotTo(BeEmpty())
+	gitRepoPath := os.Getenv("GIT_REPO_PATH")
+	g.Expect(gitRepoPath).NotTo(BeEmpty())
+
 	privateKeyFlag := fmt.Sprintf("--private-key=%s", privateKeyFile)
 	kubeconfigFlag := fmt.Sprintf("--kubeconfig=%s", kubeconfigPath)
+
+	repoHTTPSURLFlag := fmt.Sprintf("--repo-url=%s", repoURLHTTPS)
+
+	gitUsernameFlag := fmt.Sprintf("--git-username=%s", gitUsername)
+	gitPasswordFlag := fmt.Sprintf("--git-password=%s", gitPassword)
+
+	gitBranchFlag := fmt.Sprintf("--branch=%s", gitBranch)
+	gitRepoPathFlag := fmt.Sprintf("--repo-path=%s", gitRepoPath)
 
 	oidcClientSecret := os.Getenv("OIDC_CLIENT_SECRET")
 	g.Expect(oidcClientSecret).NotTo(BeEmpty())
@@ -91,11 +113,10 @@ func TestBootstrapCmd(t *testing.T) {
 		reset            func(t *testing.T)
 	}{
 		{
-			name: "should bootstrap non-interactive with valid arguments",
+			name: "journey flux exists: should bootstrap with valid arguments",
 			flags: []string{kubeconfigFlag,
-				"--version=0.33.0",
+				"--version=0.35.0",
 				privateKeyFlag, "--private-key-password=\"\"",
-				"--username=admin",
 				"--password=admin123",
 				"--domain-type=localhost",
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
@@ -104,6 +125,28 @@ func TestBootstrapCmd(t *testing.T) {
 			},
 			setup: func(t *testing.T) {
 				bootstrapFluxSsh(g, kubeconfigFlag)
+				createEntitlements(t, testLog)
+			},
+			reset: func(t *testing.T) {
+				deleteEntitlements(t, testLog)
+				deleteClusterUser(t, testLog)
+				uninstallFlux(g, kubeconfigFlag)
+			},
+			expectedErrorStr: "",
+		},
+		{
+			name: "journey flux does not exist: should bootstrap with valid arguments",
+			flags: []string{kubeconfigFlag,
+				"--version=0.35.0",
+				"--password=admin123",
+				"--domain-type=localhost",
+				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
+				"--client-id=weave-gitops-enterprise",
+				gitUsernameFlag, gitPasswordFlag, gitBranchFlag, gitRepoPathFlag,
+				repoHTTPSURLFlag,
+				oidcClientSecretFlag, "-s",
+			},
+			setup: func(t *testing.T) {
 				createEntitlements(t, testLog)
 			},
 			reset: func(t *testing.T) {
@@ -145,7 +188,7 @@ func TestBootstrapCmd(t *testing.T) {
 func bootstrapFluxSsh(g *WithT, kubeconfigFlag string) {
 	var runner runner.CLIRunner
 
-	repoUrl := os.Getenv("GIT_URL_SSH")
+	repoUrl := os.Getenv("GIT_REPO_URL_SSH")
 	g.Expect(repoUrl).NotTo(BeEmpty())
 	fmt.Println(repoUrl)
 

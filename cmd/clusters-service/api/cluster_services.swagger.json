@@ -284,30 +284,6 @@
         ]
       }
     },
-    "/v1/credentials": {
-      "get": {
-        "summary": "List available credentials",
-        "description": "These templates can be used when renderer certain templates",
-        "operationId": "ClustersService_ListCredentials",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListCredentialsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "tags": [
-          "templates"
-        ]
-      }
-    },
     "/v1/encrypt-sops-secret": {
       "post": {
         "summary": "Encrypts a sops secret",
@@ -468,7 +444,7 @@
       }
     },
     "/v1/external-secrets/sync": {
-      "post": {
+      "patch": {
         "summary": "Sync externalSecret Operator secrets",
         "operationId": "ClustersService_SyncExternalSecrets",
         "responses": {
@@ -500,9 +476,10 @@
         ]
       }
     },
-    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/kubeconfig": {
+    "/v1/namespaces/{namespace}/clusters/{name}/kubeconfig": {
       "get": {
         "summary": "Get the kubeconfig for a GitOpsCluster",
+        "description": "Provide the name and namespace of a `GitOpsCluster` to retrieve its kubeconfig",
         "operationId": "ClustersService_GetKubeconfig",
         "responses": {
           "200": {
@@ -520,14 +497,15 @@
         },
         "parameters": [
           {
-            "name": "clusterNamespace",
+            "name": "namespace",
+            "description": "The namespace of the `GitopsCluster`",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "clusterName",
-            "description": "The name of the workload cluster.",
+            "name": "name",
+            "description": "The name of the `GitopsCluster`",
             "in": "path",
             "required": true,
             "type": "string"
@@ -581,7 +559,7 @@
         ]
       }
     },
-    "/v1/namespaces/{templateNamespace}/templates/{templateName}": {
+    "/v1/namespaces/{namespace}/templates/{name}": {
       "get": {
         "summary": "Get template details",
         "operationId": "ClustersService_GetTemplate",
@@ -601,13 +579,13 @@
         },
         "parameters": [
           {
-            "name": "templateNamespace",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "templateName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -624,7 +602,7 @@
         ]
       }
     },
-    "/v1/namespaces/{templateNamespace}/templates/{templateName}/params": {
+    "/v1/namespaces/{namespace}/templates/{name}/params": {
       "get": {
         "summary": "List the params of a template",
         "operationId": "ClustersService_ListTemplateParams",
@@ -644,13 +622,13 @@
         },
         "parameters": [
           {
-            "name": "templateNamespace",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "templateName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -667,7 +645,7 @@
         ]
       }
     },
-    "/v1/namespaces/{templateNamespace}/templates/{templateName}/profiles": {
+    "/v1/namespaces/{namespace}/templates/{name}/profiles": {
       "get": {
         "summary": "List the profiles of a template",
         "description": "Includes default and required profiles specified by the template",
@@ -688,13 +666,13 @@
         },
         "parameters": [
           {
-            "name": "templateNamespace",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "templateName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -711,7 +689,134 @@
         ]
       }
     },
-    "/v1/namespaces/{templateNamespace}/templates/{templateName}/render": {
+    "/v1/namespaces/{namespace}/templates/{name}/pull-request": {
+      "post": {
+        "summary": "Create a pull request from a rendered template",
+        "operationId": "ClustersService_CreatePullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreatePullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "description": "The name of the template to create a pull request for.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "repositoryUrl": {
+                  "type": "string",
+                  "description": "The repository to use."
+                },
+                "headBranch": {
+                  "type": "string",
+                  "description": "The new branch that will be created."
+                },
+                "baseBranch": {
+                  "type": "string",
+                  "description": "The target branch."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The title of the pull request."
+                },
+                "description": {
+                  "type": "string",
+                  "title": "The description of the pull request"
+                },
+                "parameterValues": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "The values that populate the template's parameters."
+                },
+                "commitMessage": {
+                  "type": "string",
+                  "title": "The commit message"
+                },
+                "credentials": {
+                  "$ref": "#/definitions/v1Credential",
+                  "title": "Credentials"
+                },
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ProfileValues"
+                  },
+                  "description": "The values for each profile that will be installed."
+                },
+                "repositoryApiUrl": {
+                  "type": "string",
+                  "description": "The repo api url."
+                },
+                "clusterNamespace": {
+                  "type": "string"
+                },
+                "kustomizations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1Kustomization"
+                  }
+                },
+                "templateKind": {
+                  "type": "string"
+                },
+                "previousValues": {
+                  "$ref": "#/definitions/v1PreviousValues"
+                },
+                "externalSecrets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ExternalSecret"
+                  }
+                },
+                "policyConfigs": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1PolicyConfigObject"
+                  }
+                },
+                "sopsSecrets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1SopsSecret"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "templates"
+        ]
+      }
+    },
+    "/v1/namespaces/{namespace}/templates/{name}/render": {
       "post": {
         "summary": "Renders a template using given values.",
         "operationId": "ClustersService_RenderTemplate",
@@ -731,13 +836,13 @@
         },
         "parameters": [
           {
-            "name": "templateNamespace",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "templateName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -919,6 +1024,30 @@
         ]
       }
     },
+    "/v1/templates/capi-identities": {
+      "get": {
+        "summary": "List available CAPI identities",
+        "description": "Search the cluster for available CAPI identities:\n- `AWSClusterStaticIdentity`\n- `AWSClusterRoleIdentity`\n- `AzureClusterIdentity`\n- `VSphereClusterIdentity`",
+        "operationId": "ClustersService_ListCredentials",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListCredentialsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "templates"
+        ]
+      }
+    },
     "/v1/templates/deletion-pull-request": {
       "post": {
         "summary": "Create a pull request to delete templated resources",
@@ -945,39 +1074,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v1CreateDeletionPullRequestRequest"
-            }
-          }
-        ],
-        "tags": [
-          "templates"
-        ]
-      }
-    },
-    "/v1/templates/pull-request": {
-      "post": {
-        "summary": "Create a pull request from a rendered template",
-        "operationId": "ClustersService_CreatePullRequest",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1CreatePullRequestResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1CreatePullRequestRequest"
             }
           }
         ],
@@ -1059,7 +1155,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}": {
+    "/v1/workspaces/{name}": {
       "get": {
         "summary": "Get workspace details",
         "operationId": "ClustersService_GetWorkspace",
@@ -1079,7 +1175,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1096,7 +1192,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/policies": {
+    "/v1/workspaces/{name}/policies": {
       "get": {
         "summary": "List workspace service accounts",
         "operationId": "ClustersService_GetWorkspacePolicies",
@@ -1116,7 +1212,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1133,7 +1229,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/rolebindings": {
+    "/v1/workspaces/{name}/rolebindings": {
       "get": {
         "summary": "List workspace role bindings",
         "operationId": "ClustersService_GetWorkspaceRoleBindings",
@@ -1153,7 +1249,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1170,7 +1266,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/roles": {
+    "/v1/workspaces/{name}/roles": {
       "get": {
         "summary": "List workspace roles",
         "operationId": "ClustersService_GetWorkspaceRoles",
@@ -1190,7 +1286,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1207,7 +1303,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/serviceaccounts": {
+    "/v1/workspaces/{name}/serviceaccounts": {
       "get": {
         "summary": "List workspace service accounts",
         "operationId": "ClustersService_GetWorkspaceServiceAccounts",
@@ -1227,7 +1323,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1279,7 +1375,7 @@
           "description": "Application specific response metadata. Must be set in the first response\nfor streaming APIs."
         }
       },
-      "description": "Message that represents an arbitrary HTTP body. It should only be used for\npayload formats that can't be represented as JSON, such as raw binary or\nan HTML page.\n\n\nThis message can be used both in streaming and non-streaming API methods in\nthe request as well as the response.\n\nIt can be used as a top-level request field, which is convenient if one\nwants to extract parameters from either the URL or HTTP template into the\nrequest fields and also want access to the raw HTTP body.\n\nExample:\n\n    message GetResourceRequest {\n      // A unique request id.\n      string request_id = 1;\n\n      // The raw HTTP body is bound to this field.\n      google.api.HttpBody http_body = 2;\n    }\n\n    service ResourceService {\n      rpc GetResource(GetResourceRequest) returns (google.api.HttpBody);\n      rpc UpdateResource(google.api.HttpBody) returns\n      (google.protobuf.Empty);\n    }\n\nExample with streaming methods:\n\n    service CaldavService {\n      rpc GetCalendar(stream google.api.HttpBody)\n        returns (stream google.api.HttpBody);\n      rpc UpdateCalendar(stream google.api.HttpBody)\n        returns (stream google.api.HttpBody);\n    }\n\nUse of this type only changes how the request and response bodies are\nhandled, all other features will continue to work unchanged."
+      "description": "Message that represents an arbitrary HTTP body. It should only be used for\npayload formats that can't be represented as JSON, such as raw binary or\nan HTML page.\n\n\nThis message can be used both in streaming and non-streaming API methods in\nthe request as well as the response.\n\nIt can be used as a top-level request field, which is convenient if one\nwants to extract parameters from either the URL or HTTP template into the\nrequest fields and also want access to the raw HTTP body.\n\nExample:\n\n    message GetResourceRequest {\n      // A unique request id.\n      string request_id = 1;\n\n      // The raw HTTP body is bound to this field.\n      google.api.HttpBody http_body = 2;\n\n    }\n\n    service ResourceService {\n      rpc GetResource(GetResourceRequest)\n        returns (google.api.HttpBody);\n      rpc UpdateResource(google.api.HttpBody)\n        returns (google.protobuf.Empty);\n\n    }\n\nExample with streaming methods:\n\n    service CaldavService {\n      rpc GetCalendar(stream google.api.HttpBody)\n        returns (stream google.api.HttpBody);\n      rpc UpdateCalendar(stream google.api.HttpBody)\n        returns (stream google.api.HttpBody);\n\n    }\n\nUse of this type only changes how the request and response bodies are\nhandled, all other features will continue to work unchanged."
     },
     "protobufAny": {
       "type": "object",
@@ -1605,97 +1701,6 @@
         }
       }
     },
-    "v1CreatePullRequestRequest": {
-      "type": "object",
-      "properties": {
-        "repositoryUrl": {
-          "type": "string",
-          "description": "The repository to use."
-        },
-        "headBranch": {
-          "type": "string",
-          "description": "The new branch that will be created."
-        },
-        "baseBranch": {
-          "type": "string",
-          "description": "The target branch."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the pull request."
-        },
-        "description": {
-          "type": "string",
-          "title": "The description of the pull request"
-        },
-        "templateName": {
-          "type": "string",
-          "description": "The name of the template to create a pull request for."
-        },
-        "parameterValues": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "description": "The values that populate the template's parameters."
-        },
-        "commitMessage": {
-          "type": "string",
-          "title": "The commit message"
-        },
-        "credentials": {
-          "$ref": "#/definitions/v1Credential",
-          "title": "Credentials"
-        },
-        "values": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ProfileValues"
-          },
-          "description": "The values for each profile that will be installed."
-        },
-        "repositoryApiUrl": {
-          "type": "string",
-          "description": "The repo api url."
-        },
-        "clusterNamespace": {
-          "type": "string"
-        },
-        "kustomizations": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Kustomization"
-          }
-        },
-        "templateNamespace": {
-          "type": "string"
-        },
-        "templateKind": {
-          "type": "string"
-        },
-        "previousValues": {
-          "$ref": "#/definitions/v1PreviousValues"
-        },
-        "externalSecrets": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ExternalSecret"
-          }
-        },
-        "policyConfigs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1PolicyConfigObject"
-          }
-        },
-        "sopsSecrets": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1SopsSecret"
-          }
-        }
-      }
-    },
     "v1CreatePullRequestResponse": {
       "type": "object",
       "properties": {
@@ -1728,7 +1733,7 @@
           "type": "string",
           "title": "The description of the pull request"
         },
-        "templateName": {
+        "name": {
           "type": "string",
           "description": "The name of the template to create a pull request for."
         },
@@ -1747,7 +1752,7 @@
           "type": "string",
           "description": "The repo api url."
         },
-        "templateNamespace": {
+        "namespace": {
           "type": "string"
         }
       }
@@ -3017,7 +3022,8 @@
       "type": "object",
       "properties": {
         "apiVersion": {
-          "type": "string"
+          "type": "string",
+          "title": "protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE"
         },
         "kind": {
           "type": "string"
@@ -3035,7 +3041,8 @@
           "type": "object",
           "additionalProperties": {
             "type": "string"
-          }
+          },
+          "title": "protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE"
         },
         "type": {
           "type": "string"

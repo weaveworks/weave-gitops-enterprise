@@ -9,7 +9,6 @@ fullnameOverride: ""
 images:
   clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.0.2
   uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.0.2
-  clusterBootstrapController: weaveworks/cluster-bootstrap-controller:v0.7.1
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -93,9 +92,6 @@ tls:
   # if no tls secret is specified then we generate it in-mem in the server
   secretName: ""
 
-clusterBootstrapController:
-  enabled: true
-
 rbac:
   userRoles:
     create: true
@@ -135,9 +131,6 @@ service:
   externalTrafficPolicy: ""
   healthCheckNodePort: 0
   annotations: {}
-
-cluster-controller:
-  enabled: true
 
 policy-agent:
   enabled: false
@@ -213,6 +206,17 @@ cluster-controller:
         repository: docker.io/weaveworks/cluster-controller
         tag: v1.5.2
 
+cluster-bootstrap-controller:
+  enabled: true
+  manager:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 100Mi
+      requests:
+        cpu: 100m
+        memory: 20Mi
+
 #### Explorer
 explorer:
   enabled: false
@@ -228,4 +232,3 @@ explorer:
     - sources
     - gitopssets
     - templates
-

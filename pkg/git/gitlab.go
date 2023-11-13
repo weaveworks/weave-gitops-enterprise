@@ -3,6 +3,7 @@ package git
 import (
 	"context"
 	"fmt"
+
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-logr/logr"

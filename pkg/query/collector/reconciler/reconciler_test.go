@@ -120,14 +120,17 @@ func TestReconciler_Reconcile(t *testing.T) {
 	deletedHelmRelease := testutils.NewHelmRelease("deletedHelmRelease", clusterName, func(hr *v2beta1.HelmRelease) {
 		now := metav1.Now()
 		hr.DeletionTimestamp = &now
+		hr.Finalizers = append(hr.Finalizers, "finalizers.fluxcd.io")
 	})
 	deletedClusterRoleWithRules := testutils.NewClusterRole("deletedClusterRoleWithRules", true, func(cr *rbacv1.ClusterRole) {
 		now := metav1.Now()
 		cr.DeletionTimestamp = &now
+		cr.Finalizers = append(cr.Finalizers, "kubernetes")
 	})
 	deletedClusterRoleWithoutRules := testutils.NewClusterRole("deletedClusterRoleWithoutRules", false, func(cr *rbacv1.ClusterRole) {
 		now := metav1.Now()
 		cr.DeletionTimestamp = &now
+		cr.Finalizers = append(cr.Finalizers, "kubernetes")
 	})
 	deletedClusterRoleManuallyConstructed := testutils.NewClusterRole("deletedClusterRoleManuallyConstructed", false)
 	objects := []runtime.Object{createdOrUpdatedHelmRelease, deletedHelmRelease, deletedClusterRoleWithRules, deletedClusterRoleWithoutRules}

@@ -30,7 +30,7 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     steps:
       - name: Download test artifacts
-        uses: actions/download-artifact@v3.0.1
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           path: ${{ env.TEST_RESULTS_PATH }}
       - name: Publish Test Report      

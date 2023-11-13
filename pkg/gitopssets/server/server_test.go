@@ -541,6 +541,7 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	c := fake.NewClientBuilder().
 		WithScheme(scheme).
 		WithRuntimeObjects(clusterState...).
+		WithStatusSubresource(&ctrl.GitOpsSet{}).
 		Build()
 
 	return c
@@ -589,6 +590,7 @@ func TestSyncGitOpsSet(t *testing.T) {
 	}()
 
 	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:

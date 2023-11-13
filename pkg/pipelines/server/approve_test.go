@@ -23,7 +23,7 @@ func TestApprovePipeline(t *testing.T) {
 	pipelineNamespace := pipetesting.NewNamespace(ctx, t, kclient)
 	targetNamespace := pipetesting.NewNamespace(ctx, t, kclient)
 
-	factory := grpctesting.MakeClustersManager(kclient, "management", fmt.Sprintf("%s/cluster-1", pipelineNamespace.Name))
+	factory := grpctesting.MakeClustersManager(kclient, nil, "management", fmt.Sprintf("%s/cluster-1", pipelineNamespace.Name))
 
 	// Setup pipeline controller server
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -57,5 +57,5 @@ func TestApprovePipeline(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	require.Equal(t, "https://github.com/my-project/pulls/1", resp.PullRequestURL)
+	require.Equal(t, "https://github.com/my-project/pulls/1", resp.PullRequestUrl)
 }

@@ -7,7 +7,10 @@ import {
   ListChartsForRepositoryResponse,
   RepositoryRef,
 } from '../cluster-services/cluster_services.pb';
-import { maybeParseJSON } from '../components/Templates/Form/utils';
+import {
+  CreateRequestAnnotationV2,
+  maybeParseJSON,
+} from '../components/Templates/Form/utils';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import useNotifications from '../contexts/Notifications';
 import {
@@ -19,27 +22,6 @@ import {
 } from '../types/custom';
 import { maybeFromBase64 } from '../utils/base64';
 import { formatError } from '../utils/formatters';
-
-interface AnnotationData {
-  commit_message: string;
-  credentials: Credential;
-  description: string;
-  head_branch: string;
-  parameter_values: { [key: string]: string };
-  template_name: string;
-  title: string;
-  values: {
-    name: string;
-    selected: boolean;
-    namespace: string;
-    values: string;
-    version: string;
-    helm_repository: {
-      name: string;
-      namespace: string;
-    };
-  }[];
-}
 
 const getProfileLayer = (profiles: UpdatedProfile[], name: string) => {
   return profiles.find(p => p.name === name)?.layer;
@@ -137,7 +119,7 @@ const setVersionAndValuesFromTemplate = (
 
 const setVersionAndValuesFromCluster = (
   profiles: UpdatedProfile[],
-  clusterData: AnnotationData,
+  clusterData: CreateRequestAnnotationV2,
 ) => {
   const profilesIndex = _.keyBy(profiles, profile => {
     return `${profile.name}/${profile.repoName}/${profile.repoNamespace}`;
@@ -146,7 +128,7 @@ const setVersionAndValuesFromCluster = (
   const clusterProfiles: ProfilesIndex = {};
   if (clusterData?.values) {
     for (const clusterDataProfile of clusterData.values) {
-      const index = `${clusterDataProfile.name}/${clusterDataProfile.helm_repository.name}/${clusterDataProfile.helm_repository.namespace}`;
+      const index = `${clusterDataProfile.name}/${clusterDataProfile?.helm_repository?.name}/${clusterDataProfile?.helm_repository?.namespace}`;
       const profile = profilesIndex[index || ''];
       if (profile) {
         clusterProfiles[index || ''] = {
@@ -182,7 +164,7 @@ const setVersionAndValuesFromCluster = (
 const mergeClusterAndTemplate = (
   data: ListChartsForRepositoryResponse[],
   template: TemplateEnriched | undefined,
-  clusterData: AnnotationData,
+  clusterData: CreateRequestAnnotationV2,
 ) => {
   let profiles = data?.flatMap(d =>
     toUpdatedProfiles(d?.charts as EnhancedRepositoryChart[]),

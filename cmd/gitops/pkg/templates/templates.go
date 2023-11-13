@@ -185,13 +185,13 @@ type Maintainer struct {
 }
 
 type RenderTemplateRequest struct {
-	TemplateName      string            `json:"template_name,omitempty"`
+	TemplateName      string            `json:"name,omitempty"`
 	Values            map[string]string `json:"values,omitempty"`
 	Credentials       Credentials       `json:"credentials,omitempty"`
 	TemplateKind      TemplateKind      `json:"template_kind,omitempty"`
 	ClusterNamespace  string            `json:"cluster_namespace,omitempty"`
 	Profiles          []ProfileValues   `json:"profiles,omitempty"`
-	TemplateNamespace string            `json:"template_namespace,omitempty"`
+	TemplateNamespace string            `json:"namespace,omitempty"`
 }
 
 type CommitFile struct {

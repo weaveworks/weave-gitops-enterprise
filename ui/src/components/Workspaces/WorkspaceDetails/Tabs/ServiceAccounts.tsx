@@ -22,7 +22,7 @@ export const ServiceAccountsTab = ({
     error,
   } = useGetWorkspaceServiceAccount({
     clusterName,
-    workspaceName,
+    name: workspaceName,
   });
 
   return (

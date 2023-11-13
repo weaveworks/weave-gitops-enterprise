@@ -460,4 +460,4 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   ]);
 };
 
-export default ({ ...rest }) => <AddApplication {...rest} />;
+export default AddApplication;

@@ -119,9 +119,11 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalf("cannot create kubernetes client: %s", err)
 	}
-
 	log.Println("kube client created")
-
+	err = createCommonResources(context.Background(), k8sClient, newNamespace("flux-system"))
+	if err != nil {
+		log.Fatalf("cannot create kubernetes client: %s", err)
+	}
 	gomega.RegisterFailHandler(func(message string, skip ...int) {
 		log.Println(message)
 	})
@@ -190,7 +192,7 @@ func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincip
 		},
 	}
 
-	qs, _, err := queryserver.NewServer(opts2)
+	qs, qsStop, err := queryserver.NewServer(opts2)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create query server:%w", err)
 	}
@@ -219,8 +221,10 @@ func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincip
 	}
 
 	t.Cleanup(func() {
-		//TODO review stop query server
-		//stopQueryServer(context.Background())
+		err := qsStop()
+		if err != nil {
+			t.Fail()
+		}
 		s.GracefulStop()
 		conn.Close()
 	})
@@ -249,4 +253,14 @@ func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager, pr
 
 		return handler(ctx, req)
 	})
+}
+
+func createCommonResources(ctx context.Context, k client.Client, state ...client.Object) error {
+	for _, o := range state {
+		err := k.Create(ctx, o)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

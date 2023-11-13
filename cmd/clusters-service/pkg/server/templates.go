@@ -156,13 +156,13 @@ func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateR
 	if msg.TemplateKind == "" {
 		msg.TemplateKind = capiv1.Kind
 	}
-	tm, err := s.getTemplate(ctx, msg.TemplateName, msg.TemplateNamespace, msg.TemplateKind)
+	tm, err := s.getTemplate(ctx, msg.Name, msg.Namespace, msg.TemplateKind)
 	if err != nil {
-		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
+		return nil, fmt.Errorf("error looking up template %v: %v", msg.Name, err)
 	}
 	t := ToTemplateResponse(tm, s.profileHelmRepository)
 	if t.Error != "" {
-		return nil, fmt.Errorf("error reading template %v, %v", msg.TemplateName, t.Error)
+		return nil, fmt.Errorf("error reading template %v, %v", msg.Name, t.Error)
 	}
 	return &capiv1_proto.GetTemplateResponse{Template: t}, err
 }
@@ -172,13 +172,13 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListT
 	if msg.TemplateKind == "" {
 		msg.TemplateKind = capiv1.Kind
 	}
-	tm, err := s.getTemplate(ctx, msg.TemplateName, msg.TemplateNamespace, msg.TemplateKind)
+	tm, err := s.getTemplate(ctx, msg.Name, msg.Namespace, msg.TemplateKind)
 	if err != nil {
-		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
+		return nil, fmt.Errorf("error looking up template %v: %v", msg.Name, err)
 	}
 	t := ToTemplateResponse(tm, s.profileHelmRepository)
 	if t.Error != "" {
-		return nil, fmt.Errorf("error looking up template params for %v, %v", msg.TemplateName, t.Error)
+		return nil, fmt.Errorf("error looking up template params for %v, %v", msg.Name, t.Error)
 	}
 
 	return &capiv1_proto.ListTemplateParamsResponse{Parameters: t.Parameters, Objects: t.Objects}, err
@@ -189,16 +189,21 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 	if msg.TemplateKind == "" {
 		msg.TemplateKind = capiv1.Kind
 	}
-	tm, err := s.getTemplate(ctx, msg.TemplateName, msg.TemplateNamespace, msg.TemplateKind)
+	tm, err := s.getTemplate(ctx, msg.Name, msg.Namespace, msg.TemplateKind)
 	if err != nil {
-		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
+		return nil, fmt.Errorf("error looking up template %v: %v", msg.Name, err)
 	}
 	t := ToTemplateResponse(tm, s.profileHelmRepository)
 	if t.Error != "" {
-		return nil, fmt.Errorf("error looking up template annotations for %v, %v", msg.TemplateName, t.Error)
+		return nil, fmt.Errorf("error looking up template annotations for %v, %v", msg.Name, t.Error)
 	}
 
-	return &capiv1_proto.ListTemplateProfilesResponse{Objects: t.Objects, Profiles: t.Profiles}, err
+	profiles, err := templates.GetProfilesFromTemplate(tm)
+	if err != nil {
+		return nil, fmt.Errorf("error getting profiles from template %v, %v", msg.Name, err)
+	}
+
+	return &capiv1_proto.ListTemplateProfilesResponse{Profiles: profiles, Objects: t.Objects}, err
 }
 
 func toCommitFileProtos(file []git.CommitFile) []*capiv1_proto.CommitFile {
@@ -213,16 +218,16 @@ func toCommitFileProtos(file []git.CommitFile) []*capiv1_proto.CommitFile {
 }
 
 // Similar the others list and get will right now only work with CAPI templates.
-// tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName) -> this get is the key.
+// tm, err := s.templatesLibrary.Get(ctx, msg.Name) -> this get is the key.
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
 	if msg.TemplateKind == "" {
 		msg.TemplateKind = capiv1.Kind
 	}
 
 	s.log.WithValues("request_values", msg.Values, "request_credentials", msg.Credentials).Info("Received message")
-	tm, err := s.getTemplate(ctx, msg.TemplateName, msg.TemplateNamespace, msg.TemplateKind)
+	tm, err := s.getTemplate(ctx, msg.Name, msg.Namespace, msg.TemplateKind)
 	if err != nil {
-		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
+		return nil, fmt.Errorf("error looking up template %v: %v", msg.Name, err)
 	}
 
 	client, err := s.clientGetter.Client(ctx)
@@ -243,13 +248,13 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		types.NamespacedName{Name: s.cluster},
 		tm,
 		GetFilesRequest{
-			ClusterNamespace:      msg.ClusterNamespace,
-			TemplateName:          msg.TemplateName,
-			ParameterValues:       msg.Values,
-			Credentials:           msg.Credentials,
-			Profiles:              msg.Profiles,
-			Kustomizations:        msg.Kustomizations,
-			ExternalSecrets:       msg.ExternalSecrets,
+			ClusterNamespace: msg.ClusterNamespace,
+			TemplateName:     msg.Name,
+			ParameterValues:  msg.Values,
+			Credentials:      msg.Credentials,
+			Profiles:         msg.Profiles,
+			Kustomizations:   msg.Kustomizations,
+			ExternalSecrets:  msg.ExternalSecrets,
 			DefaultHelmRepository: s.profileHelmRepository,
 		},
 		nil,

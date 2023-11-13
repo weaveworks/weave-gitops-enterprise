@@ -128,9 +128,7 @@ function getInitialData(
 
   const resourceName =
     (resource as GitopsClusterEnriched | Automation | Source | Pipeline)
-      ?.name ||
-    (resource as GetTerraformObjectResponse)?.object?.name ||
-    resourceData?.objects?.[0].name;
+      ?.name || (resource as GetTerraformObjectResponse)?.object?.name;
 
   const defaultFormData = {
     repo: null,
@@ -158,7 +156,7 @@ function getInitialData(
   };
 
   const initialInfraCredentials = {
-    ...resourceData?.infraCredential,
+    ...resourceData?.credentials,
     ...callbackState?.state?.infraCredential,
   };
 
@@ -213,9 +211,9 @@ const encodedProfiles = (profiles: ProfilesIndex): ProfileValues[] =>
 
 const toPayload = (
   formData: any,
-  infraCredential: any,
-  templateName: string,
-  templateNamespace: string,
+  infraCredential: Credential | undefined,
+  name: string,
+  namespace: string,
   templateKind: string,
   updatedProfiles: ProfilesIndex,
   createRequestAnnotation: any,
@@ -229,8 +227,8 @@ const toPayload = (
     description: formData.pullRequestDescription,
     commitMessage: formData.commitMessage,
     credentials: infraCredential,
-    templateName,
-    templateNamespace,
+    name,
+    namespace,
     parameterValues,
     kustomizations: getKustomizations(formData),
     values: encodedProfiles(updatedProfiles),
@@ -410,7 +408,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     }
     const payload = toPayload(
       formData,
-      infraCredential,
+      infraCredential || undefined,
       template.name,
       template.namespace!,
       template.templateKind,
@@ -521,10 +519,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           {template.description ? (
             <Flex column>
               <div>Description:</div>
-              <Editor
-                children={template.description || ''}
-                remarkPlugins={[remarkGfm]}
-              />
+              <Editor remarkPlugins={[remarkGfm]}>
+                {template.description || ''}
+              </Editor>
             </Flex>
           ) : null}
           <Divider
