@@ -6,6 +6,30 @@
 
 import * as fm from "../../fetch.pb"
 import * as GitopssetsV1Types from "./types.pb"
+export type GetInventoryRequest = {
+  name?: string
+  namespace?: string
+  clusterName?: string
+  withChildren?: boolean
+}
+
+export type GetInventoryResponse = {
+  entries?: InventoryEntry[]
+}
+
+export type HealthStatus = {
+  status?: string
+  message?: string
+}
+
+export type InventoryEntry = {
+  payload?: string
+  tenant?: string
+  clusterName?: string
+  health?: HealthStatus
+  children?: InventoryEntry[]
+}
+
 export type ListGitOpsSetsRequest = {
   namespace?: string
 }
@@ -65,6 +89,9 @@ export class GitOpsSets {
   }
   static ToggleSuspendGitOpsSet(req: ToggleSuspendGitOpsSetRequest, initReq?: fm.InitReq): Promise<ToggleSuspendGitOpsSetResponse> {
     return fm.fetchReq<ToggleSuspendGitOpsSetRequest, ToggleSuspendGitOpsSetResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/suspend`, {...initReq, method: "PATCH", body: JSON.stringify(req, fm.replacer)})
+  }
+  static GetInventory(req: GetInventoryRequest, initReq?: fm.InitReq): Promise<GetInventoryResponse> {
+    return fm.fetchReq<GetInventoryRequest, GetInventoryResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/inventory?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
     return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/reconciled-objects`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
