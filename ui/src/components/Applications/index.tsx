@@ -17,6 +17,10 @@ import { useIsEnabledForComponent } from '../../hooks/query';
 import { getKindRoute, Routes } from '../../utils/nav';
 import OpenedPullRequest from '../Clusters/OpenedPullRequest';
 import Explorer from '../Explorer/Explorer';
+import {
+  addFieldsWithIndex,
+  defaultExplorerFields,
+} from '../Explorer/ExplorerTable';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
@@ -62,8 +66,9 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
               <Explorer
                 category="automation"
                 enableBatchSync
-                extraColumns={[
+                fields={addFieldsWithIndex(defaultExplorerFields, [
                   {
+                    id: 'source',
                     label: 'Source',
                     index: 4,
                     value: (o: Object & { parsed: any }) => {
@@ -94,7 +99,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
                       return <Link to={url}>{sourceName}</Link>;
                     },
                   },
-                ]}
+                ])}
               />
             ) : (
               <AutomationsTable automations={automations?.result} />
