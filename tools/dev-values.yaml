@@ -49,6 +49,9 @@ enableRunUI: true
 gitopssets-controller:
   enabled: true
 
+cluster-reflector-controller:
+  enabled: true
+
 # Re-clarify capiEnabled
 global:
   capiEnabled: true

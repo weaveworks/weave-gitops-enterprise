@@ -65,6 +65,20 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
+  name: gitops-automatedclusterdiscoveries-reader
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+    {{- if .Values.rbac.userRoles.roleAggregation.enabled }}
+    rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
+    {{- end }}
+rules:
+  - apiGroups: ["clusters.weave.works"]
+    resources: ["automatedclusterdiscoveries"]
+    verbs: ["get", "watch", "list", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
   name: gitops-templates-reader
   labels:
     {{- include "mccp.labels" . | nindent 4 }}

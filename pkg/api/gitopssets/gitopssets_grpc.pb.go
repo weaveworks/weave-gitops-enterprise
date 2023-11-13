@@ -26,6 +26,7 @@ const (
 	GitOpsSets_ListGitOpsSets_FullMethodName         = "/gitopssets.v1.GitOpsSets/ListGitOpsSets"
 	GitOpsSets_GetGitOpsSet_FullMethodName           = "/gitopssets.v1.GitOpsSets/GetGitOpsSet"
 	GitOpsSets_ToggleSuspendGitOpsSet_FullMethodName = "/gitopssets.v1.GitOpsSets/ToggleSuspendGitOpsSet"
+	GitOpsSets_GetInventory_FullMethodName           = "/gitopssets.v1.GitOpsSets/GetInventory"
 	GitOpsSets_GetReconciledObjects_FullMethodName   = "/gitopssets.v1.GitOpsSets/GetReconciledObjects"
 	GitOpsSets_SyncGitOpsSet_FullMethodName          = "/gitopssets.v1.GitOpsSets/SyncGitOpsSet"
 )
@@ -40,7 +41,16 @@ type GitOpsSetsClient interface {
 	GetGitOpsSet(ctx context.Context, in *GetGitOpsSetRequest, opts ...grpc.CallOption) (*GetGitOpsSetResponse, error)
 	// Toggle suspend on a GitOpsSet
 	ToggleSuspendGitOpsSet(ctx context.Context, in *ToggleSuspendGitOpsSetRequest, opts ...grpc.CallOption) (*ToggleSuspendGitOpsSetResponse, error)
-	// Get the reconciled objects for a GitOpsSet
+	//
+	// GetInventory returns a list of InventoryEntry
+	// objects and children,
+	// given the gitopsset name and namespace and cluster.
+	GetInventory(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryResponse, error)
+	//
+	// GetReconciledObjects returns a list of objects
+	// that were created as a result a Flux automation.
+	// This list is derived by looking at the Kustomization
+	// or HelmRelease specified in the request body.
 	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
 	// Trigger reconciliation of a GitOpsSet
 	SyncGitOpsSet(ctx context.Context, in *SyncGitOpsSetRequest, opts ...grpc.CallOption) (*SyncGitOpsSetResponse, error)
@@ -81,6 +91,15 @@ func (c *gitOpsSetsClient) ToggleSuspendGitOpsSet(ctx context.Context, in *Toggl
 	return out, nil
 }
 
+func (c *gitOpsSetsClient) GetInventory(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryResponse, error) {
+	out := new(GetInventoryResponse)
+	err := c.cc.Invoke(ctx, GitOpsSets_GetInventory_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *gitOpsSetsClient) GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error) {
 	out := new(GetReconciledObjectsResponse)
 	err := c.cc.Invoke(ctx, GitOpsSets_GetReconciledObjects_FullMethodName, in, out, opts...)
@@ -109,7 +128,16 @@ type GitOpsSetsServer interface {
 	GetGitOpsSet(context.Context, *GetGitOpsSetRequest) (*GetGitOpsSetResponse, error)
 	// Toggle suspend on a GitOpsSet
 	ToggleSuspendGitOpsSet(context.Context, *ToggleSuspendGitOpsSetRequest) (*ToggleSuspendGitOpsSetResponse, error)
-	// Get the reconciled objects for a GitOpsSet
+	//
+	// GetInventory returns a list of InventoryEntry
+	// objects and children,
+	// given the gitopsset name and namespace and cluster.
+	GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error)
+	//
+	// GetReconciledObjects returns a list of objects
+	// that were created as a result a Flux automation.
+	// This list is derived by looking at the Kustomization
+	// or HelmRelease specified in the request body.
 	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
 	// Trigger reconciliation of a GitOpsSet
 	SyncGitOpsSet(context.Context, *SyncGitOpsSetRequest) (*SyncGitOpsSetResponse, error)
@@ -128,6 +156,9 @@ func (UnimplementedGitOpsSetsServer) GetGitOpsSet(context.Context, *GetGitOpsSet
 }
 func (UnimplementedGitOpsSetsServer) ToggleSuspendGitOpsSet(context.Context, *ToggleSuspendGitOpsSetRequest) (*ToggleSuspendGitOpsSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ToggleSuspendGitOpsSet not implemented")
+}
+func (UnimplementedGitOpsSetsServer) GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetInventory not implemented")
 }
 func (UnimplementedGitOpsSetsServer) GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetReconciledObjects not implemented")
@@ -202,6 +233,24 @@ func _GitOpsSets_ToggleSuspendGitOpsSet_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GitOpsSets_GetInventory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInventoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GitOpsSetsServer).GetInventory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GitOpsSets_GetInventory_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GitOpsSetsServer).GetInventory(ctx, req.(*GetInventoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _GitOpsSets_GetReconciledObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetReconciledObjectsRequest)
 	if err := dec(in); err != nil {
@@ -256,6 +305,10 @@ var GitOpsSets_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ToggleSuspendGitOpsSet",
 			Handler:    _GitOpsSets_ToggleSuspendGitOpsSet_Handler,
+		},
+		{
+			MethodName: "GetInventory",
+			Handler:    _GitOpsSets_GetInventory_Handler,
 		},
 		{
 			MethodName: "GetReconciledObjects",

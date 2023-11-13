@@ -40,3 +40,11 @@ dependencies:
     version: "0.16.4"
     repository: "oci://ghcr.io/weaveworks/charts"
     condition: gitopssets-controller.enabled
+  - name: cluster-reflector-controller
+    version: "0.0.7"
+    repository: "oci://ghcr.io/weaveworks/charts"
+    condition: cluster-reflector-controller.enabled
+  - name: cluster-bootstrap-controller
+    version: "0.7.3"
+    repository: "oci://ghcr.io/weaveworks/charts"
+    condition: cluster-bootstrap-controller.enabled

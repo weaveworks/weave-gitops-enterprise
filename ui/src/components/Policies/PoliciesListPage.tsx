@@ -5,9 +5,9 @@ import {
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import { useRouteMatch } from 'react-router-dom';
+import WarningMsg from '../Explorer/WarningMsg';
 import { Page } from '../Layout/App';
 import PolicyAuditList from './Audit/PolicyAuditList';
-import WarningMsg from './Audit/WarningMsg';
 import { PoliciesTab } from './PoliciesListTab';
 
 const Policies = () => {

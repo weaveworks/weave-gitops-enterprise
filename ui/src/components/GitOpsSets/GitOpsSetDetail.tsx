@@ -130,10 +130,10 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     isLoading,
     error,
   } = useGetReconciledTree(
-    gs?.name || '',
-    gs?.namespace || '',
-    (getInventory(gs) as GroupVersionKind[]) || [],
-    gs?.clusterName || '',
+    name || '',
+    namespace || '',
+    'GitOpsSet',
+    clusterName || '',
   );
 
   const initialFilterState = {

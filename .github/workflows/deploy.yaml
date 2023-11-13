@@ -27,11 +27,11 @@ jobs:
       ARTEFACTS_BASE_DIR: /tmp/workspace/test
     steps:
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
           go-version: 1.20.x
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Configure git for private modules
         env:
           GITHUB_BUILD_USERNAME: wge-build-bot
@@ -58,7 +58,7 @@ jobs:
           # Merge all junit test results
           jrm ${{ env.ARTEFACTS_BASE_DIR }}/combined-test-results.xml '${{ env.ARTEFACTS_BASE_DIR }}/*.xml'
       - name: Store unit test coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
         with:
           name: unit-tests-artifacts
           path: |
@@ -69,7 +69,6 @@ jobs:
     needs: [build, coverage]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
-      runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 60
       label-filter: "--label-filter='smoke&&capd'"
@@ -97,7 +96,6 @@ jobs:
     needs: [build, coverage]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
-      runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 60
       label-filter: "--label-filter='smoke&&deploy'"
@@ -127,7 +125,6 @@ jobs:
     needs: [build, coverage]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
-      runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 60
       label-filter: "--label-filter='smoke&&tenant'"
@@ -159,7 +156,7 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 0
       - name: Generate release tags

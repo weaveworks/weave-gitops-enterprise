@@ -46,6 +46,8 @@ export enum Routes {
   ExplorerView = '/explorer/view',
   ExplorerAccessRules = '/explorer/access_rules',
   Notifications = '/notifications',
+  ClusterDiscovery = '/cluster-discovery',
+  ClusterDiscoveryDetails = '/cluster-discovery/object',
 }
 
 export function getKindRoute(k: Kind | string): string {
@@ -86,6 +88,9 @@ export function getKindRoute(k: Kind | string): string {
 
     case 'CAPITemplate':
       return Routes.Templates;
+
+    case 'AutomatedClusterDiscovery':
+      return Routes.ClusterDiscoveryDetails;
 
     default:
       return V2Routes.NotImplemented;
