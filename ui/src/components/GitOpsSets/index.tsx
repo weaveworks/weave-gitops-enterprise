@@ -11,7 +11,7 @@ import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import _ from 'lodash';
 import { FC } from 'react';
 import { Link } from 'react-router-dom';
-import { GitOpsSet, ResourceRef } from '../../api/gitopssets/types.pb';
+import { GitOpsSet } from '../../api/gitopssets/types.pb';
 import { EnabledComponent } from '../../api/query/query.pb';
 import { useListGitOpsSets } from '../../hooks/gitopssets';
 import { useIsEnabledForComponent } from '../../hooks/query';
@@ -21,21 +21,6 @@ import Explorer from '../Explorer/Explorer';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
-export const getInventory = (gs: GitOpsSet | undefined) => {
-  const entries = gs?.inventory || [];
-  return Array.from(
-    new Set(
-      entries.map((entry: ResourceRef) => {
-        // entry is namespace_name_group_kind, but name can contain '_' itself
-        const parts = entry?.id?.split('_');
-        const kind = parts?.[parts.length - 1];
-        const group = parts?.[parts.length - 2];
-        return { group, version: entry.version, kind };
-      }),
-    ),
-  );
-};
-
 const GitOpsSets: FC = () => {
   const isExplorerEnabled = useIsEnabledForComponent(
     EnabledComponent.gitopssets,
@@ -44,7 +29,7 @@ const GitOpsSets: FC = () => {
     enabled: !isExplorerEnabled,
   });
 
-  const gitopssets = data?.gitopssets;
+  const gitopssets = data?.objects;
 
   const initialFilterState = {
     ...filterConfig(gitopssets, 'status', filterByStatusCallback),
@@ -103,11 +88,6 @@ const GitOpsSets: FC = () => {
       maxWidth: 600,
     },
     {
-      label: 'Revision',
-      maxWidth: 36,
-      value: 'lastAppliedRevision',
-    },
-    {
       label: 'Last Updated',
       value: (gs: GitOpsSet) => (
         <Timestamp
@@ -137,7 +117,7 @@ const GitOpsSets: FC = () => {
         ) : (
           <DataTable
             fields={fields}
-            rows={data?.gitopssets}
+            rows={data?.objects}
             filters={initialFilterState}
           />
         )}

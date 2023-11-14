@@ -58,7 +58,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	gitauth_server "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
-	gitopssets "github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring"
@@ -531,12 +530,16 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 	}
 
 	healthChecker := health.NewHealthChecker()
-
 	coreCfg, err := core_core.NewCoreConfig(
 		log, rest, clusterName, clustersManager, healthChecker,
 	)
 	if err != nil {
 		return fmt.Errorf("could not create core config: %w", err)
+	}
+
+	err = coreCfg.PrimaryKinds.Add("GitOpsSet", gitopssetsv1alpha1.GroupVersion.WithKind("GitOpsSet"))
+	if err != nil {
+		return fmt.Errorf("failed to add GitOpsSet primary kind: %w", err)
 	}
 
 	err = coreCfg.PrimaryKinds.Add("AutomatedClusterDiscovery", clusterreflectorv1alpha1.GroupVersion.WithKind("AutomatedClusterDiscovery"))
@@ -733,14 +736,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		}); err != nil {
 			return fmt.Errorf("hydrating terraform server: %w", err)
 		}
-	}
-
-	if err := gitopssets.Hydrate(ctx, grpcMux, gitopssets.ServerOpts{
-		Logger:         args.Log,
-		ClientsFactory: args.ClustersManager,
-		HealthChecker:  args.CoreServerConfig.HealthChecker,
-	}); err != nil {
-		return fmt.Errorf("hydrating gitopssets server: %w", err)
 	}
 
 	if err := preview.Hydrate(ctx, grpcMux, preview.ServerOpts{

@@ -4,6 +4,7 @@ import { InfoList, KubeStatusIndicator } from '@weaveworks/weave-gitops';
 import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import { useState } from 'react';
 import styled from 'styled-components';
+import { useGetKubeconfig } from '../../hooks/clusters';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { ClusterStatus } from './ClusterStatus';
 import { DashboardsList } from './DashboardsList';
@@ -37,17 +38,11 @@ const StyledChip = styled(Chip)`
 const ClusterDashboard = ({
   currentCluster,
   getDashboardAnnotations,
-  getKubeconfig,
 }: {
   currentCluster: GitopsClusterEnriched;
   getDashboardAnnotations: (cluster: GitopsClusterEnriched) => {
     [key: string]: string;
   };
-  getKubeconfig: (
-    clusterName: string,
-    clusterNamespace: string,
-    filename: string,
-  ) => Promise<void>;
 }) => {
   const labels = currentCluster?.labels || {};
   const annotations = currentCluster?.annotations || {};
@@ -58,16 +53,15 @@ const ClusterDashboard = ({
   const dashboardAnnotations = getDashboardAnnotations(
     currentCluster as GitopsClusterEnriched,
   );
+  const getKubeconfig = useGetKubeconfig();
 
   const handleClick = () => {
     setDisabled(true);
-    getKubeconfig(
-      currentCluster.name || '',
-      currentCluster?.namespace || '',
-      `${currentCluster?.name}.kubeconfig`,
-    ).finally(() => {
-      setDisabled(false);
-    });
+    getKubeconfig(currentCluster, `${currentCluster?.name}.kubeconfig`).finally(
+      () => {
+        setDisabled(false);
+      },
+    );
   };
 
   const info = [
