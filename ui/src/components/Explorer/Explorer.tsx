@@ -146,7 +146,10 @@ function Explorer({
           >
             <QueryInput innerRef={inputRef} />
 
-            <Filters facets={filteredFacets || []} />
+            <Filters
+              facets={filteredFacets || []}
+              humanReadableLabels={facetsRes?.humanReadableLabels}
+            />
           </FilterDrawer>
         </Flex>
 

@@ -281,6 +281,12 @@
             "type": "object",
             "$ref": "#/definitions/v1Facet"
           }
+        },
+        "humanReadableLabels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       }
     },

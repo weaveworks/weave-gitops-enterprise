@@ -118,8 +118,24 @@ func (s *server) ListFacets(ctx context.Context, msg *pb.ListFacetsRequest) (*pb
 		return nil, fmt.Errorf("failed to list facets: %w", err)
 	}
 
+	humanReadableLabelKeys := map[string]string{}
+
+	for _, objectKind := range configuration.SupportedObjectKinds {
+		for _, label := range objectKind.Labels {
+			if objectKind.HumanReadableLabelKeys != nil {
+				// Substitute human readable label keys for label with dot notation: labels.<label>
+				for labelKey, labelValue := range objectKind.HumanReadableLabelKeys {
+					if labelKey == label {
+						humanReadableLabelKeys[fmt.Sprintf("labels.%s", label)] = labelValue
+					}
+				}
+			}
+		}
+	}
+
 	return &pb.ListFacetsResponse{
-		Facets: convertToPbFacet(facets),
+		Facets:              convertToPbFacet(facets),
+		HumanReadableLabels: humanReadableLabelKeys,
 	}, nil
 }
 

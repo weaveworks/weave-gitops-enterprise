@@ -6,11 +6,11 @@ import { useReadQueryState, useSetQueryState } from './hooks';
 
 type Props = {
   className?: string;
-
   facets?: Facet[];
+  humanReadableLabels?: Record<string, string>;
 };
 
-function Filters({ className, facets }: Props) {
+function Filters({ className, facets, humanReadableLabels }: Props) {
   const queryState = useReadQueryState();
   const setState = useSetQueryState();
 
@@ -55,9 +55,10 @@ function Filters({ className, facets }: Props) {
   return (
     <div className={className}>
       {_.map(facets, f => {
+        const label = _.get(humanReadableLabels, f.field as string) || f.field;
         return (
           <div key={f.field}>
-            <h3>{_.capitalize(f.field)}</h3>
+            <h3>{_.words(label).map(_.capitalize).join(' ')}</h3>
             <ul style={{ listStyle: 'none' }}>
               {_.map(f.values, v => {
                 const key = `${f.field}:${v}`;

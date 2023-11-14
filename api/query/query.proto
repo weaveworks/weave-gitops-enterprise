@@ -122,7 +122,8 @@ message ListFacetsRequest {
 }
 
 message ListFacetsResponse {
-    repeated Facet facets = 1;
+    repeated   Facet facets                 = 1;
+    map<string, string> humanReadableLabels = 2;
 }
 
 message Facet {

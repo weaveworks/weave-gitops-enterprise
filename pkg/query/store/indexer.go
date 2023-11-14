@@ -325,6 +325,10 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
 		for _, t := range v.Terms.Terms() {
 			facets[k] = append(facets[k], t.Term)
 		}
+
+		if len(facets[k]) == 0 {
+			delete(facets, k)
+		}
 	}
 
 	return facets, nil

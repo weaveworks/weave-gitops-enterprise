@@ -71,6 +71,7 @@ export type ListFacetsRequest = {
 
 export type ListFacetsResponse = {
   facets?: Facet[]
+  humanReadableLabels?: {[key: string]: string}
 }
 
 export type Facet = {
