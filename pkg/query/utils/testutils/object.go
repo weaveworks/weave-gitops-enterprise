@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"github.com/fluxcd/helm-controller/api/v2beta1"
+	clusterreflectorv1alpha1 "github.com/weaveworks/cluster-reflector-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -27,6 +28,29 @@ func NewHelmRelease(name string, namespace string, opts ...func(*v2beta1.HelmRel
 	}
 
 	return helmRelease
+}
+
+// NewAutomatedClusterDiscovery creates a test AutomatedClusterDiscovery object
+//
+// They can be interesting as they don't have finalizers and so will behave a bit differently from
+// HelmReleases and other resources that do.
+func NewAutomatedClusterDiscovery(name string, namespace string, opts ...func(*clusterreflectorv1alpha1.AutomatedClusterDiscovery)) *clusterreflectorv1alpha1.AutomatedClusterDiscovery {
+	acd := &clusterreflectorv1alpha1.AutomatedClusterDiscovery{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: clusterreflectorv1alpha1.GroupVersion.Version,
+			Kind:       "AutomatedClusterDiscovery",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+
+	for _, opt := range opts {
+		opt(acd)
+	}
+
+	return acd
 }
 
 var (

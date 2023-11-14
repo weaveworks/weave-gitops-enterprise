@@ -298,7 +298,7 @@ var (
 		Category: CategoryTemplate,
 	}
 
-	AutomatedClusterDiscovery = ObjectKind{
+	AutomatedClusterDiscoveryKind = ObjectKind{
 		Gvk: clusterreflectorv1alpha1.GroupVersion.WithKind("AutomatedClusterDiscovery"),
 		NewClientObjectFunc: func() client.Object {
 			return &clusterreflectorv1alpha1.AutomatedClusterDiscovery{}
@@ -323,7 +323,7 @@ var SupportedObjectKinds = []ObjectKind{
 	GitOpsSetsObjectKind,
 	GitopsTemplateObjectKind,
 	CapiTemplateObjectKind,
-	AutomatedClusterDiscovery,
+	AutomatedClusterDiscoveryKind,
 }
 
 // SupportedRbacKinds list with the default supported RBAC resources.
