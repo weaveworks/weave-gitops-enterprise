@@ -33,8 +33,8 @@ import {
 import { RequestError } from '../../types/custom';
 import { Routes } from '../../utils/nav';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import { TableWrapper } from '../Shared';
 import ListEvents from '../ListEvents';
+import { TableWrapper } from '../Shared';
 
 type Props = {
   name: string;
