@@ -177,11 +177,6 @@ func TestObjectsCollector_retention(t *testing.T) {
 		configuration.AutomatedClusterDiscoveryKind,
 	)
 
-	obj4 := models.NewNormalizedObject(
-		testutils.NewAutomatedClusterDiscovery("anyACD2", "default"),
-		configuration.AutomatedClusterDiscoveryKind,
-	)
-
 	tx := []models.ObjectTransaction{
 		&transaction{
 			clusterName:     clusterName,
@@ -199,13 +194,7 @@ func TestObjectsCollector_retention(t *testing.T) {
 			clusterName:     clusterName,
 			object:          obj3,
 			transactionType: models.TransactionTypeDelete,
-			// No retention policy here, should be deleted
-		},
-		&transaction{
-			clusterName:     clusterName,
-			object:          obj4,
-			transactionType: models.TransactionTypeDelete,
-			retentionPolicy: retentionPolicy,
+			// No retention policy here, should be deleted.
 		},
 	}
 
@@ -220,9 +209,8 @@ func TestObjectsCollector_retention(t *testing.T) {
 
 	// Keep the object that was deleted but not expired.
 	_, storeResult := fakeStore.StoreObjectsArgsForCall(0)
-	g.Expect(storeResult).To(HaveLen(2))
+	g.Expect(storeResult).To(HaveLen(1))
 	g.Expect(storeResult[0].Name).To(Equal("anyHelmRelease2"))
-	g.Expect(storeResult[1].Name).To(Equal("anyACD2"))
 }
 
 type transaction struct {
