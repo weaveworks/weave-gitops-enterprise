@@ -21,7 +21,6 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 	g := NewWithT(t)
 	log := testr.New(t)
 
-	//setup data
 	clusterName := "anyCluster"
 
 	tests := []struct {

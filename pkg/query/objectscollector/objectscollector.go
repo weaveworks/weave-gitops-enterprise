@@ -128,28 +128,19 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 		}
 
 		if objTx.TransactionType() == models.TransactionTypeDelete {
-			// Non-finalizer objects will not have a deletion timestamp
-			// Synthesize one here based on the time we received the delete event
-			// Allows us to support retenion policies.
-			if object.KubernetesDeletedAt.IsZero() {
-				// FIXME: get rid of the now() to test this better
-				// Add a tx.ts and use that?
-				object.KubernetesDeletedAt = time.Now()
-			}
-
 			// We want to retain some objects longer than kubernetes does.
 			// Objects like Events get removed in 1h by default on some cloud providers.
 			// Users want to be able to see these events for longer than that.
-			if !models.IsExpired(objTx.RetentionPolicy(), object) {
-				debug.Info("object is not expired, skipping", "object", object, "retention-policy", objTx.RetentionPolicy())
-				// We need to upsert here to catch the KubernetesDeletedAt timestamp
-				upsert = append(upsert, object)
+			// We delete only if the object is expired or the kind has no retention policy
+			if objTx.RetentionPolicy() == configuration.NoRetentionPolicy ||
+				models.IsExpired(objTx.RetentionPolicy(), object) {
+				delete = append(delete, object)
 				continue
+			} else {
+				debug.Info("not deleting object as not expired", "object", object, "retention-policy", objTx.RetentionPolicy())
 			}
-			delete = append(delete, object)
-		} else {
-			upsert = append(upsert, object)
 		}
+		upsert = append(upsert, object)
 	}
 
 	if len(upsert) > 0 {
