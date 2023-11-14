@@ -540,7 +540,7 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 	err = coreCfg.PrimaryKinds.Add("GitOpsSet", gitopssetsv1alpha1.GroupVersion.WithKind("GitOpsSet"))
 	if err != nil {
 		return fmt.Errorf("failed to add GitOpsSet primary kind: %w", err)
-    }
+	}
 
 	err = coreCfg.PrimaryKinds.Add("AutomatedClusterDiscovery", clusterreflectorv1alpha1.GroupVersion.WithKind("AutomatedClusterDiscovery"))
 	if err != nil {
