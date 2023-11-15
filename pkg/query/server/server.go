@@ -113,7 +113,7 @@ func (s *server) DebugGetAccessRules(ctx context.Context, msg *pb.DebugGetAccess
 }
 
 func (s *server) ListFacets(ctx context.Context, msg *pb.ListFacetsRequest) (*pb.ListFacetsResponse, error) {
-	facets, err := s.qs.ListFacets(ctx)
+	facets, err := s.qs.ListFacets(ctx, configuration.ObjectCategory(msg.Category))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list facets: %w", err)
 	}

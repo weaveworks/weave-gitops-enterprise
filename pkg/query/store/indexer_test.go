@@ -16,6 +16,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	bleve "github.com/blevesearch/bleve/v2"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 )
 
@@ -119,7 +120,7 @@ func TestIndexer_Metrics(t *testing.T) {
 	})
 
 	t.Run("should have ListFacets instrumented", func(t *testing.T) {
-		_, err := idx.ListFacets(context.Background())
+		_, err := idx.ListFacets(context.Background(), configuration.CategoryAutomation)
 		g.Expect(err).NotTo(HaveOccurred())
 
 		wantMetrics := []string{
@@ -383,11 +384,13 @@ func TestListFacets(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	kustGvk := kustomizev1.GroupVersion.WithKind(kustomizev1.KustomizationKind)
+	templateGvk := gapiv1.GroupVersion.WithKind(gapiv1.Kind)
 
 	tests := []struct {
-		name     string
-		objects  []models.Object
-		expected Facets
+		name              string
+		objects           []models.Object
+		expected          Facets
+		requestedCategory configuration.ObjectCategory
 	}{
 		{
 			name: "adds default facets",
@@ -436,6 +439,38 @@ func TestListFacets(t *testing.T) {
 				"kind":      []string{"Kustomization"},
 			},
 		},
+		{
+			name: "does not show facets for irrelevant categories",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Kind:       kustGvk.Kind,
+					Name:       "somename-one",
+					Category:   configuration.CategoryAutomation,
+					Namespace:  "ns-1",
+					APIGroup:   kustGvk.Group,
+					APIVersion: kustGvk.Version,
+				},
+				{
+					Cluster:    "management",
+					Kind:       templateGvk.Kind,
+					Name:       "somename-two",
+					Category:   configuration.CategoryTemplate,
+					Namespace:  "ns-1",
+					APIGroup:   kustGvk.Group,
+					APIVersion: kustGvk.Version,
+					Labels: map[string]string{
+						"weave.works/template-type": "cluster",
+					},
+				},
+			},
+			expected: Facets{
+				"cluster":   []string{"management"},
+				"namespace": []string{"ns-1"},
+				"kind":      []string{"GitOpsTemplate", "Kustomization"},
+			},
+			requestedCategory: configuration.CategoryAutomation,
+		},
 	}
 
 	for _, tt := range tests {
@@ -453,7 +488,7 @@ func TestListFacets(t *testing.T) {
 				g.Expect(err).NotTo(HaveOccurred())
 			}()
 
-			facets, err := idx.ListFacets(context.Background())
+			facets, err := idx.ListFacets(context.Background(), configuration.CategoryAutomation)
 			g.Expect(err).NotTo(HaveOccurred())
 
 			diff := cmp.Diff(tt.expected, facets)

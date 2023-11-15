@@ -48,7 +48,7 @@ type IndexReader interface {
 	Search(ctx context.Context, query Query, opts QueryOption) (Iterator, error)
 	// ListFacets returns a map of facets and their values.
 	// Facets can be used to build a filtering UI or to see what values are available for a given field.
-	ListFacets(ctx context.Context) (Facets, error)
+	ListFacets(ctx context.Context, category configuration.ObjectCategory) (Facets, error)
 }
 
 var indexFile = "index.db"
@@ -303,7 +303,7 @@ func recordIndexerMetrics(action string, start time.Time, err error) {
 	metrics.IndexerSetLatency(action, metrics.SuccessLabel, time.Since(start))
 }
 
-func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
+func (i *bleveIndexer) ListFacets(ctx context.Context, category configuration.ObjectCategory) (fcs Facets, err error) {
 	// metrics
 	metrics.IndexerAddInflightRequests(metrics.ListFacetsAction, 1)
 	defer recordIndexerMetrics(metrics.ListFacetsAction, time.Now(), err)
@@ -311,7 +311,7 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
 	query := bleve.NewMatchAllQuery()
 	req := bleve.NewSearchRequest(query)
 
-	addDefaultFacets(req)
+	addDefaultFacets(req, category)
 
 	searchResults, err := i.idx.Search(req)
 	if err != nil {
@@ -326,6 +326,7 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
 			facets[k] = append(facets[k], t.Term)
 		}
 
+		// Remove empty facets
 		if len(facets[k]) == 0 {
 			delete(facets, k)
 		}
@@ -336,7 +337,7 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
 
 // addDefaultFacets adds a set of defaault facets to facets search requests. Default facets are comprised of a set
 // of common fields like cluster and set of objectkind specific fields like labels
-func addDefaultFacets(req *bleve.SearchRequest) {
+func addDefaultFacets(req *bleve.SearchRequest, cat configuration.ObjectCategory) {
 	// adding facets for common fields
 	for _, f := range commonFields {
 		req.AddFacet(f, bleve.NewFacetRequest(f+facetSuffix, 100))
@@ -344,6 +345,9 @@ func addDefaultFacets(req *bleve.SearchRequest) {
 
 	// adding facets for labels
 	for _, objectKind := range configuration.SupportedObjectKinds {
+		if cat != "" && objectKind.Category != cat {
+			continue
+		}
 		for _, label := range objectKind.Labels {
 			labelFacet := fmt.Sprintf("labels.%s", label)
 			req.AddFacet(labelFacet, bleve.NewFacetRequest(labelFacet, 100))

@@ -67,6 +67,7 @@ export type Subject = {
 }
 
 export type ListFacetsRequest = {
+  category?: string
 }
 
 export type ListFacetsResponse = {
