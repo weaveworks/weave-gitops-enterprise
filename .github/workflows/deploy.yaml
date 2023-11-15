@@ -186,7 +186,6 @@ jobs:
     with:
       runs-on: ubuntu-latest
       junit-results-glob-pattern: "*smoke-tests*.xml"
-      check-name: "Smoke Tests"
       slack-notification: false
     secrets:
       SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

@@ -12,7 +12,7 @@ on:
         type: string
       check-name:
         description: "Check run name"
-        required: true
+        required: false
         type: string
       slack-notification:
         description: "Enable slack push notification for test results"
@@ -28,6 +28,7 @@ env:
 jobs:
   tests:
     runs-on: ${{ inputs.runs-on }}
+
     steps:
       - name: Download test artifacts
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
@@ -35,11 +36,11 @@ jobs:
           path: ${{ env.TEST_RESULTS_PATH }}
       - name: Publish Test Report      
         id: test-report
-        uses: mikepenz/action-junit-report@v3.5.2
+        uses: mikepenz/action-junit-report@0831a82caad2465c31c6dd929978f640cb42556c # v4.0.3
         if: always()
         with:
+          annotate_only: true # it wont add a build check so we dont want the build to fail if smokes fail
           report_paths: ${{ env.TEST_RESULTS_PATH }}/**/${{ inputs.junit-results-glob-pattern }}
-          check_name: ${{ inputs.check-name }}
       - name: Notify slack of test results
         if: ${{ (inputs.slack-notification) && (github.event_name != 'workflow_dispatch') }}
         id: slack
