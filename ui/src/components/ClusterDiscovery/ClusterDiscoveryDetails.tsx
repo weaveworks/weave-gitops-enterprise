@@ -33,6 +33,7 @@ import {
 import { RequestError } from '../../types/custom';
 import { Routes } from '../../utils/nav';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import ListEvents from '../ListEvents';
 import { TableWrapper } from '../Shared';
 
 type Props = {
@@ -196,6 +197,16 @@ function ClusterDiscoveryDetails({
                 </RequestStateHandler>
               </TableWrapper>
             </Box>
+          </RouterTab>
+          <RouterTab name="Events" path={`${path}/events`}>
+            <ListEvents
+              clusterName={acd?.clusterName}
+              involvedObject={{
+                kind: 'AutomatedClusterDiscovery',
+                name: acd?.name,
+                namespace: acd?.namespace,
+              }}
+            />
           </RouterTab>
           <RouterTab name="Graph" path={`${path}/graph`}>
             <RequestStateHandler
