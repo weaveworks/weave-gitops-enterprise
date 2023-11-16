@@ -440,6 +440,29 @@ func TestListFacets(t *testing.T) {
 			},
 		},
 		{
+			name: "adds facets from labels",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Kind:       templateGvk.Kind,
+					Name:       "somename-two",
+					Category:   configuration.CategoryTemplate,
+					Namespace:  "ns-1",
+					APIGroup:   templateGvk.Group,
+					APIVersion: templateGvk.Version,
+					Labels: map[string]string{
+						"weave.works/template-type": "cluster",
+					},
+				},
+			},
+			expected: Facets{
+				"cluster":                          []string{"management"},
+				"namespace":                        []string{"ns-1"},
+				"kind":                             []string{"GitOpsTemplate"},
+				"labels.weave.works/template-type": []string{"cluster"},
+			},
+		},
+		{
 			name: "does not show facets for irrelevant categories",
 			objects: []models.Object{
 				{
@@ -488,8 +511,7 @@ func TestListFacets(t *testing.T) {
 				g.Expect(err).NotTo(HaveOccurred())
 			}()
 
-			facets, err := idx.ListFacets(context.Background(), configuration.CategoryAutomation)
-			g.Expect(err).NotTo(HaveOccurred())
+			facets, err := idx.ListFacets(context.Background(), tt.requestedCategory)
 
 			diff := cmp.Diff(tt.expected, facets)
 
