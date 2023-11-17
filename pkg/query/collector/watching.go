@@ -98,7 +98,6 @@ type child struct {
 }
 
 // setStatus sets watcher status and records it as a metric.
-// It does not record metrics for stopped state non-active states = notStarted and Stopped
 func (c *child) setStatus(s string) {
 	if c.status != "" {
 		metrics.ClusterWatcherDecrease(c.collector, c.status)
@@ -145,7 +144,7 @@ func newWatchingCollector(opts CollectorOpts) (*watchingCollector, error) {
 	}, nil
 }
 
-func (w *watchingCollector) watch(cluster cluster.Cluster) (reterr error) {
+func (w *watchingCollector) watch(cluster cluster.Cluster) (retErr error) {
 	clusterName := cluster.GetName()
 	if clusterName == "" {
 		return fmt.Errorf("cluster name is empty")
@@ -159,7 +158,7 @@ func (w *watchingCollector) watch(cluster cluster.Cluster) (reterr error) {
 	childctx, cancel := context.WithCancel(context.Background())
 	c.cancel = cancel
 	defer func() {
-		if reterr != nil {
+		if retErr != nil {
 			w.clusterWatchersMu.Lock()
 			c.setStatus(ClusterWatchingFailed)
 			cancel := c.cancel
