@@ -198,7 +198,7 @@ func (so *ServerOpts) Validate() error {
 	return nil
 }
 
-func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error) {
+func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, retErr error) {
 	if err := opts.Validate(); err != nil {
 		return nil, nil, fmt.Errorf("invalid query server options: %w", err)
 	}
@@ -256,7 +256,7 @@ func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error)
 
 		ctx, cancel := context.WithCancel(context.Background())
 		defer func() {
-			if reterr != nil {
+			if retErr != nil {
 				cancel()
 			}
 		}()

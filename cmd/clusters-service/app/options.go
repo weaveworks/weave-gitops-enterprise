@@ -59,7 +59,7 @@ type Options struct {
 	PipelineControllerAddress string
 	CollectorServiceAccount   collector.ImpersonateServiceAccount
 	MonitoringOptions         monitoring.Options
-	EnableObjectCleaner       bool
+	ExplorerCleanerDisabled   bool
 	ExplorerEnabledFor        []string
 }
 
@@ -285,10 +285,10 @@ func WithMonitoring(enabled bool, address string, metricsEnabled bool, profiling
 	}
 }
 
-// WithObjectCleaner enables the object cleaner
-func WithObjectCleaner(enabled bool) Option {
+// WithExplorerCleanerDisabled configures the object cleaner
+func WithExplorerCleanerDisabled(disabled bool) Option {
 	return func(o *Options) {
-		o.EnableObjectCleaner = enabled
+		o.ExplorerCleanerDisabled = disabled
 	}
 }
 
