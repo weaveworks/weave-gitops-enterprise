@@ -33,7 +33,7 @@ func bootstrapOIDC(config steps.Config) error {
 
 	for _, step := range steps {
 		config.Logger.Waitingf(step.Name)
-		err := step.Execute(&config)
+		_, err := step.Execute(&config)
 		if err != nil {
 			return err
 		}
