@@ -6,13 +6,17 @@ import (
 	"path/filepath"
 	"testing"
 
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	"github.com/google/go-cmp/cmp"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	indexermetrics "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/metrics"
 
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 
 	bleve "github.com/blevesearch/bleve/v2"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 )
 
@@ -116,7 +120,7 @@ func TestIndexer_Metrics(t *testing.T) {
 	})
 
 	t.Run("should have ListFacets instrumented", func(t *testing.T) {
-		_, err := idx.ListFacets(context.Background())
+		_, err := idx.ListFacets(context.Background(), configuration.CategoryAutomation)
 		g.Expect(err).NotTo(HaveOccurred())
 
 		wantMetrics := []string{
@@ -376,15 +380,144 @@ func (q query) GetFilters() []string {
 	return []string{}
 }
 
-// Test_addDefaultFacets test that we include facets from common fields but also other specific ones like labels
-func Test_addDefaultFacets(t *testing.T) {
+func TestListFacets(t *testing.T) {
 	g := NewGomegaWithT(t)
-	q := bleve.NewMatchAllQuery()
-	req := bleve.NewSearchRequest(q)
 
-	addDefaultFacets(req)
+	kustGvk := kustomizev1.GroupVersion.WithKind(kustomizev1.KustomizationKind)
+	templateGvk := gapiv1.GroupVersion.WithKind(gapiv1.Kind)
 
-	g.Expect(len(req.Facets) > len(commonFields)).To(BeTrue())
-	g.Expect(req.Facets["cluster"]).NotTo(BeNil())
-	g.Expect(req.Facets["labels.weave.works/template-type"]).NotTo(BeNil())
+	tests := []struct {
+		name              string
+		objects           []models.Object
+		expected          Facets
+		requestedCategory configuration.ObjectCategory
+	}{
+		{
+			name: "adds default facets",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Kind:       kustGvk.Kind,
+					Name:       "name-1",
+					Category:   configuration.CategoryAutomation,
+					Namespace:  "my-namespace",
+					APIGroup:   kustGvk.Group,
+					APIVersion: kustGvk.Version,
+				},
+			},
+			expected: Facets{
+				"cluster":   []string{"management"},
+				"namespace": []string{"my-namespace"},
+				"kind":      []string{"Kustomization"},
+			},
+		},
+		{
+			name: "adds facets from object values",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Kind:       kustGvk.Kind,
+					Name:       "somename",
+					Category:   configuration.CategoryAutomation,
+					Namespace:  "ns-1",
+					APIGroup:   kustGvk.Group,
+					APIVersion: kustGvk.Version,
+				},
+				{
+					Cluster:    "management",
+					Kind:       kustGvk.Kind,
+					Name:       "othername",
+					Category:   configuration.CategoryAutomation,
+					Namespace:  "ns-2",
+					APIGroup:   kustGvk.Group,
+					APIVersion: kustGvk.Version,
+				},
+			},
+			expected: Facets{
+				"cluster":   []string{"management"},
+				"namespace": []string{"ns-1", "ns-2"},
+				"kind":      []string{"Kustomization"},
+			},
+		},
+		{
+			name: "adds facets from labels",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Kind:       templateGvk.Kind,
+					Name:       "somename-two",
+					Category:   configuration.CategoryTemplate,
+					Namespace:  "ns-1",
+					APIGroup:   templateGvk.Group,
+					APIVersion: templateGvk.Version,
+					Labels: map[string]string{
+						"weave.works/template-type": "cluster",
+					},
+				},
+			},
+			expected: Facets{
+				"cluster":                          []string{"management"},
+				"namespace":                        []string{"ns-1"},
+				"kind":                             []string{"GitOpsTemplate"},
+				"labels.weave.works/template-type": []string{"cluster"},
+			},
+		},
+		{
+			name: "does not show facets for irrelevant categories",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Kind:       kustGvk.Kind,
+					Name:       "somename-one",
+					Category:   configuration.CategoryAutomation,
+					Namespace:  "ns-1",
+					APIGroup:   kustGvk.Group,
+					APIVersion: kustGvk.Version,
+				},
+				{
+					Cluster:    "management",
+					Kind:       templateGvk.Kind,
+					Name:       "somename-two",
+					Category:   configuration.CategoryTemplate,
+					Namespace:  "ns-1",
+					APIGroup:   kustGvk.Group,
+					APIVersion: kustGvk.Version,
+					Labels: map[string]string{
+						"weave.works/template-type": "cluster",
+					},
+				},
+			},
+			expected: Facets{
+				"cluster":   []string{"management"},
+				"namespace": []string{"ns-1"},
+				"kind":      []string{"GitOpsTemplate", "Kustomization"},
+			},
+			requestedCategory: configuration.CategoryAutomation,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			idxFileLocation := filepath.Join(t.TempDir(), indexFile)
+
+			idx, err := NewIndexer(nil, idxFileLocation, logr.Discard())
+			g.Expect(err).NotTo(HaveOccurred())
+
+			err = idx.Add(context.Background(), tt.objects)
+			g.Expect(err).NotTo(HaveOccurred())
+
+			defer func() {
+				err = idx.Remove(context.Background(), tt.objects)
+				g.Expect(err).NotTo(HaveOccurred())
+			}()
+
+			facets, err := idx.ListFacets(context.Background(), tt.requestedCategory)
+
+			diff := cmp.Diff(tt.expected, facets)
+
+			if diff != "" {
+				t.Fatalf("unexpected facets (-want +got):\n%s", diff)
+			}
+		})
+	}
 }
