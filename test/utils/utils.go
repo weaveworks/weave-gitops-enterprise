@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"testing"
 
@@ -65,4 +66,29 @@ func CreateKubeconfigFileForRestConfig(restConfig rest.Config) (string, error) {
 		return "", fmt.Errorf("cannot write kubeconfig to file: %w", err)
 	}
 	return kubeConfigFile.Name(), nil
+}
+
+// Reader interface to abstract reading from standard input
+type Reader interface {
+	Read(p []byte) (n int, err error)
+}
+
+// MockReader is a mock implementation of Reader
+type MockReader struct {
+	Inputs []string
+	index  int
+}
+
+func (r *MockReader) Close() error {
+	return nil
+}
+
+// Read implements the Read method of the Reader interface
+func (r *MockReader) Read(p []byte) (n int, err error) {
+	if r.index < len(r.Inputs) {
+		copy(p, []byte(r.Inputs[r.index]))
+		r.index++
+		return len(r.Inputs[r.index-1]), nil
+	}
+	return 0, io.EOF
 }
