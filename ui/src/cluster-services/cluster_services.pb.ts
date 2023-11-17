@@ -63,7 +63,7 @@ export type ListTemplateProfilesResponse = {
 
 export type RenderTemplateRequest = {
   name?: string
-  values?: {[key: string]: string}
+  parameterValues?: {[key: string]: string}
   credentials?: Credential
   templateKind?: string
   clusterNamespace?: string
@@ -135,7 +135,7 @@ export type CreatePullRequestRequest = {
   parameterValues?: {[key: string]: string}
   commitMessage?: string
   credentials?: Credential
-  values?: ProfileValues[]
+  profiles?: ProfileValues[]
   repositoryApiUrl?: string
   clusterNamespace?: string
   kustomizations?: Kustomization[]
@@ -857,12 +857,6 @@ export class ClustersService {
   }
   static GetTemplate(req: GetTemplateRequest, initReq?: fm.InitReq): Promise<GetTemplateResponse> {
     return fm.fetchReq<GetTemplateRequest, GetTemplateResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
-  }
-  static ListTemplateParams(req: ListTemplateParamsRequest, initReq?: fm.InitReq): Promise<ListTemplateParamsResponse> {
-    return fm.fetchReq<ListTemplateParamsRequest, ListTemplateParamsResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}/params?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
-  }
-  static ListTemplateProfiles(req: ListTemplateProfilesRequest, initReq?: fm.InitReq): Promise<ListTemplateProfilesResponse> {
-    return fm.fetchReq<ListTemplateProfilesRequest, ListTemplateProfilesResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}/profiles?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
     return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})

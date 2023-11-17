@@ -7,7 +7,12 @@
   },
   "tags": [
     {
-      "name": "ClustersService"
+      "name": "default",
+      "description": "system endpoints"
+    },
+    {
+      "name": "internal",
+      "description": "Internal APIs which should not be used"
     }
   ],
   "consumes": [
@@ -20,7 +25,7 @@
     "/v1/automations/pull-request": {
       "post": {
         "summary": "Creates a pull request to add automations to a cluster",
-        "description": "Add kustomizations, helm releases, external secrets, policy configs, and sops secrets",
+        "description": "Add kustomizations, helm releases, external secrets, policy configs, and sops secrets\n\n**See the Examples for a complete solution.**\n\nAs in the template pull-request endpoint, this endpoint requires a few different parameters to be set.\n\n1. The details of the git repository to create the pull request in.\n2. An JWT encoded git provider token to autheticate the create-pull-request request.\n3. What kustomizations, helm releases, external secrets, policy configs, and sops secrets to add.",
         "operationId": "ClustersService_CreateAutomationsPullRequest",
         "responses": {
           "200": {
@@ -54,7 +59,7 @@
     "/v1/automations/render": {
       "post": {
         "summary": "Preview adding automations to a cluster",
-        "description": "Add kustomizations, helm releases, external secrets, policy configs, and sops secrets",
+        "description": "Preview what the automations would look like if added to a cluster.\n\nVarious resources can be created via this endpoint, see the `Model` section for full params\n\n- Kustomization \n- HelmRelease \n- ExternalSecret \n- PolicyConfig\n- SopsSecret",
         "operationId": "ClustersService_RenderAutomation",
         "responses": {
           "200": {
@@ -88,6 +93,7 @@
     "/v1/charts/jobs/{jobId}": {
       "get": {
         "summary": "Retrieve the results of a /v1/charts/values job",
+        "description": "After calling `/v1/charts/values` a job will be created and a `jobId` returned in the response.\nThe jobId is then used with this endpoint to retrieve the results of the job.\n\nIf the job has not finished yet `values` will be empty.\nWhen the job has finished the `values` will contain the contents of `values.yaml` for the chart.\nIf an error has occurred the `error` will contain the error message.",
         "operationId": "ClustersService_GetChartsJob",
         "responses": {
           "200": {
@@ -119,6 +125,7 @@
     "/v1/charts/list": {
       "get": {
         "summary": "Lists charts in a HelmRepository",
+        "description": "Given a HelmRepository list the available charts and their versions.",
         "operationId": "ClustersService_ListChartsForRepository",
         "responses": {
           "200": {
@@ -180,7 +187,7 @@
     "/v1/charts/values": {
       "post": {
         "summary": "Get the values.yaml for a chart",
-        "description": "Creates a job. Job status the final result can be retrieved via /v1/charts/jobs/{job_id}",
+        "description": "Given\n- a helm repository reference of `{ cluster, name, namespace, kind }`\n- a chart reference within the helm repository of `{ name, version }`\n\nThen retrieve the values.yaml for this version of the chart.\n\nCreates a job. Job status the final result can be retrieved via /v1/charts/jobs/{job_id}",
         "operationId": "ClustersService_GetValuesForChart",
         "responses": {
           "200": {
@@ -214,6 +221,7 @@
     "/v1/clusters": {
       "get": {
         "summary": "List GitOpsClusters",
+        "description": "List the `GitOpsClusters` in the management cluster.\n\nIf the GitopsCluster references a CAPI Cluster via a `capiClusterRef` then retrieve and include\nthat resources too.",
         "operationId": "ClustersService_ListGitopsClusters",
         "responses": {
           "200": {
@@ -264,6 +272,7 @@
     "/v1/config": {
       "get": {
         "summary": "Get the Weave Gitops Enterprise configuration",
+        "description": "Returns information about the current configuration of the Weave GitOps Enterprise.\n\nImportantly this includes\n- `managementClusterName`: the given name of the management cluster which is used for some multi-cluster operations.\n- `gitHostTypes`: the configured mapping of domains to git providers (e.g. `{ \"git.myhost.com\": \"gitlab\" }`) used\n  for authentication and creating pull requests.",
         "operationId": "ClustersService_GetConfig",
         "responses": {
           "200": {
@@ -278,10 +287,7 @@
               "$ref": "#/definitions/rpcStatus"
             }
           }
-        },
-        "tags": [
-          "ClustersService"
-        ]
+        }
       }
     },
     "/v1/encrypt-sops-secret": {
@@ -360,15 +366,13 @@
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "ClustersService"
         ]
       }
     },
     "/v1/enterprise/version": {
       "get": {
         "summary": "Get the Weave Gitops Enterprise version",
+        "description": "Returns the version of the Weave GitOps Enterprise server.",
         "operationId": "ClustersService_GetEnterpriseVersion",
         "responses": {
           "200": {
@@ -383,10 +387,7 @@
               "$ref": "#/definitions/rpcStatus"
             }
           }
-        },
-        "tags": [
-          "ClustersService"
-        ]
+        }
       }
     },
     "/v1/external-secrets": {
@@ -562,6 +563,7 @@
     "/v1/namespaces/{namespace}/templates/{name}": {
       "get": {
         "summary": "Get template details",
+        "description": "Get a single template from the management cluster.",
         "operationId": "ClustersService_GetTemplate",
         "responses": {
           "200": {
@@ -592,93 +594,7 @@
           },
           {
             "name": "templateKind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "templates"
-        ]
-      }
-    },
-    "/v1/namespaces/{namespace}/templates/{name}/params": {
-      "get": {
-        "summary": "List the params of a template",
-        "operationId": "ClustersService_ListTemplateParams",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListTemplateParamsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "templateKind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "templates"
-        ]
-      }
-    },
-    "/v1/namespaces/{namespace}/templates/{name}/profiles": {
-      "get": {
-        "summary": "List the profiles of a template",
-        "description": "Includes default and required profiles specified by the template",
-        "operationId": "ClustersService_ListTemplateProfiles",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListTemplateProfilesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "templateKind",
+            "description": "Kind of the template\n`GitopsTemplate` or `CAPITemplate` (Default)",
             "in": "query",
             "required": false,
             "type": "string"
@@ -692,6 +608,7 @@
     "/v1/namespaces/{namespace}/templates/{name}/pull-request": {
       "post": {
         "summary": "Create a pull request from a rendered template",
+        "description": "Render a template and create a pull request containing the output.\n\n**See the Examples for a complete solution.**\n\nThis endpoint requires a few different parameters to be set.\n\n1. The details of the git repository to create the pull request in.\n2. An JWT encoded git provider token to autheticate the create-pull-request request.\n   This is provided via the `Git-Provider-Token` header. An existing git provider (github/gitlab)\n   token should be wrapped in a JWT via the Weave Gitops GitAuth APIs.\n3. The template params and list of charts to include in the pull request.",
         "operationId": "ClustersService_CreatePullRequest",
         "responses": {
           "200": {
@@ -763,7 +680,7 @@
                   "$ref": "#/definitions/v1Credential",
                   "title": "Credentials"
                 },
-                "values": {
+                "profiles": {
                   "type": "array",
                   "items": {
                     "type": "object",
@@ -824,6 +741,7 @@
     "/v1/namespaces/{namespace}/templates/{name}/render": {
       "post": {
         "summary": "Renders a template using given values.",
+        "description": "Render out a template using the given values. See the /pull-request endpoint for more details.",
         "operationId": "ClustersService_RenderTemplate",
         "responses": {
           "200": {
@@ -859,7 +777,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "values": {
+                "parameterValues": {
                   "type": "object",
                   "additionalProperties": {
                     "type": "string"
@@ -998,6 +916,7 @@
     "/v1/templates": {
       "get": {
         "summary": "List templates",
+        "description": "List templates from the management cluster.",
         "operationId": "ClustersService_ListTemplates",
         "responses": {
           "200": {
@@ -1016,12 +935,14 @@
         "parameters": [
           {
             "name": "provider",
+            "description": "Filter by the capi provider resources used in the template\n`aws`, `azure`, `vsphere`, `gcp`, `openstack`, `digitalocean`, `packet`, `docker`",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "templateKind",
+            "description": "Filter by template's kind\n`GitopTemplate` or `CAPITemplate`",
             "in": "query",
             "required": false,
             "type": "string"
@@ -1059,7 +980,6 @@
     "/v1/templates/deletion-pull-request": {
       "post": {
         "summary": "Create a pull request to delete templated resources",
-        "description": "In the request include one of the resources originally generated by the template.\nThen a pull request will be created to delete all resources generated by the template.",
         "operationId": "ClustersService_CreateDeletionPullRequest",
         "responses": {
           "200": {
@@ -1086,7 +1006,7 @@
           }
         ],
         "tags": [
-          "templates"
+          "internal"
         ]
       }
     },
@@ -2059,6 +1979,9 @@
     },
     "v1GetEnterpriseVersionResponse": {
       "type": "object",
+      "example": {
+        "version": "0.42.0"
+      },
       "properties": {
         "version": {
           "type": "string",
@@ -2524,44 +2447,6 @@
         "total": {
           "type": "integer",
           "format": "int32"
-        }
-      }
-    },
-    "v1ListTemplateParamsResponse": {
-      "type": "object",
-      "properties": {
-        "parameters": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1Parameter"
-          }
-        },
-        "objects": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1TemplateObject"
-          }
-        }
-      }
-    },
-    "v1ListTemplateProfilesResponse": {
-      "type": "object",
-      "properties": {
-        "profiles": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1TemplateProfile"
-          }
-        },
-        "objects": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1TemplateObject"
-          }
         }
       }
     },

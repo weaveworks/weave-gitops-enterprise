@@ -222,7 +222,7 @@ const toPayload = (
     namespace,
     parameterValues,
     kustomizations: getKustomizations(formData),
-    values: encodedProfiles(updatedProfiles),
+    profiles: encodedProfiles(updatedProfiles),
     templateKind,
     previousValues: createReqAnnot,
     repositoryUrl,

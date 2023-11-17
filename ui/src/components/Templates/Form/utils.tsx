@@ -15,6 +15,7 @@ import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb'
 import {
   CreatePullRequestRequest,
   GetConfigResponse,
+  ProfileValues,
 } from '../../../cluster-services/cluster_services.pb';
 import { useListConfigContext } from '../../../contexts/ListConfig';
 import { GitopsClusterEnriched } from '../../../types/custom';
@@ -37,9 +38,10 @@ export type CreateRequestAnnotationV2 =
 // - template_name -> name
 // - template_namespace -> namespace
 interface CreateRequestAnnotationV1
-  extends Omit<CreateRequestAnnotationV2, 'name' | 'namespace'> {
+  extends Omit<CreateRequestAnnotationV2, 'name' | 'namespace' | 'profiles'> {
   template_name?: string;
   template_namespace?: string;
+  values: ProfileValues[];
 }
 
 const getAnnotation = (resource: Resource) => {
