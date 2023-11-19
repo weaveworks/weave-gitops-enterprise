@@ -28,7 +28,7 @@ func TestAskBootstrapFlux(t *testing.T) {
 			input: []StepInput{
 				{
 					Name:  inBootstrapFlux,
-					Value: "n",
+					Value: confirmNo,
 				},
 			},
 			config: &Config{

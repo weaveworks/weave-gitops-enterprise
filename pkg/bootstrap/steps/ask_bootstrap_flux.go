@@ -8,10 +8,11 @@ const (
 
 var (
 	bootstrapFLuxQuestion = StepInput{
-		Name:    inBootstrapFlux,
-		Type:    confirmInput,
-		Msg:     bootstrapFluxMsg,
-		Enabled: canAskForFluxBootstrap,
+		Name:         inBootstrapFlux,
+		Type:         confirmInput,
+		Msg:          bootstrapFluxMsg,
+		Enabled:      canAskForFluxBootstrap,
+		DefaultValue: confirmYes,
 	}
 )
 

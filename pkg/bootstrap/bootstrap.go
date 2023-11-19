@@ -28,6 +28,7 @@ func Bootstrap(config steps.Config) error {
 		steps.NewInstallOIDCStep(config),
 		steps.NewOIDCConfigStep(config),
 		steps.CheckUIDomainStep,
+		steps.NewInstallExtraControllers(config),
 	}
 
 	for _, step := range steps {

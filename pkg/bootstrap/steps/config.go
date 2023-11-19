@@ -16,6 +16,8 @@ const (
 
 const (
 	defaultAdminPassword = "password"
+	confirmYes           = "y"
+	confirmNo            = "n"
 )
 
 // git schemes
@@ -44,6 +46,8 @@ const (
 	inGitUserName        = "username"
 	inGitPassword        = "gitPassowrd"
 	inBootstrapFlux      = "bootstrapFlux"
+	inExtraControllers   = "extraControllers"
+	inEnableAdmission    = "enableAdmission"
 )
 
 // input/output types
@@ -78,6 +82,7 @@ type ConfigBuilder struct {
 	clientID                string
 	clientSecret            string
 	PromptedForDiscoveryURL bool
+	extraControllers        []string
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -150,6 +155,11 @@ func (c *ConfigBuilder) WithSilentFlag(silent bool) *ConfigBuilder {
 	return c
 }
 
+func (c *ConfigBuilder) WithExtraControllers(extraControllers []string) *ConfigBuilder {
+	c.extraControllers = extraControllers
+	return c
+}
+
 // Config is the configuration struct to user for WGE installation. It includes
 // configuration values as well as other required structs like clients
 type Config struct {
@@ -186,6 +196,8 @@ type Config struct {
 	ClientSecret            string
 	RedirectURL             string
 	PromptedForDiscoveryURL bool
+
+	ExtraControllers []string
 }
 
 // Builds creates a valid config so boostrap could be executed. It uses values introduced
@@ -244,6 +256,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		ClientID:                cb.clientID,
 		ClientSecret:            cb.clientSecret,
 		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
+		ExtraControllers:        cb.extraControllers,
 	}, nil
 
 }

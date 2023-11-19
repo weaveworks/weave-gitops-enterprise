@@ -19,7 +19,6 @@ const (
 
 const (
 	adminSecretName      = "cluster-user-auth"
-	confirmYes           = "y"
 	defaultAdminUsername = "wego-admin"
 )
 

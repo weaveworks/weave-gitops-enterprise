@@ -38,6 +38,12 @@ gitops bootstrap --version=<version> --password=<admin-password> --discovery-url
 
 # Start WGE installation with OIDC and flux bootstrap with ssh
 gitops bootstrap --version=<version> --password=<admin-password> --discovery-url=<oidc-discovery-url> --client-id=<oidc-client-id> --private-key-path=<private-key-path> --private-key-password=<private-key-password> --branch=<git-branch> --repo-path=<path-in-repo-for-management-cluster> --repo-url=ssh://<repo-url> --client-secret=<oidc-secret> -s
+
+# Start WGE installation with extra controller like policy agent
+gitops bootstrap --extra-controllers policy-agent
+
+# Start WGE installation with more than one extra controller 
+gitops bootstrap --extra-controllers policy-agent --extra-controllers capi --extra-controllers tf-controller
 `
 )
 
@@ -69,6 +75,9 @@ type bootstrapFlags struct {
 
 	// modes flags
 	silent bool
+
+	// extra controllers
+	extraControllers []string
 }
 
 var flags bootstrapFlags
@@ -85,6 +94,7 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd.Flags().StringVarP(&flags.domainType, "domain-type", "t", "", "dashboard domain type: could be 'localhost' or 'externaldns'")
 	cmd.Flags().StringVarP(&flags.domain, "domain", "d", "", "the domain to access the dashboard in case of using externaldns")
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "version of Weave GitOps Enterprise (should be from the latest 3 versions)")
+	cmd.Flags().StringArrayVarP(&flags.extraControllers, "extra-controllers", "", []string{}, "extra controllers to be installed from (none, policy-agent, tf-controller, capi)")
 	cmd.PersistentFlags().BoolVarP(&flags.silent, "bootstrap-flux", "s", false, "always choose yes for interactive questions")
 	cmd.PersistentFlags().StringVarP(&flags.gitUsername, "git-username", "", "", "git username used in https authentication type")
 	cmd.PersistentFlags().StringVarP(&flags.gitPassword, "git-password", "", "", "git password/token used in https authentication type")
@@ -123,6 +133,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			).
 			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, true).
 			WithSilentFlag(flags.silent).
+			WithExtraControllers(flags.extraControllers).
 			Build()
 
 		if err != nil {

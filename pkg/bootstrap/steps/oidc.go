@@ -70,7 +70,7 @@ func NewOIDCConfigStep(config Config) BootstrapStep {
 			Name:            inExistingOIDC,
 			Type:            confirmInput,
 			Msg:             existingOIDCMsg,
-			DefaultValue:    "",
+			DefaultValue:    confirmYes,
 			Enabled:         isExistingOIDCConfig,
 			StepInformation: fmt.Sprintf(oidcConfigExistWarningMsg, oidcSecretName, WGEDefaultNamespace),
 		},
