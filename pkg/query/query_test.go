@@ -725,6 +725,7 @@ func TestQueryOrdering_Realistic(t *testing.T) {
 		expected := []string{
 			"flux-dashboards",
 			"flux-system",
+			"flux-system",
 			"kube-prometheus-stack",
 			"kube-prometheus-stack",
 			"monitoring-config",
@@ -746,23 +747,21 @@ func TestQueryOrdering_Realistic(t *testing.T) {
 		}
 	})
 
-	t.Run("query by score", func(t *testing.T) {
+	t.Run("query by score if order selected", func(t *testing.T) {
 
-		qy := &query{}
+		qy := &query{
+			terms: "flux-system",
+		}
 
 		got, err := q.RunQuery(ctx, qy, qy)
 		g.Expect(err).NotTo(HaveOccurred())
 
 		expected := []string{
-			"flux-dashboards",
+			"kube-prometheus-stack",
 			"flux-system",
 			"kube-prometheus-stack",
-			"kube-prometheus-stack",
 			"monitoring-config",
-			"podinfo",
-			"podinfo",
-			"podinfo",
-			"podinfo",
+			"flux-system",
 		}
 
 		actual := []string{}
