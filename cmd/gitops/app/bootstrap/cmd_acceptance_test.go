@@ -147,6 +147,7 @@ func TestBootstrapCmd(t *testing.T) {
 				repoHTTPSURLFlag,
 				oidcClientSecretFlag, "-s",
 			},
+
 			setup: func(t *testing.T) {
 				createEntitlements(t, testLog)
 			},

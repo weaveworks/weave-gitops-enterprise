@@ -248,6 +248,23 @@ func TestAskAdminCredsSecretStep_createCredentials(t *testing.T) {
 			},
 			err: false,
 		},
+		{
+			name:     "should create nothing if update but no new password exists",
+			password: "passwordFromInput",
+			input: []StepInput{
+				{
+					Name:  inPassword,
+					Value: "",
+				},
+			},
+			config: makeTestConfig(t, Config{
+				ClusterUserAuth: ClusterUserAuthConfig{
+					ExistCredentials: true,
+				},
+			}),
+			output: []StepOutput{},
+			err:    false,
+		},
 	}
 
 	for _, tt := range tests {

@@ -84,14 +84,12 @@ func defaultInputStep(inputs []StepInput, c *Config, stdin io.ReadCloser) ([]Ste
 		// we ignore inputs that requires update but the user does not want overwrite
 		if input.IsUpdate {
 			if !(utils.GetConfirmInput(input.UpdateMsg, stdin) == "y") {
-				fmt.Println("skipped: not upsert", input.Name)
 				continue
 			}
 		}
 
 		// we ignore inputs that user has already introduced value (via flag)
 		if input.Value != nil {
-			fmt.Println("skipped: value already exists", input.Name)
 			continue
 		}
 
