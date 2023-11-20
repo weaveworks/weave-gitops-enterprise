@@ -98,25 +98,40 @@ func defaultInputStep(inputs []StepInput, c *Config, stdin io.ReadCloser) ([]Ste
 		// we ask the user for input in any other condition
 		switch input.Type {
 		case stringInput:
+			// verify the input is enabled by executing the function
+			if input.Enabled != nil && !input.Enabled(nil, c) {
+				continue
+			}
+
 			if input.StepInformation != "" {
 				c.Logger.Warningf(input.StepInformation)
 			}
 
-			paramValue, err := utils.GetStringInput(input.Msg, input.DefaultValue.(string), stdin)
-			if err != nil {
-				return []StepInput{}, err
+			if input.Value == nil {
+				paramValue, err := utils.GetStringInput(input.Msg, input.DefaultValue.(string), stdin)
+				if err != nil {
+					return []StepInput{}, err
+				}
+				input.Value = paramValue
 			}
-			input.Value = paramValue
+
 		case passwordInput:
+			// verify the input is enabled by executing the function
+			if input.Enabled != nil && !input.Enabled(inputs, c) {
+				continue
+			}
+
 			if input.StepInformation != "" {
 				c.Logger.Warningf(input.StepInformation)
 			}
 
-			paramValue, err := utils.GetPasswordInput(input.Msg, input.Required, stdin)
-			if err != nil {
-				return []StepInput{}, err
+			if input.Value == nil {
+				paramValue, err := utils.GetPasswordInput(input.Msg, input.Required, stdin)
+				if err != nil {
+					return []StepInput{}, err
+				}
+				input.Value = paramValue
 			}
-			input.Value = paramValue
 		case confirmInput:
 			// verify the input is enabled by executing the function
 			if input.Enabled != nil && !input.Enabled(inputs, c) {
