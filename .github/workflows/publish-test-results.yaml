@@ -46,7 +46,7 @@ jobs:
       - name: Notify slack of test results
         uses: archive/github-actions-slack@d9dae40827adf93bddf939db6552d1e392259d7d # v2.7.0
         id: slack
-        if: ${{ steps.test-report.outcome == 'failure' && github.ref == 'refs/heads/smoke-test-failures-notify' }}
+        if: ${{ steps.test-report.outcome == 'failure' && github.ref == 'refs/heads/main' }}
         with:
           slack-bot-user-oauth-access-token: ${{ secrets.SLACK_BOT_TOKEN }}
           slack-channel: C063ZPPJC5U # tmp-tolerant-failures
