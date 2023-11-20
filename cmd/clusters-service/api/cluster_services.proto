@@ -221,6 +221,7 @@ service ClustersService {
 
   // List the kubernetes events for a resource
   rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["internal"]; };
     option (google.api.http) = {
       // namespaced under /enterprise/ so as not to conflict with the OSS endpoint
       get : "/v1/enterprise/events"
