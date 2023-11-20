@@ -238,15 +238,6 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 		if opts.GetOffset() > 0 {
 			req.From = int(opts.GetOffset())
 		}
-	} else {
-		// Sort by name by default
-		sf := &search.SortField{
-			Field: "name",
-			Type:  search.SortFieldAsString,
-			Desc:  true,
-		}
-
-		orders = append(orders, sf)
 	}
 
 	// We order by score here so that we can get the most relevant results first.
