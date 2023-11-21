@@ -103,11 +103,11 @@ func TestNewAskAdminCredsSecretStep(t *testing.T) {
 
 func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
 	tests := []struct {
-		name            string
-		setup           func() (BootstrapStep, Config)
-		config          Config
-		wantOutput      []StepOutput
-		wantErrorString string
+		name       string
+		setup      func() (BootstrapStep, Config)
+		config     Config
+		wantOutput []StepOutput
+		wantErr    string
 	}{
 		{
 			name: "should create cluster user non-interactive",
@@ -180,10 +180,13 @@ func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			step, config := tt.setup()
 			gotOutputs, err := step.Execute(&config)
-			if tt.wantErrorString != "" {
-				assert.EqualError(t, err, tt.wantErrorString)
+			if tt.wantErr != "" {
+				if msg := err.Error(); msg != tt.wantErr {
+					t.Fatalf("got error %q, want %q", msg, tt.wantErr)
+				}
 				return
 			}
+
 			assert.NoError(t, err)
 			if diff := cmp.Diff(tt.wantOutput, gotOutputs, cmpopts.IgnoreFields(v1.Secret{}, "Data")); diff != "" {
 				t.Fatalf("expected output:\n%s", diff)
