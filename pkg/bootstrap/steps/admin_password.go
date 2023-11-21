@@ -11,11 +11,10 @@ import (
 )
 
 const (
-	adminPasswordMsg           = "dashboard admin password (minimum characters: 6)"
-	secretConfirmationMsg      = "admin login credentials has been created successfully!"
-	adminSecretExistsMsgFormat = "admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s', then try again"
-	existingCredsMsg           = "admin login credentials already exist on the cluster. Do you want to update credentials?"
-	existingCredsExitMsg       = "if you want to reset admin credentials please remove secret '%s' in namespace '%s', then try again.\nExiting gitops bootstrap"
+	adminPasswordMsg                = "dashboard admin password (minimum characters: 6)"
+	secretConfirmationMsg           = "admin login credentials has been created successfully!"
+	adminSecretExistsErrorMsgFormat = "admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s'."
+	useExistingMessageFormat        = "using existing admin login credentials '%s' in namespace '%s'."
 )
 
 const (
@@ -32,12 +31,13 @@ var createPasswordInput = StepInput{
 }
 
 var updatePasswordInput = StepInput{
-	Name:         inPassword,
-	Type:         passwordInput,
-	Msg:          adminPasswordMsg,
-	DefaultValue: defaultAdminPassword,
-	IsUpdate:     true,
-	UpdateMsg:    existingCredsMsg,
+	Name:          inPassword,
+	Type:          passwordInput,
+	Msg:           adminPasswordMsg,
+	DefaultValue:  defaultAdminPassword,
+	IsUpdate:      true,
+	SupportUpdate: false,
+	UpdateMsg:     fmt.Sprintf(useExistingMessageFormat, adminSecretName, WGEDefaultNamespace),
 }
 
 type ClusterUserAuthConfig struct {
@@ -74,6 +74,13 @@ func NewAskAdminCredsSecretStep(config ClusterUserAuthConfig, silent bool) (Boot
 			}
 		} else {
 			inputs = append(inputs, updatePasswordInput)
+		}
+	} else {
+		if config.ExistCredentials {
+			if config.Password != "" {
+				return BootstrapStep{}, fmt.Errorf(adminSecretExistsErrorMsgFormat, adminSecretName, WGEDefaultNamespace)
+			}
+
 		}
 	}
 	return BootstrapStep{

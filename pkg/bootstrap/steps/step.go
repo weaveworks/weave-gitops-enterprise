@@ -35,6 +35,8 @@ type StepInput struct {
 	DefaultValue any
 	// IsUpdate indicates whether using this input would translate in updating a value on the system.
 	IsUpdate bool
+	// SupportUpdate indicates whether the input supports being updated or not.
+	SupportUpdate bool
 	// UpdateMsg is the message to be displayed to the user when the input is an update.
 	UpdateMsg string
 
@@ -81,11 +83,17 @@ func (s BootstrapStep) Execute(c *Config) ([]StepOutput, error) {
 func defaultInputStep(inputs []StepInput, c *Config, stdin io.ReadCloser) ([]StepInput, error) {
 	processedInputs := []StepInput{}
 	for _, input := range inputs {
-		// we ignore inputs that requires update but the user does not want overwrite
+		// process updates
 		if input.IsUpdate {
-			if !(utils.GetConfirmInput(input.UpdateMsg, stdin) == "y") {
+			if !input.SupportUpdate {
+				// scenario a - dont support update. we show the message saying that it will use existing value.
+				c.Logger.Warningf(input.UpdateMsg)
+				continue
+			} else if !(utils.GetConfirmInput(input.UpdateMsg, stdin) == "y") {
+				// scenario b - support update but user dont want to udpate, we just leave.
 				continue
 			}
+			// scenario c - user wants update so we ask for input
 		}
 
 		// we ignore inputs that user has already introduced value (via flag)
