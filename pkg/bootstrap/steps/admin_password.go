@@ -11,11 +11,10 @@ import (
 )
 
 const (
-	adminPasswordMsg           = "dashboard admin password (minimum characters: 6)"
-	secretConfirmationMsg      = "admin login credentials has been created successfully!"
-	adminSecretExistsMsgFormat = "admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s', then try again"
-	existingCredsMsg           = "do you want to continue using existing credentials"
-	existingCredsExitMsg       = "if you want to reset admin credentials please remove secret '%s' in namespace '%s', then try again.\nExiting gitops bootstrap"
+	adminPasswordMsg                = "dashboard admin password (minimum characters: 6)"
+	secretConfirmationMsg           = "admin login credentials has been created successfully!"
+	adminSecretExistsErrorMsgFormat = "admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s'."
+	useExistingMessageFormat        = "using existing admin login credentials from secret '%s' in namespace '%s'. To reset admin credentials please remove the secret."
 )
 
 const (
@@ -32,11 +31,13 @@ var createPasswordInput = StepInput{
 }
 
 var updatePasswordInput = StepInput{
-	Name:         inPassword,
-	Type:         passwordInput,
-	Msg:          adminPasswordMsg,
-	DefaultValue: defaultAdminPassword,
-	IsUpdate:     true,
+	Name:          inPassword,
+	Type:          passwordInput,
+	Msg:           adminPasswordMsg,
+	DefaultValue:  defaultAdminPassword,
+	IsUpdate:      true,
+	SupportUpdate: false,
+	UpdateMsg:     fmt.Sprintf(useExistingMessageFormat, adminSecretName, WGEDefaultNamespace),
 }
 
 type ClusterUserAuthConfig struct {
@@ -74,6 +75,13 @@ func NewAskAdminCredsSecretStep(config ClusterUserAuthConfig, silent bool) (Boot
 		} else {
 			inputs = append(inputs, updatePasswordInput)
 		}
+	} else {
+		if config.ExistCredentials {
+			if config.Password != "" {
+				return BootstrapStep{}, fmt.Errorf(adminSecretExistsErrorMsgFormat, adminSecretName, WGEDefaultNamespace)
+			}
+
+		}
 	}
 	return BootstrapStep{
 		Name:  "user authentication",
@@ -94,6 +102,11 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 	}
 
 	if c.ClusterUserAuth.Password == "" {
+		// do nothing in case of not overwrite
+		// TODO find whether we could push it a common place
+		if c.ClusterUserAuth.ExistCredentials {
+			return []StepOutput{}, nil
+		}
 		return []StepOutput{}, fmt.Errorf("cannot create credentials for empty password")
 	}
 

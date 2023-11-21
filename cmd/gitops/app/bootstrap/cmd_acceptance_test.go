@@ -75,6 +75,8 @@ func TestBootstrapCmd(t *testing.T) {
 	privateKeyFile := os.Getenv("GIT_PRIVATEKEY_PATH")
 	g.Expect(privateKeyFile).NotTo(BeEmpty())
 
+	privateKeyPassword := os.Getenv("GIT_PRIVATEKEY_PASSWORD")
+
 	repoURLSSH := os.Getenv("GIT_REPO_URL_SSH")
 	g.Expect(repoURLSSH).NotTo(BeEmpty())
 	repoURLHTTPS := os.Getenv("GIT_REPO_URL_HTTPS")
@@ -89,6 +91,8 @@ func TestBootstrapCmd(t *testing.T) {
 	g.Expect(gitRepoPath).NotTo(BeEmpty())
 
 	privateKeyFlag := fmt.Sprintf("--private-key=%s", privateKeyFile)
+	privateKeyPasswordFlag := fmt.Sprintf("--private-key-password=%s", privateKeyPassword)
+
 	kubeconfigFlag := fmt.Sprintf("--kubeconfig=%s", kubeconfigPath)
 
 	repoHTTPSURLFlag := fmt.Sprintf("--repo-url=%s", repoURLHTTPS)
@@ -116,7 +120,7 @@ func TestBootstrapCmd(t *testing.T) {
 			name: "journey flux exists: should bootstrap with valid arguments",
 			flags: []string{kubeconfigFlag,
 				"--version=0.35.0",
-				privateKeyFlag, "--private-key-password=\"\"",
+				privateKeyFlag, privateKeyPasswordFlag,
 				"--password=admin123",
 				"--domain-type=localhost",
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
@@ -138,7 +142,7 @@ func TestBootstrapCmd(t *testing.T) {
 			name: "journey flux does not exist: should bootstrap with valid arguments",
 			flags: []string{kubeconfigFlag,
 				"--version=0.35.0",
-				privateKeyFlag, "--private-key-password=\"\"",
+				privateKeyFlag, privateKeyPasswordFlag,
 				"--password=admin123",
 				"--domain-type=localhost", "--domain=localhost",
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
@@ -197,7 +201,9 @@ func bootstrapFluxSsh(g *WithT, kubeconfigFlag string) {
 	g.Expect(privateKeyFile).NotTo(BeEmpty())
 	fmt.Println(privateKeyFile)
 
-	args := []string{"bootstrap", "git", kubeconfigFlag, "-s", fmt.Sprintf("--url=%s", repoUrl), fmt.Sprintf("--private-key-file=%s", privateKeyFile), "--path=clusters/management"}
+	privateKeyPassword := os.Getenv("GIT_PRIVATEKEY_PASSWORD")
+
+	args := []string{"bootstrap", "git", kubeconfigFlag, "-s", fmt.Sprintf("--url=%s", repoUrl), fmt.Sprintf("--password=%s", privateKeyPassword), fmt.Sprintf("--private-key-file=%s", privateKeyFile), "--path=clusters/management"}
 	fmt.Println(args)
 
 	s, err := runner.Run("flux", args...)

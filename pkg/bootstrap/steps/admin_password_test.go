@@ -20,7 +20,7 @@ func TestNewAskAdminCredsSecretStep(t *testing.T) {
 		silent bool
 
 		want    BootstrapStep
-		wantErr assert.ErrorAssertionFunc
+		wantErr string
 	}{
 		{
 			name:   "should create step with create password input if password is not resolved",
@@ -70,10 +70,28 @@ func TestNewAskAdminCredsSecretStep(t *testing.T) {
 				Input: []StepInput{},
 			},
 		},
+		{
+			name:   "should fail if trying to update non interactive as updates are not supported",
+			silent: true,
+			config: ClusterUserAuthConfig{
+				ExistCredentials: true,
+				Password:         "password123",
+			},
+			want:    BootstrapStep{},
+			wantErr: "admin login credentials already exist on the cluster. To reset admin credentials please remove secret 'cluster-user-auth' in namespace 'flux-system'.",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NewAskAdminCredsSecretStep(tt.config, tt.silent)
+
+			if tt.wantErr != "" {
+				if msg := err.Error(); msg != tt.wantErr {
+					t.Fatalf("got error %q, want %q", msg, tt.wantErr)
+				}
+				return
+			}
+
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want.Name, got.Name)
 			if diff := cmp.Diff(tt.want.Input, got.Input); diff != "" {
@@ -85,11 +103,11 @@ func TestNewAskAdminCredsSecretStep(t *testing.T) {
 
 func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
 	tests := []struct {
-		name            string
-		setup           func() (BootstrapStep, Config)
-		config          Config
-		wantOutput      []StepOutput
-		wantErrorString string
+		name       string
+		setup      func() (BootstrapStep, Config)
+		config     Config
+		wantOutput []StepOutput
+		wantErr    string
 	}{
 		{
 			name: "should create cluster user non-interactive",
@@ -135,9 +153,8 @@ func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
 				},
 			},
 		},
-		// TODO to add support for updates https://github.com/weaveworks/weave-gitops-enterprise/pull/3617#discussion_r1395667503
 		{
-			name: "should not support updates non-interactive",
+			name: "should generate no outputs if credentials exist",
 			setup: func() (BootstrapStep, Config) {
 				// secret exists
 				secret := &v1.Secret{
@@ -149,23 +166,27 @@ func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
 					},
 				}
 				config := makeTestConfig(t, Config{}, secret)
-				// user flags that wants to update the password
-				config.ClusterUserAuth.Password = "new-password"
-				step, err := NewAskAdminCredsSecretStep(config.ClusterUserAuth, true)
+				authConfig, err := NewClusterUserAuthConfig("", config.KubernetesClient)
+				assert.NoError(t, err)
+				config.ClusterUserAuth = authConfig
+				step, err := NewAskAdminCredsSecretStep(config.ClusterUserAuth, false)
 				assert.NoError(t, err)
 				return step, config
 			},
-			wantErrorString: "cannot process output 'user authentication': secrets \"cluster-user-auth\" already exists",
+			wantOutput: []StepOutput{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			step, config := tt.setup()
 			gotOutputs, err := step.Execute(&config)
-			if tt.wantErrorString != "" {
-				assert.EqualError(t, err, tt.wantErrorString)
+			if tt.wantErr != "" {
+				if msg := err.Error(); msg != tt.wantErr {
+					t.Fatalf("got error %q, want %q", msg, tt.wantErr)
+				}
 				return
 			}
+
 			assert.NoError(t, err)
 			if diff := cmp.Diff(tt.wantOutput, gotOutputs, cmpopts.IgnoreFields(v1.Secret{}, "Data")); diff != "" {
 				t.Fatalf("expected output:\n%s", diff)
@@ -247,6 +268,23 @@ func TestAskAdminCredsSecretStep_createCredentials(t *testing.T) {
 				},
 			},
 			err: false,
+		},
+		{
+			name:     "should create nothing if update but no new password exists",
+			password: "passwordFromInput",
+			input: []StepInput{
+				{
+					Name:  inPassword,
+					Value: "",
+				},
+			},
+			config: makeTestConfig(t, Config{
+				ClusterUserAuth: ClusterUserAuthConfig{
+					ExistCredentials: true,
+				},
+			}),
+			output: []StepOutput{},
+			err:    false,
 		},
 	}
 

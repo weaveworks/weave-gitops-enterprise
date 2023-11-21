@@ -100,6 +100,5 @@ func GetConfirmInput(msg string, stdin io.ReadCloser) string {
 		return "n"
 	}
 	result = strings.TrimSpace(result)
-	stdin.Close()
 	return result
 }

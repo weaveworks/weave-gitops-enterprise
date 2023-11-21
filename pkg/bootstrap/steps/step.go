@@ -35,6 +35,8 @@ type StepInput struct {
 	DefaultValue any
 	// IsUpdate indicates whether using this input would translate in updating a value on the system.
 	IsUpdate bool
+	// SupportUpdate indicates whether the input supports being updated or not.
+	SupportUpdate bool
 	// UpdateMsg is the message to be displayed to the user when the input is an update.
 	UpdateMsg string
 
@@ -81,42 +83,61 @@ func (s BootstrapStep) Execute(c *Config) ([]StepOutput, error) {
 func defaultInputStep(inputs []StepInput, c *Config, stdin io.ReadCloser) ([]StepInput, error) {
 	processedInputs := []StepInput{}
 	for _, input := range inputs {
-		// we ignore inputs that requires update but the user does not want overwrite
+		// process updates
 		if input.IsUpdate {
-			if !(utils.GetConfirmInput(input.UpdateMsg, stdin) == "y") {
-				fmt.Println("skipped: not upsert", input.Name)
+			if !input.SupportUpdate {
+				// scenario a - dont support update. we show the message saying that it will use existing value.
+				c.Logger.Warningf(input.UpdateMsg)
+				continue
+			} else if !(utils.GetConfirmInput(input.UpdateMsg, stdin) == "y") {
+				// scenario b - support update but user dont want to udpate, we just leave.
 				continue
 			}
+			// scenario c - user wants update so we ask for input
 		}
 
 		// we ignore inputs that user has already introduced value (via flag)
 		if input.Value != nil {
-			fmt.Println("skipped: value already exists", input.Name)
 			continue
 		}
 
 		// we ask the user for input in any other condition
 		switch input.Type {
 		case stringInput:
+			// verify the input is enabled by executing the function
+			if input.Enabled != nil && !input.Enabled(nil, c) {
+				continue
+			}
+
 			if input.StepInformation != "" {
 				c.Logger.Warningf(input.StepInformation)
 			}
 
-			paramValue, err := utils.GetStringInput(input.Msg, input.DefaultValue.(string), stdin)
-			if err != nil {
-				return []StepInput{}, err
+			if input.Value == nil {
+				paramValue, err := utils.GetStringInput(input.Msg, input.DefaultValue.(string), stdin)
+				if err != nil {
+					return []StepInput{}, err
+				}
+				input.Value = paramValue
 			}
-			input.Value = paramValue
+
 		case passwordInput:
+			// verify the input is enabled by executing the function
+			if input.Enabled != nil && !input.Enabled(inputs, c) {
+				continue
+			}
+
 			if input.StepInformation != "" {
 				c.Logger.Warningf(input.StepInformation)
 			}
 
-			paramValue, err := utils.GetPasswordInput(input.Msg, input.Required, stdin)
-			if err != nil {
-				return []StepInput{}, err
+			if input.Value == nil {
+				paramValue, err := utils.GetPasswordInput(input.Msg, input.Required, stdin)
+				if err != nil {
+					return []StepInput{}, err
+				}
+				input.Value = paramValue
 			}
-			input.Value = paramValue
 		case confirmInput:
 			// verify the input is enabled by executing the function
 			if input.Enabled != nil && !input.Enabled(inputs, c) {
