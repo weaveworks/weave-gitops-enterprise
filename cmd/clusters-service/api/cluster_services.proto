@@ -515,15 +515,18 @@ message CreatePullRequestRequest {
   string base_branch = 3;
   // The title of the pull request.
   string title = 4;
-  // The description of the pull request
+  // The description of the pull request.
   string description = 5;
   // The name of the template to create a pull request for.
   string name = 6;
-  // The values that populate the template's parameters.
+  // The values that populate the templates parameters.
+  //
+  // A map of string keys and values.
+  // e.g. `{"CLUSTER_NAME": "my-cluster"}`
   map<string, string> parameter_values = 7;
   // The commit message
   string commit_message = 8;
-  // Credentials
+  // CAPI Identity to use.
   Credential credentials = 9;
   // The values for each profile that will be installed.
   repeated ProfileValues profiles = 10;
@@ -540,7 +543,12 @@ message CreatePullRequestRequest {
 
 }
 
+// INTERNAL - This field will change.
+//
 // Previous values for a CreatePullRequestRequest.
+// If provided this request will be considered an edit to previous set of resources that
+// have been rendered and merged. Files written by the previous request that are no longer
+// present in the current render will be deleted in the new Pull Request.
 message PreviousValues {
   map<string, string> parameter_values = 1;
   Credential credentials = 2;
@@ -750,13 +758,13 @@ message CreateAutomationsPullRequestRequest {
   string base_branch = 3;
   // The title of the pull request.
   string title = 4;
-  // The description of the pull request
+  // The description of the pull request.
   string description = 5;
-  // The commit message
+  // The commit message.
   string commit_message = 6;
   // The repo api url.
   string repository_api_url = 7 [deprecated = true];
-  // A list of cluster and kustomization
+  // A list of cluster and kustomization.
   repeated ClusterAutomation cluster_automations = 8;
 }
 
@@ -1266,12 +1274,12 @@ message SopsSecretMetadata {
 }
 
 message SopsSecret {
-  // protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE
+  // (-- protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE --)
   string apiVersion = 1;
   string kind = 2;
   SopsSecretMetadata metadata = 3;
   map<string,string> data = 4;
-  // protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE
+  // (-- protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE --)
   map<string,string> stringData = 5;
   string type = 6;
   bool immutable = 7;

@@ -1222,15 +1222,18 @@ type CreatePullRequestRequest struct {
 	BaseBranch string `protobuf:"bytes,3,opt,name=base_branch,json=baseBranch,proto3" json:"base_branch,omitempty"`
 	// The title of the pull request.
 	Title string `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
-	// The description of the pull request
+	// The description of the pull request.
 	Description string `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
 	// The name of the template to create a pull request for.
 	Name string `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
-	// The values that populate the template's parameters.
+	// The values that populate the templates parameters.
+	//
+	// A map of string keys and values.
+	// e.g. `{"CLUSTER_NAME": "my-cluster"}`
 	ParameterValues map[string]string `protobuf:"bytes,7,rep,name=parameter_values,json=parameterValues,proto3" json:"parameter_values,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// The commit message
 	CommitMessage string `protobuf:"bytes,8,opt,name=commit_message,json=commitMessage,proto3" json:"commit_message,omitempty"`
-	// Credentials
+	// CAPI Identity to use.
 	Credentials *Credential `protobuf:"bytes,9,opt,name=credentials,proto3" json:"credentials,omitempty"`
 	// The values for each profile that will be installed.
 	Profiles []*ProfileValues `protobuf:"bytes,10,rep,name=profiles,proto3" json:"profiles,omitempty"`
@@ -1414,7 +1417,12 @@ func (x *CreatePullRequestRequest) GetSopsSecrets() []*SopsSecret {
 	return nil
 }
 
+// INTERNAL - This field will change.
+//
 // Previous values for a CreatePullRequestRequest.
+// If provided this request will be considered an edit to previous set of resources that
+// have been rendered and merged. Files written by the previous request that are no longer
+// present in the current render will be deleted in the new Pull Request.
 type PreviousValues struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3232,15 +3240,15 @@ type CreateAutomationsPullRequestRequest struct {
 	BaseBranch string `protobuf:"bytes,3,opt,name=base_branch,json=baseBranch,proto3" json:"base_branch,omitempty"`
 	// The title of the pull request.
 	Title string `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
-	// The description of the pull request
+	// The description of the pull request.
 	Description string `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
-	// The commit message
+	// The commit message.
 	CommitMessage string `protobuf:"bytes,6,opt,name=commit_message,json=commitMessage,proto3" json:"commit_message,omitempty"`
 	// The repo api url.
 	//
 	// Deprecated: Marked as deprecated in cluster_services.proto.
 	RepositoryApiUrl string `protobuf:"bytes,7,opt,name=repository_api_url,json=repositoryApiUrl,proto3" json:"repository_api_url,omitempty"`
-	// A list of cluster and kustomization
+	// A list of cluster and kustomization.
 	ClusterAutomations []*ClusterAutomation `protobuf:"bytes,8,rep,name=cluster_automations,json=clusterAutomations,proto3" json:"cluster_automations,omitempty"`
 }
 
@@ -8624,12 +8632,12 @@ type SopsSecret struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE
+	// (-- protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE --)
 	ApiVersion string              `protobuf:"bytes,1,opt,name=apiVersion,proto3" json:"apiVersion,omitempty"`
 	Kind       string              `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
 	Metadata   *SopsSecretMetadata `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	Data       map[string]string   `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	// protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE
+	// (-- protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE --)
 	StringData map[string]string `protobuf:"bytes,5,rep,name=stringData,proto3" json:"stringData,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	Type       string            `protobuf:"bytes,6,opt,name=type,proto3" json:"type,omitempty"`
 	Immutable  bool              `protobuf:"varint,7,opt,name=immutable,proto3" json:"immutable,omitempty"`

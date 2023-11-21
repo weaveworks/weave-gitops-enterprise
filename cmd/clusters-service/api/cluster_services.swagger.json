@@ -666,14 +666,14 @@
                 },
                 "description": {
                   "type": "string",
-                  "title": "The description of the pull request"
+                  "description": "The description of the pull request."
                 },
                 "parameterValues": {
                   "type": "object",
                   "additionalProperties": {
                     "type": "string"
                   },
-                  "description": "The values that populate the template's parameters."
+                  "description": "The values that populate the templates parameters.\n\nA map of string keys and values.\ne.g. `{\"CLUSTER_NAME\": \"my-cluster\"}`"
                 },
                 "commitMessage": {
                   "type": "string",
@@ -681,7 +681,7 @@
                 },
                 "credentials": {
                   "$ref": "#/definitions/v1Credential",
-                  "title": "Credentials"
+                  "description": "CAPI Identity to use."
                 },
                 "profiles": {
                   "type": "array",
@@ -1548,11 +1548,11 @@
         },
         "description": {
           "type": "string",
-          "title": "The description of the pull request"
+          "description": "The description of the pull request."
         },
         "commitMessage": {
           "type": "string",
-          "title": "The commit message"
+          "description": "The commit message."
         },
         "repositoryApiUrl": {
           "type": "string",
@@ -1564,7 +1564,7 @@
             "type": "object",
             "$ref": "#/definitions/v1ClusterAutomation"
           },
-          "title": "A list of cluster and kustomization"
+          "description": "A list of cluster and kustomization."
         }
       }
     },
@@ -2757,7 +2757,7 @@
           }
         }
       },
-      "description": "Previous values for a CreatePullRequestRequest."
+      "description": "INTERNAL - This field will change.\n\nPrevious values for a CreatePullRequestRequest.\nIf provided this request will be considered an edit to previous set of resources that\nhave been rendered and merged. Files written by the previous request that are no longer\npresent in the current render will be deleted in the new Pull Request."
     },
     "v1ProfileValues": {
       "type": "object",
@@ -2940,7 +2940,7 @@
       "properties": {
         "apiVersion": {
           "type": "string",
-          "title": "protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE"
+          "title": "(-- protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE --)"
         },
         "kind": {
           "type": "string"
@@ -2959,7 +2959,7 @@
           "additionalProperties": {
             "type": "string"
           },
-          "title": "protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE"
+          "title": "(-- protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE --)"
         },
         "type": {
           "type": "string"
