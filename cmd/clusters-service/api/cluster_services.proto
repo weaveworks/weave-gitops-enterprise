@@ -144,12 +144,7 @@ service ClustersService {
 
   // List available CAPI identities
   //
-  // Search the cluster for available CAPI identities:
-  // - `AWSClusterStaticIdentity`
-  // - `AWSClusterRoleIdentity`
-  // - `AzureClusterIdentity`
-  // - `VSphereClusterIdentity`
-  // 
+  // Search the cluster for available CAPI identities.
   rpc ListCredentials(ListCredentialsRequest) returns (ListCredentialsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
@@ -207,12 +202,6 @@ service ClustersService {
   // Get the Weave Gitops Enterprise configuration
   //
   // Returns information about the current configuration of the Weave GitOps Enterprise.
-  //
-  // Importantly this includes
-  // - `managementClusterName`: the given name of the management cluster which is used for some multi-cluster operations.
-  // - `gitHostTypes`: the configured mapping of domains to git providers (e.g. `{ "git.myhost.com": "gitlab" }`) used
-  //   for authentication and creating pull requests.
-  // 
   rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {
     option (google.api.http) = {
       get : "/v1/config"
@@ -331,7 +320,7 @@ service ClustersService {
   rpc GetExternalSecret(GetExternalSecretRequest) returns (GetExternalSecretResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["secrets"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{namespace}/external-secrets/{external_secret_name}"
+      get : "/v1/namespaces/{namespace}/external-secrets/{name}"
     };
   }
 
@@ -524,26 +513,34 @@ message CreatePullRequestRequest {
   // A map of string keys and values.
   // e.g. `{"CLUSTER_NAME": "my-cluster"}`
   map<string, string> parameter_values = 7;
-  // The commit message
+  // The commit message.
   string commit_message = 8;
-  // CAPI Identity to use.
   Credential credentials = 9;
   // The values for each profile that will be installed.
   repeated ProfileValues profiles = 10;
+  // DEPRECATED: This is no longer used and will be removed in the future.
   // The repo api url.
   string repository_api_url = 11 [deprecated = true];
-  string cluster_namespace = 12;
+  // DEPRECATED: This is no longer used and will be removed in the future.
+  // The cluster namespace.
+  string cluster_namespace = 12 [deprecated = true];
+  // Additional kustomizations to be created in the pull request.
   repeated Kustomization kustomizations = 13;
+  // The namespace of the template.
   string namespace = 14;
+  // The kind of the template, either `GitopsTemplate` or `CAPITemplate`.
   string template_kind = 15;
   PreviousValues previous_values = 16;
+  // Additional external secrets to be created in the pull request.
   repeated ExternalSecret external_secrets = 17;
+  // Additional policy configs to be created in the pull request.
   repeated PolicyConfigObject policy_configs = 18;
+  // Additional sops secrets to be created in the pull request.
   repeated SopsSecret sops_secrets = 19;
 
 }
 
-// INTERNAL - This field will change.
+// INTERNAL: DO NOT USE - This field will change.
 //
 // Previous values for a CreatePullRequestRequest.
 // If provided this request will be considered an edit to previous set of resources that
@@ -612,6 +609,7 @@ message CreateDeletionPullRequestRequest {
   string commit_message = 7;
   // Credentials
   Credential credentials = 8;
+  // DEPRECATED: This is no longer used and will be removed in the future.
   // The repo api url.
   string repository_api_url = 9 [deprecated = true];
   repeated ClusterNamespacedName cluster_namespaced_names = 10;
@@ -628,9 +626,9 @@ message ListCredentialsResponse {
 }
 
 message GetKubeconfigRequest {
-  // The name of the `GitopsCluster`
+  // The name of the `GitopsCluster`.
   string name = 1;
-  // The namespace of the `GitopsCluster`
+  // The namespace of the `GitopsCluster`.
   string namespace = 2;
 }
 message GetKubeconfigResponse {
@@ -687,6 +685,16 @@ message CapiClusterInfrastructureRef {
 
 message GitopsClusterRef { string name = 1; }
 
+
+// A reference to a CAPI identity.
+//
+// Supported Identites kinds:
+// - `AWSClusterStaticIdentity`
+// - `AWSClusterRoleIdentity`
+// - `AzureClusterIdentity`
+// - `VSphereClusterIdentity`
+//
+// The credentials available on the system can be listed via the /capi-identities endpoint.
 message Credential {
   string group = 1;
   string version = 2;
@@ -696,17 +704,32 @@ message Credential {
 }
 
 message Template {
+  // The name of the template.
   string name = 1;
+  // The description of the template given in the spec.
   string description = 2;
+  // The provider that the kinds found in the template belong to.
+  // E.g. If the template includes an AWSCluster then **aws** is returned here. Values:
+  // aws, azure, vsphere, gcp, openstack, digitalocean, packet, docker.
   string provider = 3;
+  // The parameters that the template provides.
   repeated Parameter parameters = 4;
+  // Metadata about the resources found in the template body.
+  // What kind they are, which parameters are found in this block etc.
   repeated TemplateObject objects = 5;
+  // Any errors that occurred while parsing the template.
   string error = 6;
+  // The metadata.annotations of the template resource.
   map<string, string> annotations = 7;
+  // The kind of the template. Either **CAPITemplate** or **GitopsTemplate**.
   string template_kind = 8;
+  // The type of the template declared by the weave.works/template-type label.
   string template_type = 9;
+  // The metadata.labels of the template resource.
   map<string, string> labels = 10;
+  // The namespace of the template.
   string namespace = 11;
+  // Required and recommended profiles for the template.
   repeated TemplateProfile profiles = 12;
 }
 
@@ -745,7 +768,7 @@ message GetEnterpriseVersionResponse {
     example: "{\"version\": \"0.42.0\" }"
   };
 
-  // The version of WeGO Enterprise
+  // The version of Weave GitOps Enterprise
   string version = 1;
 }
 
@@ -762,6 +785,7 @@ message CreateAutomationsPullRequestRequest {
   string description = 5;
   // The commit message.
   string commit_message = 6;
+  // DEPRECATED: This is no longer used and will be removed in the future.
   // The repo api url.
   string repository_api_url = 7 [deprecated = true];
   // A list of cluster and kustomization.
@@ -773,7 +797,7 @@ message ClusterAutomation {
   bool is_control_plane = 2;
   Kustomization kustomization = 3;
   HelmRelease helm_release = 4;
-  // A path to write the resource to in the management git repo
+  // A path to write the resource to in the management git repo.
   string file_path = 5;
   ExternalSecret external_secret = 6;
   PolicyConfigObject policy_config = 7;
@@ -915,9 +939,16 @@ message ProfileValues {
 message GetConfigRequest {}
 
 message GetConfigResponse {
-  string repository_url = 1;
+  // DEPRECATED: This is no longer used and will be removed in the future.
+  // The default git repository URL for the management cluster.
+  string repository_url = 1 [deprecated = true];
+  // The given name of the management cluster which is used for some multi-cluster operations.
   string management_cluster_name = 2;
+  // JSON encoded string of UI configuration.
   string ui_config = 3;
+  // The configured mapping of domains to git providers.
+  // e.g. `{ "git.myhost.com": "gitlab" }`) used
+  // for authentication and creating pull requests.
   map<string, string> git_host_types = 4;
 }
 
@@ -1099,7 +1130,7 @@ message GetWorkspacePoliciesResponse{
 
 message ExternalSecretItem {
   string secret_name = 1;
-  string external_secret_name = 2;
+  string name = 2;
   string namespace = 3;
   string cluster_name = 4;
   string secret_store = 5;
@@ -1118,12 +1149,12 @@ message ListExternalSecretsResponse {
 message GetExternalSecretRequest{
   string cluster_name = 1;
   string namespace = 2;
-  string external_secret_name = 3;
+  string name = 3;
 }
 
 message GetExternalSecretResponse{
   string secret_name = 1;
-  string external_secret_name = 2;
+  string name = 2;
   string cluster_name = 3;
   string namespace = 4;
   string secret_store = 5;
@@ -1155,7 +1186,7 @@ message ListExternalSecretStoresResponse{
 message SyncExternalSecretsRequest{
   string cluster_name = 1;
   string namespace = 2;
-  string external_secret_name = 3;
+  string name = 3;
 }
 
 message SyncExternalSecretsResponse{

@@ -664,7 +664,7 @@ export type GetWorkspacePoliciesResponse = {
 
 export type ExternalSecretItem = {
   secretName?: string
-  externalSecretName?: string
+  name?: string
   namespace?: string
   clusterName?: string
   secretStore?: string
@@ -684,12 +684,12 @@ export type ListExternalSecretsResponse = {
 export type GetExternalSecretRequest = {
   clusterName?: string
   namespace?: string
-  externalSecretName?: string
+  name?: string
 }
 
 export type GetExternalSecretResponse = {
   secretName?: string
-  externalSecretName?: string
+  name?: string
   clusterName?: string
   namespace?: string
   secretStore?: string
@@ -721,7 +721,7 @@ export type ListExternalSecretStoresResponse = {
 export type SyncExternalSecretsRequest = {
   clusterName?: string
   namespace?: string
-  externalSecretName?: string
+  name?: string
 }
 
 export type SyncExternalSecretsResponse = {
@@ -925,7 +925,7 @@ export class ClustersService {
     return fm.fetchReq<ListExternalSecretsRequest, ListExternalSecretsResponse>(`/v1/external-secrets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetExternalSecret(req: GetExternalSecretRequest, initReq?: fm.InitReq): Promise<GetExternalSecretResponse> {
-    return fm.fetchReq<GetExternalSecretRequest, GetExternalSecretResponse>(`/v1/namespaces/${req["namespace"]}/external-secrets/${req["externalSecretName"]}?${fm.renderURLSearchParams(req, ["namespace", "externalSecretName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetExternalSecretRequest, GetExternalSecretResponse>(`/v1/namespaces/${req["namespace"]}/external-secrets/${req["name"]}?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static ListExternalSecretStores(req: ListExternalSecretStoresRequest, initReq?: fm.InitReq): Promise<ListExternalSecretStoresResponse> {
     return fm.fetchReq<ListExternalSecretStoresRequest, ListExternalSecretStoresResponse>(`/v1/external-secrets-stores?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

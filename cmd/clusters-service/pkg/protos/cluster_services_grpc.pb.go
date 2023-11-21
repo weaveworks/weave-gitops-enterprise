@@ -73,11 +73,7 @@ type ClustersServiceClient interface {
 	CreateAutomationsPullRequest(ctx context.Context, in *CreateAutomationsPullRequestRequest, opts ...grpc.CallOption) (*CreateAutomationsPullRequestResponse, error)
 	// List available CAPI identities
 	//
-	// Search the cluster for available CAPI identities:
-	// - `AWSClusterStaticIdentity`
-	// - `AWSClusterRoleIdentity`
-	// - `AzureClusterIdentity`
-	// - `VSphereClusterIdentity`
+	// Search the cluster for available CAPI identities.
 	ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error)
 	// Creates a pull request from a tfcontroller template.
 	//
@@ -101,11 +97,6 @@ type ClustersServiceClient interface {
 	// Get the Weave Gitops Enterprise configuration
 	//
 	// Returns information about the current configuration of the Weave GitOps Enterprise.
-	//
-	// Importantly this includes
-	//   - `managementClusterName`: the given name of the management cluster which is used for some multi-cluster operations.
-	//   - `gitHostTypes`: the configured mapping of domains to git providers (e.g. `{ "git.myhost.com": "gitlab" }`) used
-	//     for authentication and creating pull requests.
 	GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error)
 	// List the kubernetes events for a resource
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
@@ -507,11 +498,7 @@ type ClustersServiceServer interface {
 	CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error)
 	// List available CAPI identities
 	//
-	// Search the cluster for available CAPI identities:
-	// - `AWSClusterStaticIdentity`
-	// - `AWSClusterRoleIdentity`
-	// - `AzureClusterIdentity`
-	// - `VSphereClusterIdentity`
+	// Search the cluster for available CAPI identities.
 	ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error)
 	// Creates a pull request from a tfcontroller template.
 	//
@@ -535,11 +522,6 @@ type ClustersServiceServer interface {
 	// Get the Weave Gitops Enterprise configuration
 	//
 	// Returns information about the current configuration of the Weave GitOps Enterprise.
-	//
-	// Importantly this includes
-	//   - `managementClusterName`: the given name of the management cluster which is used for some multi-cluster operations.
-	//   - `gitHostTypes`: the configured mapping of domains to git providers (e.g. `{ "git.myhost.com": "gitlab" }`) used
-	//     for authentication and creating pull requests.
 	GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error)
 	// List the kubernetes events for a resource
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)

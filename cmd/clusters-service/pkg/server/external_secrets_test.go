@@ -82,18 +82,18 @@ func TestListExternalSecrets(t *testing.T) {
 			response: &capiv1_proto.ListExternalSecretsResponse{
 				Secrets: []*capiv1_proto.ExternalSecretItem{
 					{
-						SecretName:         "secret-a-1",
-						ExternalSecretName: "external-secret-a-1",
-						Namespace:          "namespace-a-1",
-						ClusterName:        "management",
-						SecretStore:        "aws-secret-store",
+						SecretName:  "secret-a-1",
+						Name:        "external-secret-a-1",
+						Namespace:   "namespace-a-1",
+						ClusterName: "management",
+						SecretStore: "aws-secret-store",
 					},
 					{
-						SecretName:         "secret-x-1",
-						ExternalSecretName: "external-secret-x-1",
-						Namespace:          "namespace-x-1",
-						ClusterName:        "leaf-1",
-						SecretStore:        "aws-secret-store",
+						SecretName:  "secret-x-1",
+						Name:        "external-secret-x-1",
+						Namespace:   "namespace-x-1",
+						ClusterName: "leaf-1",
+						SecretStore: "aws-secret-store",
 					},
 				},
 			},
@@ -122,13 +122,13 @@ func TestListExternalSecrets(t *testing.T) {
 
 		expectedMap := map[string]*capiv1_proto.ExternalSecretItem{}
 		for i := range tt.response.Secrets {
-			expectedMap[tt.response.Secrets[i].ExternalSecretName] = tt.response.Secrets[i]
+			expectedMap[tt.response.Secrets[i].Name] = tt.response.Secrets[i]
 		}
 		for i := range res.Secrets {
 			actual := res.Secrets[i]
-			expected, ok := expectedMap[actual.ExternalSecretName]
+			expected, ok := expectedMap[actual.Name]
 			if !ok {
-				t.Errorf("found unexpected external secret %s", actual.ExternalSecretName)
+				t.Errorf("found unexpected external secret %s", actual.Name)
 			}
 			assert.Equal(t, expected.SecretName, actual.SecretName, "secret name is not correct")
 			assert.Equal(t, expected.ClusterName, actual.ClusterName, "cluster name is not correct")
@@ -239,18 +239,18 @@ func TestGetExternalSecret(t *testing.T) {
 	}{
 		{
 			request: &capiv1_proto.GetExternalSecretRequest{
-				ExternalSecretName: "external-secret-a",
-				Namespace:          "namespace-a",
-				ClusterName:        "management",
+				Name:        "external-secret-a",
+				Namespace:   "namespace-a",
+				ClusterName: "management",
 			},
 			response: &capiv1_proto.GetExternalSecretResponse{
-				SecretName:         "secret-a",
-				ExternalSecretName: "external-secret-a",
-				Namespace:          "namespace-a",
-				ClusterName:        "management",
-				SecretStore:        "aws-secret-store",
-				SecretStoreType:    "AWS Secrets Manager",
-				SecretPath:         "Data/key-a",
+				SecretName:      "secret-a",
+				Name:            "external-secret-a",
+				Namespace:       "namespace-a",
+				ClusterName:     "management",
+				SecretStore:     "aws-secret-store",
+				SecretStoreType: "AWS Secrets Manager",
+				SecretPath:      "Data/key-a",
 				Properties: map[string]string{
 					"property-a": "secret-a",
 				},
@@ -259,18 +259,18 @@ func TestGetExternalSecret(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetExternalSecretRequest{
-				ExternalSecretName: "external-secret-b",
-				Namespace:          "namespace-b",
-				ClusterName:        "management",
+				Name:        "external-secret-b",
+				Namespace:   "namespace-b",
+				ClusterName: "management",
 			},
 			response: &capiv1_proto.GetExternalSecretResponse{
-				SecretName:         "secret-b",
-				ExternalSecretName: "external-secret-b",
-				Namespace:          "namespace-b",
-				ClusterName:        "management",
-				SecretStore:        "valt-secret-store",
-				SecretStoreType:    "HashiCorp Vault",
-				SecretPath:         "Data/key-b",
+				SecretName:      "secret-b",
+				Name:            "external-secret-b",
+				Namespace:       "namespace-b",
+				ClusterName:     "management",
+				SecretStore:     "valt-secret-store",
+				SecretStoreType: "HashiCorp Vault",
+				SecretPath:      "Data/key-b",
 				Properties: map[string]string{
 					"property-b": "secret-b",
 				},
@@ -279,9 +279,9 @@ func TestGetExternalSecret(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetExternalSecretRequest{
-				ExternalSecretName: uuid.NewString(),
-				Namespace:          uuid.NewString(),
-				ClusterName:        uuid.NewString(),
+				Name:        uuid.NewString(),
+				Namespace:   uuid.NewString(),
+				ClusterName: uuid.NewString(),
 			},
 			err: true,
 		},
@@ -302,7 +302,7 @@ func TestGetExternalSecret(t *testing.T) {
 			t.Fatalf("got unexpected error when getting external secret, error: %v", err)
 		}
 		assert.Equal(t, tt.response.SecretName, res.SecretName, "secret name is not correct")
-		assert.Equal(t, tt.response.ExternalSecretName, res.ExternalSecretName, "external secret name is not correct")
+		assert.Equal(t, tt.response.Name, res.Name, "external secret name is not correct")
 		assert.Equal(t, tt.response.Namespace, res.Namespace, "namespace is not correct")
 		assert.Equal(t, tt.response.ClusterName, res.ClusterName, "cluster name is not correct")
 		assert.Equal(t, tt.response.SecretStore, res.SecretStore, "secret store is not correct")
@@ -620,25 +620,25 @@ func TestSyncExternalSecret(t *testing.T) {
 	}{
 		{
 			request: &capiv1_proto.SyncExternalSecretsRequest{
-				ClusterName:        "management",
-				Namespace:          "namespace-a",
-				ExternalSecretName: "external-secret-a",
+				ClusterName: "management",
+				Namespace:   "namespace-a",
+				Name:        "external-secret-a",
 			},
 			response: nil,
 		},
 		{
 			request: &capiv1_proto.SyncExternalSecretsRequest{
-				ClusterName:        "management",
-				Namespace:          "namespace-a",
-				ExternalSecretName: "external-secret-b",
+				ClusterName: "management",
+				Namespace:   "namespace-a",
+				Name:        "external-secret-b",
 			},
 			response: nil,
 		},
 		{
 			request: &capiv1_proto.SyncExternalSecretsRequest{
-				ClusterName:        "management",
-				Namespace:          "namespace-a",
-				ExternalSecretName: "external-secret-c",
+				ClusterName: "management",
+				Namespace:   "namespace-a",
+				Name:        "external-secret-c",
 			},
 			err: true,
 		},
@@ -663,7 +663,7 @@ func TestSyncExternalSecret(t *testing.T) {
 		externalSecret := &esv1beta1.ExternalSecret{}
 		err = clustersClients[tt.request.ClusterName].Get(context.Background(), types.NamespacedName{
 			Namespace: tt.request.Namespace,
-			Name:      tt.request.ExternalSecretName,
+			Name:      tt.request.Name,
 		}, externalSecret)
 		if err != nil {
 			t.Fatalf("got unexpected error when getting external secret, error: %v", err)
