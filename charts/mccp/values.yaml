@@ -176,7 +176,7 @@ networkPolicy:
   enabled: true
 
 global:
-  capiEnabled: true
+  capiEnabled: false
   useK8sCachedClients: false
 
 clustersService:
@@ -186,7 +186,7 @@ templates-controller:
   enabled: true
 
 gitopssets-controller:
-  enabled: true
+  enabled: false
   controllerManager:
     manager:
       args:
@@ -210,7 +210,7 @@ cluster-reflector-controller:
   enabled: false
 
 cluster-bootstrap-controller:
-  enabled: true
+  enabled: false
   manager:
     resources:
       limits:
