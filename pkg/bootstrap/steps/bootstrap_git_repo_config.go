@@ -71,10 +71,10 @@ func NewGitRepositoryConfig(url string, branch string, path string) (GitReposito
 }
 
 // NewGitRepositoryConfig step to configure the flux git repository
-func NewGitRepositoryConfigStep(config Config) BootstrapStep {
+func NewGitRepositoryConfigStep(config GitRepositoryConfig) BootstrapStep {
 	// create steps
 	inputs := []StepInput{}
-	if config.RepoURL == "" {
+	if config.Url == "" {
 		inputs = append(inputs, getRepoURL)
 	}
 
@@ -82,7 +82,7 @@ func NewGitRepositoryConfigStep(config Config) BootstrapStep {
 		inputs = append(inputs, getRepoBranch)
 	}
 
-	if config.RepoPath == "" {
+	if config.Path == "" {
 		inputs = append(inputs, getRepoPath)
 	}
 
@@ -123,7 +123,7 @@ func createGitRepositoryConfig(input []StepInput, c *Config) ([]StepOutput, erro
 
 	repoConfig, err := NewGitRepositoryConfig(repoURL, repoBranch, repoPath)
 	if err != nil {
-		return nil, fmt.Errorf("error creating git repository configuration:%v", err)
+		return nil, fmt.Errorf("error creating git repository configuration: %v", err)
 	}
 	c.GitRepository = repoConfig
 	c.Logger.Actionf("configured repo: %s", c.GitRepository.Url)
