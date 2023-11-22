@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
@@ -286,7 +287,7 @@ func getIssuerFromDiscoveryUrl(c *Config) (string, error) {
 			}
 			c.Logger.Warningf("Failed to retrieve IssuerURL. Please verify the DiscoveryURL and try again")
 			// ask for discovery url again
-			c.DiscoveryURL, err = utils.GetStringInput(oidcDiscoverUrlMsg, "")
+			c.DiscoveryURL, err = utils.GetStringInput(oidcDiscoverUrlMsg, "", os.Stdin)
 			if err != nil {
 				return "", err
 			}

@@ -56,10 +56,9 @@ func NewInstallWGEStep(config Config) BootstrapStep {
 	}
 
 	return BootstrapStep{
-		Name:   "install Weave Gitops Enterprise",
-		Input:  inputs,
-		Step:   installWge,
-		Output: []StepOutput{},
+		Name:  "install Weave Gitops Enterprise",
+		Input: inputs,
+		Step:  installWge,
 	}
 }
 

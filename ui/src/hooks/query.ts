@@ -90,10 +90,10 @@ export function useListAccessRules() {
   return useQuery(['listAccessRules'], () => api.DebugGetAccessRules({}));
 }
 
-export function useListFacets() {
+export function useListFacets(category?: string) {
   const api = useContext(QueryServiceContext);
 
-  return useQuery(['facets'], () => api.ListFacets({}), {
+  return useQuery(['facets'], () => api.ListFacets({ category }), {
     refetchIntervalInBackground: true,
     refetchInterval: 10000,
   });

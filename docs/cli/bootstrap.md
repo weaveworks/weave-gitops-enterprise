@@ -35,6 +35,217 @@ You could find it in [pkg/bootstrap/bootstrap.go](../../pkg/bootstrap/bootstrap.
 	}
 
 ```
+## How can I add a new step?
+
+Steps are the units of business logic for bootstarpping. you will need to add one if you want to extend what the bootstrap workflow 
+is able to do. For example, release 1 supported bootstrapping for flux environments, while release 2 supported bootstrapping for 
+non-flux environment via bootstrapping flux as part of the workflow. This is an example of step.
+
+To add a new step follow these steps as guidance. We will be using an outside-in approach and `admin password` step as example:
+
+1. `Acceptance`: add or extend acceptance testing [test case](../../cmd/gitops/app/bootstrap/cmd_acceptance_test.go) to define how the experience looks like
+for the users.
+```
+		{
+			name: "journey flux exists: should bootstrap with valid arguments",
+			flags: []string{kubeconfigFlag,
+			    ...
+				"--password=admin123",
+```
+2. `User Input`: add the user flags to either `rootCmd` (if global) or [cmd/gitops/app/bootstrap/cmd.go](../../cmd/gitops/app/bootstrap/cmd.go) (if local):
+
+```
+rootCmd.PersistentFlags().StringVarP(&options.Username, "username", "u", "", "The Weave GitOps Enterprise username for authentication can be set with `WEAVE_GITOPS_USERNAME` environment variable")
+rootCmd.PersistentFlags().StringVarP(&options.Password, "password", "p", "", "The Weave GitOps Enterprise password for authentication can be set with `WEAVE_GITOPS_PASSWORD` environment variable")
+```
+ 
+3. `Configuration`: 
+
+**Create a configuration struct for the step**
+
+It should include user input configuration and values from the existing state.
+```go
+type ClusterUserAuthConfig struct {
+    Username         string
+    Password         string
+    ExistCredentials bool
+}
+```
+**Propagate User Input via Config Builder**
+
+[cmd/gitops/app/bootstrap/cmd.go](../../cmd/gitops/app/bootstrap/cmd.go) 
+
+```
+		c, err := steps.NewConfigBuilder().
+			WithPassword(opts.Password).
+						Build()
+```
+
+**Build the configuration**
+
+This should include to resolve any value required so the configuration logic is encapsulated in this layer. 
+
+For example, for `ClusterUserAuthConfig` we require to configure the step differently in case cluster user auth 
+credentials already exist via `isExistingAdminSecret`. We resolve it in this layer:
+
+```
+// NewClusterUserAuthConfig creates new configuration out of the user input and discovered state
+func NewClusterUserAuthConfig(password string, client k8s_client.Client) (ClusterUserAuthConfig, error) {
+	...
+	return ClusterUserAuthConfig{
+		...
+		ExistCredentials: isExistingAdminSecret(client),
+	}, nil
+}
+
+
+func (cb *ConfigBuilder) Build() (Config, error) {
+...
+	clusterUserAuthConfig, err := NewClusterUserAuthConfig(cb.password, kubeHttp.Client)
+	if err != nil {
+		return Config{}, fmt.Errorf("cannot configure cluster user auth:%v", err)
+	}
+	return Config{
+		ClusterUserAuth:         clusterUserAuthConfig,
+	}, nil
+}
+```
+
+4. `Step`: create the step and add it as part of the workflow [pkg/bootstrap/bootstrap.go](../../pkg/bootstrap/bootstrap.go)
+
+```
+// Bootstrap initiated by the command runs the WGE bootstrap workflow
+func Bootstrap(config steps.Config) error {
+
+	adminCredentials, err := steps.NewAskAdminCredsSecretStep(config.ClusterUserAuth, config.Silent)
+	if err != nil {
+		return fmt.Errorf("cannot create ask admin creds step: %v", err)
+	}
+
+	// TODO have a single workflow source of truth and documented in https://docs.gitops.weave.works/docs/0.33.0/enterprise/getting-started/install-enterprise/
+	var steps = []steps.BootstrapStep{
+	    ...
+		adminCredentials,
+		...
+	}
+    ...
+}
+```
+Identify the different scenarios that the steps should support. Common ones are interactive and non-ineractive session, 
+create or update scenarios, etc ... This would be useful for:
+
+**Add Test Cases**
+
+Create a unit test [admin_password_test.go](../../pkg/bootstrap/steps/admin_password_test.go) for the step that includes
+the contract of the step based on the different scenarios.
+
+For example, cluster user auth step includes case for support create and update scenarios for interactive and non-interactive sessions:
+
+```
+func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
+	tests := []struct {
+		name       string
+		setup      func() (BootstrapStep, Config)
+		config     Config
+		wantOutput []StepOutput
+	}{
+		{
+			name: "should create cluster user non-interactive",
+			setup: func() (BootstrapStep, Config) {
+				config := makeTestConfig(t, Config{})
+				step, err := NewAskAdminCredsSecretStep(config.ClusterUserAuth, true)
+				assert.NoError(t, err)
+				return step, config
+			},
+			wantOutput: []StepOutput{
+				{
+					Name: "cluster-user-auth",
+					Type: "secret",
+					Value: v1.Secret{
+						ObjectMeta: metav1.ObjectMeta{Name: "cluster-user-auth", Namespace: "flux-system"},
+					},
+				},
+			},
+		},
+
+```
+
+**NewXXStep function**
+
+This function should contain the logic needed to determine what inputs we required from the user given the
+configuration coming upstream. For example, for `admin password` we would need to ask the user for input in 
+case that credentials already exist in the cluster (update scenarios).
+
+```
+func NewAskAdminCredsSecretStep(config ClusterUserAuthConfig, silent bool) (BootstrapStep, error) {
+	inputs := []StepInput{}
+	if !silent {
+		// current state layer
+		if !config.ExistCredentials {
+			// insert
+			if config.Password == "" {
+				inputs = append(inputs, getPasswordInput)
+			}
+		} else {
+			// update
+			inputs = append(inputs, getPasswordWithExistingAndUserInput)
+		}
+	}
+	return BootstrapStep{
+		Name:  "user authentication",
+		Input: inputs,
+		Step:  createCredentials,
+	}, nil
+}
+```
+
+**Implement Step**
+
+You have defined the step function, in our case `createCredentials` in the previous:
+
+```
+return BootstrapStep{
+		Name:  "user authentication",
+		Input: inputs,
+		Step:  createCredentials,
+	}, nil
+```
+
+This function should only contain specific business logic. For our example, the business logic to create or update 
+the cluster user credentials
+
+```
+func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
+	
+	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(c.ClusterUserAuth.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	data := map[string][]byte{
+		"username": []byte(defaultAdminUsername),
+		"password": encryptedPassword,
+	}
+	c.Logger.Actionf("dashboard admin username: %s is configured", defaultAdminUsername)
+
+	secret := corev1.Secret{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      adminSecretName,
+			Namespace: WGEDefaultNamespace,
+		},
+		Data: data,
+	}
+	c.Logger.Successf(secretConfirmationMsg)
+
+```
+
+Note: If you find yourself adding common behaviour in this function think on where within [step.go](../../pkg/bootstrap/steps/step.go) should go.
+
+### Style suggestions for steps
+
+**Inputs**
+
+- We usually prefix input names with `in` prefix (short for input) to distinguish these constants from everything else.
 
 ## How configuration works ?
 
@@ -62,59 +273,9 @@ func selectWgeVersion(input []StepInput, c *Config) ([]StepOutput, error) {
 		}
 
 ```
-## How can I add a new step?
-
-Follow these indications:
-
-1. Add or extend an existing [test case](../../cmd/gitops/app/bootstrap/cmd_integration_test.go)
-2. Add the user flags to [cmd/gitops/app/bootstrap/cmd.go](../../cmd/gitops/app/bootstrap/cmd.go)
-3. Add the config to [pkg/bootstrap/steps/config.go](../../pkg/bootstrap/steps/config.go):
-   - Add config values to the builder
-   - Resolves the configuration business logic in the build function. Ensure that validation happens to fail fast. 
-4. Add the step as part of the workflow [pkg/bootstrap/bootstrap.go](../../pkg/bootstrap/bootstrap.go)
-5. Add the new step [pkg/bootstrap/steps](../../pkg/bootstrap/steps)
 
 
-An example could be seen here given `gitops bootstrap`
 
-1. if user passes the flag we use the flag
-```go
-   cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
-```
-- this is empty so we go to the next level
-2. if not, then ask user in interactive session with a default value
-```go
-func (c *Config) AskAdminCredsSecret() error {
-
-	if c.Username == "" {
-		c.Username, err = utils.GetStringInput(adminUsernameMsg, DefaultAdminUsername)
-		if err != nil {
-			return err
-		}
-	}
-	
-	return nil
-}
-```
-User has not introduce a custom value so we take the custom value
-
-```go
-type Config struct {
-	Username         string
-	Password         string
-	KubernetesClient k8s_client.Client
-	WGEVersion       string
-	UserDomain       string
-	Logger           logger.Logger
-}
-
-```
-
-### Style sugestions for steps
-
-**Inputs**
-
-- We usually prefix input names with `in` prefix (short for input) to distinguish these constants from everything else. 
 
 
 ## Error management 
@@ -205,6 +366,7 @@ Entitlement stage
 - `WGE_ENTITLEMENT_ENTITLEMENT`: valid entitlements token to use for creating the entitlement before running the test.
 - `OIDC_CLIENT_SECRET`: client secret for oidc flag
 - `GIT_PRIVATEKEY_PATH`: path to the private key to do the git operations.
+- `GIT_PRIVATEKEY_PASSWORD`: password protecting access to private key
 - `GIT_REPO_URL_SSH`: git ssh url for the repo wge configuration repo.
 - `GIT_REPO_URL_HTTPS`: git https url for the repo wge configuration repo.
 - `GIT_USERNAME`: git username for testing https auth
@@ -234,7 +396,7 @@ This will be addressed in the following [ticket](https://github.com/weaveworks/w
 
 ## Enable/Disable one or more input from step inputs
 
-Field [`Enabled`](https://github.com/weaveworks/weave-gitops-enterprise/blob/80667a419c286ee7d45178b639e36a2015533cb6/pkg/bootstrap/steps/ask_bootstrap_flux.go#L14) is added to the step input to allow/disallow this input from being processd
+Field [`Enabled`](https://github.com/weaveworks/weave-gitops-enterprise/blob/80667a419c286ee7d45178b639e36a2015533cb6/pkg/bootstrap/steps/ask_bootstrap_flux.go#L14) is added to the step input to allow/disallow this input from being processed
 
 This field should receive a function that takes the step input, config object and returns boolean value 
 

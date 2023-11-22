@@ -118,11 +118,12 @@ message Subject {
 }
 
 message ListFacetsRequest {
-
+    string category = 1;
 }
 
 message ListFacetsResponse {
-    repeated Facet facets = 1;
+    repeated   Facet facets                   = 1;
+    map<string, string> human_readable_labels = 2;
 }
 
 message Facet {

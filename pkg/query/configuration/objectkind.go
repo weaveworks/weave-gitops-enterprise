@@ -58,6 +58,9 @@ type ObjectKind struct {
 	Labels []string
 	// Category defines the category of the objectkind. It allows to group objectkinds in the UI.
 	Category ObjectCategory
+	// HumanReadableLabelKeys is a map of label keys to human readable names. It allows to customise the label names in the UI.
+	// Values should be dash case: template-type, some-value, etc.
+	HumanReadableLabelKeys map[string]string
 }
 
 type ObjectStatus string
@@ -277,6 +280,9 @@ var (
 			"weave.works/template-type",
 		},
 		Category: CategoryTemplate,
+		HumanReadableLabelKeys: map[string]string{
+			"weave.works/template-type": "template-type",
+		},
 	}
 	CapiTemplateObjectKind = ObjectKind{
 		Gvk: capiv1.GroupVersion.WithKind(capiv1.Kind),

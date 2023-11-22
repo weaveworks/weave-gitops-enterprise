@@ -186,10 +186,9 @@ jobs:
     with:
       runs-on: ubuntu-latest
       junit-results-glob-pattern: "*smoke-tests*.xml"
-      check-name: "Smoke Tests"
-      slack-notification: false
+      slack-notification: true
     secrets:
-      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      SLACK_BOT_TOKEN: ${{ secrets.WEAVEWORKS_SLACK_GENERICBOT_TOKEN }}
 
   notify-failure:
     name: Notify Slack on Failure
