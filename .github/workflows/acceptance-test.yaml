@@ -74,7 +74,7 @@ on:
         description: "Cluster user admin password hash"
         required: true
       WGE_DEX_CLIENT_SECRET:
-        description: "client credential secret for managment cluster OIDC (dex)"
+        description: "client credential secret for management cluster OIDC (dex)"
         required: true
       WGE_DEX_CLI_CLIENT_SECRET:
         description: "client credential secret for CLI OIDC (dex)"
