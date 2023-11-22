@@ -366,7 +366,7 @@ $ ./tools/create-leaf-cluster.sh leaf-cluster-01
 
 This command will create a new cluster and configure the `GitopsCluster` CR pointing to the cluster's kubeconfig.
 
-Note that this won't configure completelly the cluster, you might need to install flux and rbac rules in order to be able to query it properly. But it should be already visible on the Weave Gitops cluster's tab.
+Note that this won't configure completelly the cluster, you might need to install flux and rbac rules in order to be able to query it properly. But it should be already visible on the Weave GitOps cluster's tab.
 
 ### How to install everything from your working branch on a cluster
 
@@ -581,7 +581,7 @@ make core-ui && make core-lib
 ```bash
 export WG_VERSION=0.2.4
 
-# 1.update the backend golang code
+# 1. Update the backend Golang code
 go get -d github.com/weaveworks/weave-gitops@$WG_VERSION
 go mod tidy
 

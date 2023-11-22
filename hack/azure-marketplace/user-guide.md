@@ -56,9 +56,9 @@ kubectl create secret generic cluster-user-auth \
   --from-literal=password='$2a$.......'
 ```
 
-## 6. Install the Weave Gitops Enterprise
+## 6. Install the Weave GitOps Enterprise
 
-Navigate to the Marketplace in the azure portal and add the Weave Gitops Enterprise Offering, during configuration select the cluster we've performed the configuration on.
+Navigate to the Marketplace in the azure portal and add the Weave GitOps Enterprise Offering, during configuration select the cluster we've performed the configuration on.
 
 ## 7. Extra configuration
 

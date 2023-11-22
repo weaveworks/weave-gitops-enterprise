@@ -83,9 +83,9 @@ GitOpsTemplates enable Application Developers to self-service components and ser
 User flows are two:
 1. make a template available which uses a regular gitops flow for [GitopsTemplate](https://docs.gitops.weave.works/docs/gitops-templates/creating-templates/) resource. 
 2. use or update a GitopsTemplate where
-   1. A platform engineering searches and select the temaplate to use via Weave Gitops UI.
-   2. Fills the template and submits the template rendering request to Weave Gitops.
-   3. Authenticates with GitProvider or git provider via Weave Gitops
+   1. A platform engineering searches and select the temaplate to use via Weave GitOps UI.
+   2. Fills the template and submits the template rendering request to Weave GitOps.
+   3. Authenticates with GitProvider or git provider via Weave GitOps
    4. Weave GitOps creates a PR in the provider with the generated resources. 
 
 ```mermaid
@@ -145,8 +145,8 @@ User flows are two:
 1. To make a profile available which uses a regular gitops flow for [Helm Releases](https://docs.gitops.weave.works/docs/cluster-management/profiles/).
 2. Add profiles to your clusters via cluster creation or [adding an application](https://docs.gitops.weave.works/docs/cluster-management/add-applications/):
    1. A platform engineering selects the profiles repository, application, layer and application values.
-   2. Authenticates with GitProvider or git provider via Weave Gitops.
-   3. Weave gitops creates a PR with the profile HelmRelease/HelmRepository.
+   2. Authenticates with GitProvider or git provider via Weave GitOps.
+   3. Weave GitOps creates a PR with the profile HelmRelease/HelmRepository.
    4. Source controller syncs after merge
    5. Helm Controller deploys the helm release 
 

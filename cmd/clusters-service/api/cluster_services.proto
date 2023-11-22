@@ -164,7 +164,7 @@ service ClustersService {
     };
   }
 
-  // Get the Weave Gitops Enterprise version
+  // Get the Weave GitOps Enterprise version
   rpc GetEnterpriseVersion(GetEnterpriseVersionRequest) returns (GetEnterpriseVersionResponse) {
     option (google.api.http) = {
       // Namespaced under /enterprise/ so as not to conflict with the OSS endpoint
@@ -172,7 +172,7 @@ service ClustersService {
     };
   }
 
-  // Get the Weave Gitops Enterprise configuration
+  // Get the Weave GitOps Enterprise configuration
   rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {
     option (google.api.http) = {
       get : "/v1/config"
