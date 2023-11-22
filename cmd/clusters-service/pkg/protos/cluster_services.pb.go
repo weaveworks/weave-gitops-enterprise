@@ -1214,11 +1214,11 @@ type CreatePullRequestRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The repository to use.
+	// The repository to use e.g. https://github.com/my-org/my-repo.
 	RepositoryUrl string `protobuf:"bytes,1,opt,name=repository_url,json=repositoryUrl,proto3" json:"repository_url,omitempty"`
-	// The new branch that will be created.
+	// The name of the new branch to be created e.g. adds-cluster-dev-01.
 	HeadBranch string `protobuf:"bytes,2,opt,name=head_branch,json=headBranch,proto3" json:"head_branch,omitempty"`
-	// The target branch.
+	// The target branch to merge the new PR into, e.g. main.
 	BaseBranch string `protobuf:"bytes,3,opt,name=base_branch,json=baseBranch,proto3" json:"base_branch,omitempty"`
 	// The title of the pull request.
 	Title string `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
@@ -1236,12 +1236,12 @@ type CreatePullRequestRequest struct {
 	Credentials   *Credential `protobuf:"bytes,9,opt,name=credentials,proto3" json:"credentials,omitempty"`
 	// The values for each profile that will be installed.
 	Profiles []*ProfileValues `protobuf:"bytes,10,rep,name=profiles,proto3" json:"profiles,omitempty"`
-	// DEPRECATED: This is no longer used and will be removed in the future.
+	// _DEPRECATED: This is no longer used and will be removed in the future._
 	// The repo api url.
 	//
 	// Deprecated: Marked as deprecated in cluster_services.proto.
 	RepositoryApiUrl string `protobuf:"bytes,11,opt,name=repository_api_url,json=repositoryApiUrl,proto3" json:"repository_api_url,omitempty"`
-	// DEPRECATED: This is no longer used and will be removed in the future.
+	// _DEPRECATED: This is no longer used and will be removed in the future._
 	// The cluster namespace.
 	//
 	// Deprecated: Marked as deprecated in cluster_services.proto.
@@ -1758,8 +1758,12 @@ type ClusterNamespacedName struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// Namespace of the cluster.
+	// Should be an empty string when referencing the "management" / "control-plane" cluster
+	// (the cluster running Weave Gitops).
 	Namespace string `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Name      string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Name of the cluster.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 }
 
 func (x *ClusterNamespacedName) Reset() {
@@ -1829,7 +1833,7 @@ type CreateDeletionPullRequestRequest struct {
 	CommitMessage string `protobuf:"bytes,7,opt,name=commit_message,json=commitMessage,proto3" json:"commit_message,omitempty"`
 	// Credentials
 	Credentials *Credential `protobuf:"bytes,8,opt,name=credentials,proto3" json:"credentials,omitempty"`
-	// DEPRECATED: This is no longer used and will be removed in the future.
+	// _DEPRECATED: This is no longer used and will be removed in the future._
 	// The repo api url.
 	//
 	// Deprecated: Marked as deprecated in cluster_services.proto.
@@ -2672,7 +2676,7 @@ func (x *GitopsClusterRef) GetName() string {
 
 // A reference to a CAPI identity.
 //
-// Supported Identites kinds:
+// Supported Identity kinds:
 // - `AWSClusterStaticIdentity`
 // - `AWSClusterRoleIdentity`
 // - `AzureClusterIdentity`
@@ -3220,7 +3224,7 @@ type GetEnterpriseVersionResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The version of Weave GitOps Enterprise
+	// The version of Weave GitOps Enterprise.
 	Version string `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
 }
 
@@ -3268,11 +3272,11 @@ type CreateAutomationsPullRequestRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The repository to use.
+	// The repository to use e.g. https://github.com/my-org/my-repo.
 	RepositoryUrl string `protobuf:"bytes,1,opt,name=repository_url,json=repositoryUrl,proto3" json:"repository_url,omitempty"`
-	// The new branch that will be created.
+	// The name of the new branch to be created e.g. adds-cluster-dev-01.
 	HeadBranch string `protobuf:"bytes,2,opt,name=head_branch,json=headBranch,proto3" json:"head_branch,omitempty"`
-	// The target branch.
+	// The target branch to merge the new PR into, e.g. main.
 	BaseBranch string `protobuf:"bytes,3,opt,name=base_branch,json=baseBranch,proto3" json:"base_branch,omitempty"`
 	// The title of the pull request.
 	Title string `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
@@ -3280,12 +3284,13 @@ type CreateAutomationsPullRequestRequest struct {
 	Description string `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
 	// The commit message.
 	CommitMessage string `protobuf:"bytes,6,opt,name=commit_message,json=commitMessage,proto3" json:"commit_message,omitempty"`
-	// DEPRECATED: This is no longer used and will be removed in the future.
+	// _DEPRECATED: This is no longer used and will be removed in the future._
 	// The repo api url.
 	//
 	// Deprecated: Marked as deprecated in cluster_services.proto.
 	RepositoryApiUrl string `protobuf:"bytes,7,opt,name=repository_api_url,json=repositoryApiUrl,proto3" json:"repository_api_url,omitempty"`
 	// A list of cluster and kustomization.
+	// The cluster is used to determine the file path.
 	ClusterAutomations []*ClusterAutomation `protobuf:"bytes,8,rep,name=cluster_automations,json=clusterAutomations,proto3" json:"cluster_automations,omitempty"`
 }
 
@@ -3383,10 +3388,12 @@ type ClusterAutomation struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Cluster        *ClusterNamespacedName `protobuf:"bytes,1,opt,name=cluster,proto3" json:"cluster,omitempty"`
-	IsControlPlane bool                   `protobuf:"varint,2,opt,name=is_control_plane,json=isControlPlane,proto3" json:"is_control_plane,omitempty"`
-	Kustomization  *Kustomization         `protobuf:"bytes,3,opt,name=kustomization,proto3" json:"kustomization,omitempty"`
-	HelmRelease    *HelmRelease           `protobuf:"bytes,4,opt,name=helm_release,json=helmRelease,proto3" json:"helm_release,omitempty"`
+	Cluster *ClusterNamespacedName `protobuf:"bytes,1,opt,name=cluster,proto3" json:"cluster,omitempty"`
+	// If the cluster is the "management" aka "control-plane" cluster then this is set to true.
+	// Ensures the file_path is correctly constructed if an explicit path is not set.
+	IsControlPlane bool           `protobuf:"varint,2,opt,name=is_control_plane,json=isControlPlane,proto3" json:"is_control_plane,omitempty"`
+	Kustomization  *Kustomization `protobuf:"bytes,3,opt,name=kustomization,proto3" json:"kustomization,omitempty"`
+	HelmRelease    *HelmRelease   `protobuf:"bytes,4,opt,name=helm_release,json=helmRelease,proto3" json:"helm_release,omitempty"`
 	// A path to write the resource to in the management git repo.
 	FilePath       string              `protobuf:"bytes,5,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
 	ExternalSecret *ExternalSecret     `protobuf:"bytes,6,opt,name=external_secret,json=externalSecret,proto3" json:"external_secret,omitempty"`
@@ -4912,7 +4919,7 @@ type GetConfigResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// DEPRECATED: This is no longer used and will be removed in the future.
+	// _DEPRECATED: This is no longer used and will be removed in the future._
 	// The default git repository URL for the management cluster.
 	//
 	// Deprecated: Marked as deprecated in cluster_services.proto.

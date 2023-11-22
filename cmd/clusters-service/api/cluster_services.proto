@@ -93,6 +93,7 @@ service ClustersService {
 
   // Create a pull request to delete templated resources
   //
+  // _INTERNAL: will undergo changes to how we calculate which files to delete in the future._
   rpc CreateDeletionPullRequest(CreateDeletionPullRequestRequest) returns (CreateDeletionPullRequestResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["internal"]; };
     option (google.api.http) = {
@@ -194,7 +195,7 @@ service ClustersService {
   // Returns the version of the Weave GitOps Enterprise server.
   rpc GetEnterpriseVersion(GetEnterpriseVersionRequest) returns (GetEnterpriseVersionResponse) {
     option (google.api.http) = {
-      // Namespaced under /enterprise/ so as not to conflict with the OSS endpoint
+      // Namespaced under /enterprise/ so as not to conflict with the OSS endpoint.
       get : "/v1/enterprise/version"
     };
   }
@@ -496,11 +497,11 @@ message ListGitopsClustersResponse {
 }
 
 message CreatePullRequestRequest {
-  // The repository to use.
+  // The repository to use e.g. https://github.com/my-org/my-repo.
   string repository_url = 1;
-  // The new branch that will be created.
+  // The name of the new branch to be created e.g. adds-cluster-dev-01.
   string head_branch = 2;
-  // The target branch.
+  // The target branch to merge the new PR into, e.g. main.
   string base_branch = 3;
   // The title of the pull request.
   string title = 4;
@@ -518,10 +519,10 @@ message CreatePullRequestRequest {
   Credential credentials = 9;
   // The values for each profile that will be installed.
   repeated ProfileValues profiles = 10;
-  // DEPRECATED: This is no longer used and will be removed in the future.
+  // _DEPRECATED: This is no longer used and will be removed in the future._
   // The repo api url.
   string repository_api_url = 11 [deprecated = true];
-  // DEPRECATED: This is no longer used and will be removed in the future.
+  // _DEPRECATED: This is no longer used and will be removed in the future._
   // The cluster namespace.
   string cluster_namespace = 12 [deprecated = true];
   // Additional kustomizations to be created in the pull request.
@@ -588,7 +589,11 @@ message CreateTfControllerPullRequestResponse {
 }
 
 message ClusterNamespacedName {
+  // Namespace of the cluster.
+  // Should be an empty string when referencing the "management" / "control-plane" cluster
+  // (the cluster running Weave Gitops).
   string namespace = 1;
+  // Name of the cluster.
   string name = 2;
 }
 
@@ -609,7 +614,7 @@ message CreateDeletionPullRequestRequest {
   string commit_message = 7;
   // Credentials
   Credential credentials = 8;
-  // DEPRECATED: This is no longer used and will be removed in the future.
+  // _DEPRECATED: This is no longer used and will be removed in the future._
   // The repo api url.
   string repository_api_url = 9 [deprecated = true];
   repeated ClusterNamespacedName cluster_namespaced_names = 10;
@@ -688,7 +693,7 @@ message GitopsClusterRef { string name = 1; }
 
 // A reference to a CAPI identity.
 //
-// Supported Identites kinds:
+// Supported Identity kinds:
 // - `AWSClusterStaticIdentity`
 // - `AWSClusterRoleIdentity`
 // - `AzureClusterIdentity`
@@ -768,16 +773,16 @@ message GetEnterpriseVersionResponse {
     example: "{\"version\": \"0.42.0\" }"
   };
 
-  // The version of Weave GitOps Enterprise
+  // The version of Weave GitOps Enterprise.
   string version = 1;
 }
 
 message CreateAutomationsPullRequestRequest {
-  // The repository to use.
+  // The repository to use e.g. https://github.com/my-org/my-repo.
   string repository_url = 1;
-  // The new branch that will be created.
+  // The name of the new branch to be created e.g. adds-cluster-dev-01.
   string head_branch = 2;
-  // The target branch.
+  // The target branch to merge the new PR into, e.g. main.
   string base_branch = 3;
   // The title of the pull request.
   string title = 4;
@@ -785,15 +790,18 @@ message CreateAutomationsPullRequestRequest {
   string description = 5;
   // The commit message.
   string commit_message = 6;
-  // DEPRECATED: This is no longer used and will be removed in the future.
+  // _DEPRECATED: This is no longer used and will be removed in the future._
   // The repo api url.
   string repository_api_url = 7 [deprecated = true];
   // A list of cluster and kustomization.
+  // The cluster is used to determine the file path.
   repeated ClusterAutomation cluster_automations = 8;
 }
 
 message ClusterAutomation {
   ClusterNamespacedName cluster = 1;
+  // If the cluster is the "management" aka "control-plane" cluster then this is set to true.
+  // Ensures the file_path is correctly constructed if an explicit path is not set.
   bool is_control_plane = 2;
   Kustomization kustomization = 3;
   HelmRelease helm_release = 4;
@@ -939,7 +947,7 @@ message ProfileValues {
 message GetConfigRequest {}
 
 message GetConfigResponse {
-  // DEPRECATED: This is no longer used and will be removed in the future.
+  // _DEPRECATED: This is no longer used and will be removed in the future._
   // The default git repository URL for the management cluster.
   string repository_url = 1 [deprecated = true];
   // The given name of the management cluster which is used for some multi-cluster operations.

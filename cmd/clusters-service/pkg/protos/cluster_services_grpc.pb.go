@@ -46,6 +46,8 @@ type ClustersServiceClient interface {
 	//  3. The template params and list of charts to include in the pull request.
 	CreatePullRequest(ctx context.Context, in *CreatePullRequestRequest, opts ...grpc.CallOption) (*CreatePullRequestResponse, error)
 	// Create a pull request to delete templated resources
+	//
+	// _INTERNAL: will undergo changes to how we calculate which files to delete in the future._
 	CreateDeletionPullRequest(ctx context.Context, in *CreateDeletionPullRequestRequest, opts ...grpc.CallOption) (*CreateDeletionPullRequestResponse, error)
 	// Preview adding automations to a cluster
 	//
@@ -471,6 +473,8 @@ type ClustersServiceServer interface {
 	//  3. The template params and list of charts to include in the pull request.
 	CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error)
 	// Create a pull request to delete templated resources
+	//
+	// _INTERNAL: will undergo changes to how we calculate which files to delete in the future._
 	CreateDeletionPullRequest(context.Context, *CreateDeletionPullRequestRequest) (*CreateDeletionPullRequestResponse, error)
 	// Preview adding automations to a cluster
 	//
