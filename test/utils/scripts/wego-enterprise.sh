@@ -161,7 +161,8 @@ function setup {
   helmArgs+=( --set "extraEnvVars[0].name=WEAVE_GITOPS_FEATURE_COST_ESTIMATION" )
   helmArgs+=( --set-string "extraEnvVars[0].value=true" )
   helmArgs+=( --set "extraEnvVarsSecret=aws-pricing" )
- 
+  helmArgs+=( --set "explorer.enabled=false" )
+
   if [ ! -z $WEAVE_GITOPS_GIT_HOST_TYPES ]; then
     helmArgs+=( --set "config.extraVolumes[0].name=ssh-config" )
     helmArgs+=( --set "config.extraVolumes[0].configMap.name=ssh-config" )
