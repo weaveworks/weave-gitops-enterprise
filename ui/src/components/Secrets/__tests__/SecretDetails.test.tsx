@@ -12,7 +12,7 @@ import SecretDetails from '../SecretDetails';
 const MockSecretResponse = {
   secretName: 'secret Name',
   externalSecretName: 'external Secret Name',
-  clusterName: 'managment',
+  clusterName: 'management',
   namespace: 'flux-system',
   secretStore: 'secret Store name',
   secretStoreType: 'secret Store Type',
