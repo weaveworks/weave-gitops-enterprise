@@ -42,8 +42,36 @@ var (
 	}
 )
 
+type GitRepositoryConfig struct {
+	Url    string
+	Branch string
+	Path   string
+	Scheme string
+}
+
+// NewGitRepositoryConfig creates new configuration out of the user input and discovered state
+func NewGitRepositoryConfig(url string, branch string, path string) (GitRepositoryConfig, error) {
+	var scheme string
+	var err error
+
+	if url != "" {
+		scheme, err = parseRepoScheme(url)
+		if err != nil {
+			return GitRepositoryConfig{}, fmt.Errorf("error parsing repo scheme: %v", err)
+		}
+	}
+
+	return GitRepositoryConfig{
+		Url:    url,
+		Branch: branch,
+		Path:   path,
+		Scheme: scheme,
+	}, nil
+
+}
+
 // NewGitRepositoryConfig step to configure the flux git repository
-func NewGitRepositoryConfig(config Config) BootstrapStep {
+func NewGitRepositoryConfigStep(config Config) BootstrapStep {
 	// create steps
 	inputs := []StepInput{}
 	if config.RepoURL == "" {
