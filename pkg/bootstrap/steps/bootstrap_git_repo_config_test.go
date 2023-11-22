@@ -36,6 +36,20 @@ func TestNewGitRepositoryConfig(t *testing.T) {
 			wantErr: assert.NoError,
 		},
 		{
+			name: "should error for ssh url without scheme",
+			args: args{
+				url:    "git@github.com/example/cli-dev",
+				branch: "main",
+				path:   "clusters/management",
+			},
+			want: GitRepositoryConfig{},
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), "repository scheme cannot be empty")
+				return true
+			},
+		},
+		{
 			name: "should create config for valid https url ",
 			args: args{
 				url:    "https://github.com/example/cli-dev",

@@ -213,12 +213,12 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 
 	clusterUserAuthConfig, err := NewClusterUserAuthConfig(cb.password, kubeHttp.Client)
 	if err != nil {
-		return Config{}, fmt.Errorf("erro creating cluster user auth configuration:%v", err)
+		return Config{}, fmt.Errorf("erro creating cluster user auth configuration: %v", err)
 	}
 
 	gitRepositoryConfig, err := NewGitRepositoryConfig(cb.repoURL, cb.repoBranch, cb.repoPath)
 	if err != nil {
-		return Config{}, fmt.Errorf("erro creating git repository configuration:%v", err)
+		return Config{}, fmt.Errorf("error creating git repository configuration: %v", err)
 	}
 
 	//TODO we should do validations in case invalid values and throw an error early

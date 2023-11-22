@@ -94,38 +94,39 @@ func NewGitRepositoryConfigStep(config Config) BootstrapStep {
 }
 
 func createGitRepositoryConfig(input []StepInput, c *Config) ([]StepOutput, error) {
+
+	var repoURL = c.GitRepository.Url
+	var repoBranch = c.GitRepository.Branch
+	var repoPath = c.RepoPath
+
 	for _, param := range input {
 		if param.Name == inRepoURL {
-			repoURL, ok := param.Value.(string)
+			url, ok := param.Value.(string)
 			if ok {
-				c.RepoURL = repoURL
+				repoURL = url
 			}
 		}
 		if param.Name == inBranch {
-			repoBranch, ok := param.Value.(string)
+			branch, ok := param.Value.(string)
 			if ok {
-				c.Branch = repoBranch
+				repoBranch = branch
 			}
 		}
 
 		if param.Name == inRepoPath {
 			path, ok := param.Value.(string)
 			if ok {
-				c.RepoPath = path
+				repoPath = path
 			}
 		}
 	}
 
-	// parse repo scheme
-	if c.RepoURL != "" {
-		scheme, err := parseRepoScheme(c.RepoURL)
-		if err != nil {
-			return []StepOutput{}, err
-		}
-		c.GitScheme = scheme
-		c.Logger.Actionf("detected repo scheme: %s", c.GitScheme)
+	repoConfig, err := NewGitRepositoryConfig(repoURL, repoBranch, repoPath)
+	if err != nil {
+		return nil, fmt.Errorf("error creating git repository configuration:%v", err)
 	}
-
+	c.GitRepository = repoConfig
+	c.Logger.Actionf("configured repo: %s", c.GitRepository.Url)
 	return []StepOutput{}, nil
 }
 
@@ -136,6 +137,8 @@ func parseRepoScheme(repoURL string) (string, error) {
 	}
 	var scheme string
 	switch repositoryURL.Scheme {
+	case "":
+		return "", fmt.Errorf("repository scheme cannot be empty")
 	case sshScheme:
 		scheme = sshScheme
 	case httpsScheme:
