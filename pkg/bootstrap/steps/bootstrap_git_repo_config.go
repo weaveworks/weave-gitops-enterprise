@@ -42,10 +42,15 @@ var (
 	}
 )
 
+// GitRepositoryConfig contains the configuration for the configuration repo
 type GitRepositoryConfig struct {
-	Url    string
+	// Url is the git repository url
+	Url string
+	// Branch is the git repository branch
 	Branch string
-	Path   string
+	// Path is the git repository path
+	Path string
+	// Scheme is the git repository url scheme
 	Scheme string
 }
 
