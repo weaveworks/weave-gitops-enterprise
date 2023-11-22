@@ -47,7 +47,7 @@ var getUserDomain = StepInput{
 	Enabled:      isUserDomainEnabled,
 }
 
-// NewInstallWGEStep step to install Weave Gitops Enterprise
+// NewInstallWGEStep step to install Weave GitOps Enterprise
 func NewInstallWGEStep(config Config) BootstrapStep {
 	inputs := []StepInput{}
 
@@ -56,7 +56,7 @@ func NewInstallWGEStep(config Config) BootstrapStep {
 	}
 
 	return BootstrapStep{
-		Name:  "install Weave Gitops Enterprise",
+		Name:  "install Weave GitOps Enterprise",
 		Input: inputs,
 		Step:  installWge,
 	}

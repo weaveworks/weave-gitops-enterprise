@@ -1,8 +1,8 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Weave Gitops Enterprise GitAuth API",
-    "description": "Weave Gitops Enterprise GitAuth API handles authentication via Github and Gitlab",
+    "title": "Weave GitOps Enterprise GitAuth API",
+    "description": "Weave GitOps Enterprise GitAuth API handles authentication via Github and Gitlab",
     "version": "0.1"
   },
   "tags": [

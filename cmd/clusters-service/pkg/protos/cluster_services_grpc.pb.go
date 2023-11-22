@@ -64,9 +64,9 @@ type ClustersServiceClient interface {
 	//
 	// Provide the name and namespace of a `GitOpsCluster` to retrieve its kubeconfig
 	GetKubeconfig(ctx context.Context, in *GetKubeconfigRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
-	// Get the Weave Gitops Enterprise version
+	// Get the Weave GitOps Enterprise version
 	GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error)
-	// Get the Weave Gitops Enterprise configuration
+	// Get the Weave GitOps Enterprise configuration
 	GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error)
 	// List the kubernetes events for a resource
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
@@ -462,9 +462,9 @@ type ClustersServiceServer interface {
 	//
 	// Provide the name and namespace of a `GitOpsCluster` to retrieve its kubeconfig
 	GetKubeconfig(context.Context, *GetKubeconfigRequest) (*httpbody.HttpBody, error)
-	// Get the Weave Gitops Enterprise version
+	// Get the Weave GitOps Enterprise version
 	GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error)
-	// Get the Weave Gitops Enterprise configuration
+	// Get the Weave GitOps Enterprise configuration
 	GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error)
 	// List the kubernetes events for a resource
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
