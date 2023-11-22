@@ -42,11 +42,44 @@ var (
 	}
 )
 
+// GitRepositoryConfig contains the configuration for the configuration repo
+type GitRepositoryConfig struct {
+	// Url is the git repository url
+	Url string
+	// Branch is the git repository branch
+	Branch string
+	// Path is the git repository path
+	Path string
+	// Scheme is the git repository url scheme
+	Scheme string
+}
+
+// NewGitRepositoryConfig creates new configuration out of the user input and discovered state
+func NewGitRepositoryConfig(url string, branch string, path string) (GitRepositoryConfig, error) {
+	var scheme string
+	var err error
+
+	if url != "" {
+		scheme, err = parseRepoScheme(url)
+		if err != nil {
+			return GitRepositoryConfig{}, fmt.Errorf("error parsing repo scheme: %v", err)
+		}
+	}
+
+	return GitRepositoryConfig{
+		Url:    url,
+		Branch: branch,
+		Path:   path,
+		Scheme: scheme,
+	}, nil
+
+}
+
 // NewGitRepositoryConfig step to configure the flux git repository
-func NewGitRepositoryConfig(config Config) BootstrapStep {
+func NewGitRepositoryConfigStep(config GitRepositoryConfig) BootstrapStep {
 	// create steps
 	inputs := []StepInput{}
-	if config.RepoURL == "" {
+	if config.Url == "" {
 		inputs = append(inputs, getRepoURL)
 	}
 
@@ -54,7 +87,7 @@ func NewGitRepositoryConfig(config Config) BootstrapStep {
 		inputs = append(inputs, getRepoBranch)
 	}
 
-	if config.RepoPath == "" {
+	if config.Path == "" {
 		inputs = append(inputs, getRepoPath)
 	}
 
@@ -66,38 +99,39 @@ func NewGitRepositoryConfig(config Config) BootstrapStep {
 }
 
 func createGitRepositoryConfig(input []StepInput, c *Config) ([]StepOutput, error) {
+
+	var repoURL = c.GitRepository.Url
+	var repoBranch = c.GitRepository.Branch
+	var repoPath = c.RepoPath
+
 	for _, param := range input {
 		if param.Name == inRepoURL {
-			repoURL, ok := param.Value.(string)
+			url, ok := param.Value.(string)
 			if ok {
-				c.RepoURL = repoURL
+				repoURL = url
 			}
 		}
 		if param.Name == inBranch {
-			repoBranch, ok := param.Value.(string)
+			branch, ok := param.Value.(string)
 			if ok {
-				c.Branch = repoBranch
+				repoBranch = branch
 			}
 		}
 
 		if param.Name == inRepoPath {
 			path, ok := param.Value.(string)
 			if ok {
-				c.RepoPath = path
+				repoPath = path
 			}
 		}
 	}
 
-	// parse repo scheme
-	if c.RepoURL != "" {
-		scheme, err := parseRepoScheme(c.RepoURL)
-		if err != nil {
-			return []StepOutput{}, err
-		}
-		c.GitScheme = scheme
-		c.Logger.Actionf("detected repo scheme: %s", c.GitScheme)
+	repoConfig, err := NewGitRepositoryConfig(repoURL, repoBranch, repoPath)
+	if err != nil {
+		return nil, fmt.Errorf("error creating git repository configuration: %v", err)
 	}
-
+	c.GitRepository = repoConfig
+	c.Logger.Actionf("configured repo: %s", c.GitRepository.Url)
 	return []StepOutput{}, nil
 }
 
@@ -108,6 +142,8 @@ func parseRepoScheme(repoURL string) (string, error) {
 	}
 	var scheme string
 	switch repositoryURL.Scheme {
+	case "":
+		return "", fmt.Errorf("repository scheme cannot be empty")
 	case sshScheme:
 		scheme = sshScheme
 	case httpsScheme:
