@@ -213,7 +213,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 
 	clusterUserAuthConfig, err := NewClusterUserAuthConfig(cb.password, kubeHttp.Client)
 	if err != nil {
-		return Config{}, fmt.Errorf("erro creating cluster user auth configuration: %v", err)
+		return Config{}, fmt.Errorf("error creating cluster user auth configuration: %v", err)
 	}
 
 	gitRepositoryConfig, err := NewGitRepositoryConfig(cb.repoURL, cb.repoBranch, cb.repoPath)
