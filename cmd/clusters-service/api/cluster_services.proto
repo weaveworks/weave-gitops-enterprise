@@ -261,7 +261,13 @@ service ClustersService {
     }
 
 
-    // List workspaces
+  // List workspaces
+  //
+  // See the workspaces documentation for an overview of how they work.
+  // In effect a workspace is a set of namespaces, roles, rolebindings, serviceaccounts, and policies.
+  // All these resources are labeled with the workspace.
+  // 
+  // Returns a list of workspaces and the namespaces they each manage.
   rpc ListWorkspaces(ListWorkspacesRequest) returns (ListWorkspacesResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
@@ -270,6 +276,8 @@ service ClustersService {
   }
 
    // Get workspace details
+   //
+   // Get a single workspace and its namespaces.
    rpc GetWorkspace(GetWorkspaceRequest) returns (GetWorkspaceResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
@@ -387,7 +395,10 @@ message ListTemplatesRequest {
 }
 
 message Pagination {
+    // controls the number of results per page from each cluster
     int32 page_size = 1;
+    // a composite token used to retrieve the next page of results across all clusters
+    // this is availble in the response as `nextPageToken`
     string page_token = 2;
 }
 
@@ -1031,8 +1042,11 @@ message GetChartsJobResponse {
 }
 
 message Workspace {
+  // The name of the workspace.
   string name = 1;
+  // The cluster the workspaces is in.
   string cluster_name = 2;
+  // The list of namespaces that are part of the workspace.
   repeated string namespaces = 3;
 }
 
@@ -1107,32 +1121,47 @@ message GetWorkspaceRequest{
 }
 
 message GetWorkspaceResponse{
+  // The name of the workspace.
   string name = 1;
+  // The cluster the workspace is in.
   string cluster_name = 2;
+  // The list of namespaces that are part of the workspace.
   repeated string namespaces = 3;
 }
 
 message GetWorkspaceRolesResponse{
+  // The name of the workspace.
   string name = 1;
+  // The cluster the workspace is in.
   string cluster_name = 2;
+  // The list of roles that are part of the workspace.
   repeated WorkspaceRole objects = 3;
 }
 
 message GetWorkspaceRoleBindingsResponse{
+  // The name of the workspace.
   string name = 1;
+  // The cluster the workspace is in.
   string cluster_name = 2;
+  // The list of role bindings that are part of the workspace.
   repeated WorkspaceRoleBinding objects = 3;
 }
 
 message GetWorkspaceServiceAccountsResponse{
+  // The name of the workspace.
   string name = 1;
+  // The cluster the workspace is in.
   string cluster_name = 2;
+  // The list of service accounts that are part of the workspace.
   repeated WorkspaceServiceAccount objects = 3;
 }
 
 message GetWorkspacePoliciesResponse{
+  // The name of the workspace.
   string name = 1;
+  // The cluster the workspaces is in.
   string cluster_name = 2;
+  // The list of policies that are part of the workspace.
   repeated WorkspacePolicy objects = 3;
 }
 

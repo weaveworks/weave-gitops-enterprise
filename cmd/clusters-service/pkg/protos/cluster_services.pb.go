@@ -93,7 +93,10 @@ type Pagination struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	PageSize  int32  `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// controls the number of results per page from each cluster
+	PageSize int32 `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// a composite token used to retrieve the next page of results across all clusters
+	// this is availble in the response as `nextPageToken`
 	PageToken string `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
 }
 
@@ -5757,9 +5760,12 @@ type Workspace struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name        string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	ClusterName string   `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
-	Namespaces  []string `protobuf:"bytes,3,rep,name=namespaces,proto3" json:"namespaces,omitempty"`
+	// The name of the workspace.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The cluster the workspaces is in.
+	ClusterName string `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
+	// The list of namespaces that are part of the workspace.
+	Namespaces []string `protobuf:"bytes,3,rep,name=namespaces,proto3" json:"namespaces,omitempty"`
 }
 
 func (x *Workspace) Reset() {
@@ -6530,9 +6536,12 @@ type GetWorkspaceResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name        string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	ClusterName string   `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
-	Namespaces  []string `protobuf:"bytes,3,rep,name=namespaces,proto3" json:"namespaces,omitempty"`
+	// The name of the workspace.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The cluster the workspace is in.
+	ClusterName string `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
+	// The list of namespaces that are part of the workspace.
+	Namespaces []string `protobuf:"bytes,3,rep,name=namespaces,proto3" json:"namespaces,omitempty"`
 }
 
 func (x *GetWorkspaceResponse) Reset() {
@@ -6593,9 +6602,12 @@ type GetWorkspaceRolesResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name        string           `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	ClusterName string           `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
-	Objects     []*WorkspaceRole `protobuf:"bytes,3,rep,name=objects,proto3" json:"objects,omitempty"`
+	// The name of the workspace.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The cluster the workspace is in.
+	ClusterName string `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
+	// The list of roles that are part of the workspace.
+	Objects []*WorkspaceRole `protobuf:"bytes,3,rep,name=objects,proto3" json:"objects,omitempty"`
 }
 
 func (x *GetWorkspaceRolesResponse) Reset() {
@@ -6656,9 +6668,12 @@ type GetWorkspaceRoleBindingsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name        string                  `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	ClusterName string                  `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
-	Objects     []*WorkspaceRoleBinding `protobuf:"bytes,3,rep,name=objects,proto3" json:"objects,omitempty"`
+	// The name of the workspace.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The cluster the workspace is in.
+	ClusterName string `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
+	// The list of role bindings that are part of the workspace.
+	Objects []*WorkspaceRoleBinding `protobuf:"bytes,3,rep,name=objects,proto3" json:"objects,omitempty"`
 }
 
 func (x *GetWorkspaceRoleBindingsResponse) Reset() {
@@ -6719,9 +6734,12 @@ type GetWorkspaceServiceAccountsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name        string                     `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	ClusterName string                     `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
-	Objects     []*WorkspaceServiceAccount `protobuf:"bytes,3,rep,name=objects,proto3" json:"objects,omitempty"`
+	// The name of the workspace.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The cluster the workspace is in.
+	ClusterName string `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
+	// The list of service accounts that are part of the workspace.
+	Objects []*WorkspaceServiceAccount `protobuf:"bytes,3,rep,name=objects,proto3" json:"objects,omitempty"`
 }
 
 func (x *GetWorkspaceServiceAccountsResponse) Reset() {
@@ -6782,9 +6800,12 @@ type GetWorkspacePoliciesResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name        string             `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	ClusterName string             `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
-	Objects     []*WorkspacePolicy `protobuf:"bytes,3,rep,name=objects,proto3" json:"objects,omitempty"`
+	// The name of the workspace.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The cluster the workspaces is in.
+	ClusterName string `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
+	// The list of policies that are part of the workspace.
+	Objects []*WorkspacePolicy `protobuf:"bytes,3,rep,name=objects,proto3" json:"objects,omitempty"`
 }
 
 func (x *GetWorkspacePoliciesResponse) Reset() {

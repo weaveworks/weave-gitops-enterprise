@@ -1060,6 +1060,7 @@
     "/v1/workspaces": {
       "get": {
         "summary": "List workspaces",
+        "description": "See the workspaces documentation for an overview of how they work.\nIn effect a workspace is a set of namespaces, roles, rolebindings, serviceaccounts, and policies.\nAll these resources are labeled with the workspace.\n\nReturns a list of workspaces and the namespaces they each manage.",
         "operationId": "ClustersService_ListWorkspaces",
         "responses": {
           "200": {
@@ -1078,6 +1079,7 @@
         "parameters": [
           {
             "name": "pagination.pageSize",
+            "description": "controls the number of results per page from each cluster",
             "in": "query",
             "required": false,
             "type": "integer",
@@ -1085,6 +1087,7 @@
           },
           {
             "name": "pagination.pageToken",
+            "description": "a composite token used to retrieve the next page of results across all clusters\nthis is availble in the response as `nextPageToken`",
             "in": "query",
             "required": false,
             "type": "string"
@@ -1098,6 +1101,7 @@
     "/v1/workspaces/{name}": {
       "get": {
         "summary": "Get workspace details",
+        "description": "Get a single workspace and its namespaces.",
         "operationId": "ClustersService_GetWorkspace",
         "responses": {
           "200": {
@@ -2121,17 +2125,20 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the workspace."
         },
         "clusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The cluster the workspaces is in."
         },
         "objects": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1WorkspacePolicy"
-          }
+          },
+          "description": "The list of policies that are part of the workspace."
         }
       }
     },
@@ -2139,16 +2146,19 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the workspace."
         },
         "clusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The cluster the workspace is in."
         },
         "namespaces": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "description": "The list of namespaces that are part of the workspace."
         }
       }
     },
@@ -2156,17 +2166,20 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the workspace."
         },
         "clusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The cluster the workspace is in."
         },
         "objects": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1WorkspaceRoleBinding"
-          }
+          },
+          "description": "The list of role bindings that are part of the workspace."
         }
       }
     },
@@ -2174,17 +2187,20 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the workspace."
         },
         "clusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The cluster the workspace is in."
         },
         "objects": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1WorkspaceRole"
-          }
+          },
+          "description": "The list of roles that are part of the workspace."
         }
       }
     },
@@ -2192,17 +2208,20 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the workspace."
         },
         "clusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The cluster the workspace is in."
         },
         "objects": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1WorkspaceServiceAccount"
-          }
+          },
+          "description": "The list of service accounts that are part of the workspace."
         }
       }
     },
@@ -2555,10 +2574,12 @@
       "properties": {
         "pageSize": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "title": "controls the number of results per page from each cluster"
         },
         "pageToken": {
-          "type": "string"
+          "type": "string",
+          "title": "a composite token used to retrieve the next page of results across all clusters\nthis is availble in the response as `nextPageToken`"
         }
       }
     },
@@ -3159,16 +3180,19 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the workspace."
         },
         "clusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The cluster the workspaces is in."
         },
         "namespaces": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "description": "The list of namespaces that are part of the workspace."
         }
       }
     },

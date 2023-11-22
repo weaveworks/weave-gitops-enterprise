@@ -126,8 +126,16 @@ type ClustersServiceClient interface {
 	// If an error has occurred the `error` will contain the error message.
 	GetChartsJob(ctx context.Context, in *GetChartsJobRequest, opts ...grpc.CallOption) (*GetChartsJobResponse, error)
 	// List workspaces
+	//
+	// See the workspaces documentation for an overview of how they work.
+	// In effect a workspace is a set of namespaces, roles, rolebindings, serviceaccounts, and policies.
+	// All these resources are labeled with the workspace.
+	//
+	// Returns a list of workspaces and the namespaces they each manage.
 	ListWorkspaces(ctx context.Context, in *ListWorkspacesRequest, opts ...grpc.CallOption) (*ListWorkspacesResponse, error)
 	// Get workspace details
+	//
+	// Get a single workspace and its namespaces.
 	GetWorkspace(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceResponse, error)
 	// List workspace roles
 	GetWorkspaceRoles(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceRolesResponse, error)
@@ -553,8 +561,16 @@ type ClustersServiceServer interface {
 	// If an error has occurred the `error` will contain the error message.
 	GetChartsJob(context.Context, *GetChartsJobRequest) (*GetChartsJobResponse, error)
 	// List workspaces
+	//
+	// See the workspaces documentation for an overview of how they work.
+	// In effect a workspace is a set of namespaces, roles, rolebindings, serviceaccounts, and policies.
+	// All these resources are labeled with the workspace.
+	//
+	// Returns a list of workspaces and the namespaces they each manage.
 	ListWorkspaces(context.Context, *ListWorkspacesRequest) (*ListWorkspacesResponse, error)
 	// Get workspace details
+	//
+	// Get a single workspace and its namespaces.
 	GetWorkspace(context.Context, *GetWorkspaceRequest) (*GetWorkspaceResponse, error)
 	// List workspace roles
 	GetWorkspaceRoles(context.Context, *GetWorkspaceRequest) (*GetWorkspaceRolesResponse, error)
