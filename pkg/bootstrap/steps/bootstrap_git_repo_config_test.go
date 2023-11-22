@@ -23,15 +23,30 @@ func TestNewGitRepositoryConfig(t *testing.T) {
 		{
 			name: "should create config for valid ssh url ",
 			args: args{
-				url:    "ssh://git@github.com/enekofb/cli-dev",
+				url:    "ssh://git@github.com/example/cli-dev",
 				branch: "main",
 				path:   "clusters/management",
 			},
 			want: GitRepositoryConfig{
-				Url:    "ssh://git@github.com/enekofb/cli-dev",
+				Url:    "ssh://git@github.com/example/cli-dev",
 				Branch: "main",
 				Path:   "clusters/management",
 				Scheme: sshScheme,
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "should create config for valid https url ",
+			args: args{
+				url:    "https://github.com/example/cli-dev",
+				branch: "main",
+				path:   "clusters/management",
+			},
+			want: GitRepositoryConfig{
+				Url:    "https://github.com/example/cli-dev",
+				Branch: "main",
+				Path:   "clusters/management",
+				Scheme: httpsScheme,
 			},
 			wantErr: assert.NoError,
 		},
