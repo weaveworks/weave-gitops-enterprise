@@ -12,7 +12,7 @@ Explore is the capability that allows searching across multiple infrastructure d
 
 There is a single user journey:
 
-1. As developer, I like to search for resources across my platform using [Weave Gitops UI](https://docs.gitops.weave.works/docs/explorer/getting-started/)  
+1. As developer, I like to search for resources across my platform using [Weave GitOps UI](https://docs.gitops.weave.works/docs/explorer/getting-started/)  
 
 There are two main components:
 

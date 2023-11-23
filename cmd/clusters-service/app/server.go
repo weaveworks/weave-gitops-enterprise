@@ -60,7 +60,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	gitauth_server "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
-	gitopssets "github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring"
@@ -166,7 +165,7 @@ type Params struct {
 	MonitoringBindAddress             string                    `mapstructure:"monitoring-bind-address"`
 	MetricsEnabled                    bool                      `mapstructure:"monitoring-metrics-enabled"`
 	ProfilingEnabled                  bool                      `mapstructure:"monitoring-profiling-enabled"`
-	EnableObjectCleaner               bool                      `mapstructure:"enable-object-cleaner"`
+	ExplorerCleanerDisabled           bool                      `mapstructure:"explorer-cleaner-disabled"`
 	NoAuthUser                        string                    `mapstructure:"insecure-no-authentication-user"`
 	ExplorerEnabledFor                []string                  `mapstructure:"explorer-enabled-for"`
 }
@@ -535,12 +534,16 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 	}
 
 	healthChecker := health.NewHealthChecker()
-
 	coreCfg, err := core_core.NewCoreConfig(
 		log, rest, clusterName, clustersManager, healthChecker,
 	)
 	if err != nil {
 		return fmt.Errorf("could not create core config: %w", err)
+	}
+
+	err = coreCfg.PrimaryKinds.Add("GitOpsSet", gitopssetsv1alpha1.GroupVersion.WithKind("GitOpsSet"))
+	if err != nil {
+		return fmt.Errorf("failed to add GitOpsSet primary kind: %w", err)
 	}
 
 	err = coreCfg.PrimaryKinds.Add("AutomatedClusterDiscovery", clusterreflectorv1alpha1.GroupVersion.WithKind("AutomatedClusterDiscovery"))
@@ -587,7 +590,7 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		WithPipelineControllerAddress(p.PipelineControllerAddress),
 		WithCollectorServiceAccount(p.CollectorServiceAccountName, p.CollectorServiceAccountNamespace),
 		WithMonitoring(p.MonitoringEnabled, p.MonitoringBindAddress, p.MetricsEnabled, p.ProfilingEnabled, log),
-		WithObjectCleaner(p.EnableObjectCleaner),
+		WithExplorerCleanerDisabled(p.ExplorerCleanerDisabled),
 		WithExplorerEnabledFor(p.ExplorerEnabledFor),
 	)
 }
@@ -708,7 +711,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			SkipCollection:      false,
 			ObjectKinds:         configuration.SupportedObjectKinds,
 			ServiceAccount:      args.CollectorServiceAccount,
-			EnableObjectCleaner: args.EnableObjectCleaner,
+			EnableObjectCleaner: !args.ExplorerCleanerDisabled,
 			EnabledFor:          args.ExplorerEnabledFor,
 		})
 		if err != nil {
@@ -737,14 +740,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		}); err != nil {
 			return fmt.Errorf("hydrating terraform server: %w", err)
 		}
-	}
-
-	if err := gitopssets.Hydrate(ctx, grpcMux, gitopssets.ServerOpts{
-		Logger:         args.Log,
-		ClientsFactory: args.ClustersManager,
-		HealthChecker:  args.CoreServerConfig.HealthChecker,
-	}); err != nil {
-		return fmt.Errorf("hydrating gitopssets server: %w", err)
 	}
 
 	if err := preview.Hydrate(ctx, grpcMux, preview.ServerOpts{

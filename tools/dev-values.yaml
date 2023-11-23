@@ -28,7 +28,12 @@ enablePipelines: true
 
 # Turns on explorer globally. See the explorer.enabledFor option to enable it for specific components.
 explorer:
-  enabled: true
+  enabledFor:
+    - applications
+    - sources
+    - gitopssets
+    - templates
+    - clusterdiscovery
 
 # Turns on terraform UI features for local dev
 enableTerraformUI: true

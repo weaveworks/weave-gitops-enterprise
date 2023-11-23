@@ -1,5 +1,5 @@
 # Development Experience 
-This document outlines an architecture documentation for Weave Gitops Development Experience domain
+This document outlines an architecture documentation for Weave GitOps Development Experience domain
 
 ## Motivation
 

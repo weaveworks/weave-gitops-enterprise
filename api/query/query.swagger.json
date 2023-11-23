@@ -81,6 +81,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Query"
         ]
@@ -280,6 +288,12 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1Facet"
+          }
+        },
+        "humanReadableLabels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
           }
         }
       }

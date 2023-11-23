@@ -50,7 +50,7 @@ function Explorer({
   }
 
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
-  const { data: facetsRes } = useListFacets();
+  const { data: facetsRes } = useListFacets(category);
   const queryState = manager.read();
   const setQueryState = manager.write;
   const inputRef = useRef<HTMLInputElement>(null);
@@ -146,7 +146,10 @@ function Explorer({
           >
             <QueryInput innerRef={inputRef} />
 
-            <Filters facets={filteredFacets || []} />
+            <Filters
+              facets={filteredFacets || []}
+              humanReadableLabels={facetsRes?.humanReadableLabels}
+            />
           </FilterDrawer>
         </Flex>
 

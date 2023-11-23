@@ -5,6 +5,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 )
@@ -22,10 +23,11 @@ type FakeIndexer struct {
 	addReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ListFacetsStub        func(context.Context) (store.Facets, error)
+	ListFacetsStub        func(context.Context, configuration.ObjectCategory) (store.Facets, error)
 	listFacetsMutex       sync.RWMutex
 	listFacetsArgsForCall []struct {
 		arg1 context.Context
+		arg2 configuration.ObjectCategory
 	}
 	listFacetsReturns struct {
 		result1 store.Facets
@@ -145,18 +147,19 @@ func (fake *FakeIndexer) AddReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeIndexer) ListFacets(arg1 context.Context) (store.Facets, error) {
+func (fake *FakeIndexer) ListFacets(arg1 context.Context, arg2 configuration.ObjectCategory) (store.Facets, error) {
 	fake.listFacetsMutex.Lock()
 	ret, specificReturn := fake.listFacetsReturnsOnCall[len(fake.listFacetsArgsForCall)]
 	fake.listFacetsArgsForCall = append(fake.listFacetsArgsForCall, struct {
 		arg1 context.Context
-	}{arg1})
+		arg2 configuration.ObjectCategory
+	}{arg1, arg2})
 	stub := fake.ListFacetsStub
 	fakeReturns := fake.listFacetsReturns
-	fake.recordInvocation("ListFacets", []interface{}{arg1})
+	fake.recordInvocation("ListFacets", []interface{}{arg1, arg2})
 	fake.listFacetsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -170,17 +173,17 @@ func (fake *FakeIndexer) ListFacetsCallCount() int {
 	return len(fake.listFacetsArgsForCall)
 }
 
-func (fake *FakeIndexer) ListFacetsCalls(stub func(context.Context) (store.Facets, error)) {
+func (fake *FakeIndexer) ListFacetsCalls(stub func(context.Context, configuration.ObjectCategory) (store.Facets, error)) {
 	fake.listFacetsMutex.Lock()
 	defer fake.listFacetsMutex.Unlock()
 	fake.ListFacetsStub = stub
 }
 
-func (fake *FakeIndexer) ListFacetsArgsForCall(i int) context.Context {
+func (fake *FakeIndexer) ListFacetsArgsForCall(i int) (context.Context, configuration.ObjectCategory) {
 	fake.listFacetsMutex.RLock()
 	defer fake.listFacetsMutex.RUnlock()
 	argsForCall := fake.listFacetsArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeIndexer) ListFacetsReturns(result1 store.Facets, result2 error) {

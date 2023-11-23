@@ -10,7 +10,7 @@ Cost estimation was requested by a specific customer (IQT) and is not available 
 
 ## Enabling
 
-We make some configuration changes to the `values` in the Weave Gitops Enterprise `HelmRelease`.
+We make some configuration changes to the `values` in the Weave GitOps Enterprise `HelmRelease`.
 
 ### AWS CSV Pricer
 

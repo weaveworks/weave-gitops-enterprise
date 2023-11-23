@@ -112,7 +112,7 @@ Ensure that the version referenced in the instructions for downloading the CLI a
 
 Sample:
 
-> Hi! There is a new release of Weave Gitops Enterprise v0.9.6!
+> Hi! There is a new release of Weave GitOps Enterprise v0.9.6!
 > - https://github.com/weaveworks/weave-gitops-enterprise/releases/tag/v0.9.6
 > - https://docs.gitops.weave.works/docs/enterprise/getting-started/releases-enterprise/
 

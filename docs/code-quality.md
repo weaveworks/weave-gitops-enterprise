@@ -1,6 +1,6 @@
 # Code Quality and Security
 
-This doc provides an overview on the actions taken for code quality and security posture for Weave Gitops Enterprise. 
+This doc provides an overview on the actions taken for code quality and security posture for Weave GitOps Enterprise. 
 
 ## Code
 
@@ -51,11 +51,11 @@ We have the following three capabilities identified:
 We use [GitHub Dependabot](https://github.com/dependabot) for vulnerability management. 
 They are actively reviewed and managed via PR associated with the engineering teams. 
 
-![dependandbot security alerts for Weave Gitops Enterprise](resources/dependandbot-security-alerts.png)
+![dependandbot security alerts for Weave GitOps Enterprise](resources/dependandbot-security-alerts.png)
 
 ### License Checking
 
-We use Fossa for doing license checking. An example of it could be seen in [Weave Gitops OSS](https://app.fossa.com/reports/005da7c4-1f10-4889-9432-8b97c2084e41) 
+We use Fossa for doing license checking. An example of it could be seen in [Weave GitOps OSS](https://app.fossa.com/reports/005da7c4-1f10-4889-9432-8b97c2084e41) 
 
 ### Static Code Analysis 
 

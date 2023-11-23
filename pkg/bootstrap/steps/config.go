@@ -1,7 +1,6 @@
 package steps
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -71,7 +70,7 @@ type ConfigBuilder struct {
 	gitUsername             string
 	gitToken                string
 	repoURL                 string
-	branch                  string
+	repoBranch              string
 	repoPath                string
 	authType                string
 	installOIDC             string
@@ -128,7 +127,7 @@ func (c *ConfigBuilder) WithGitAuthentication(privateKeyPath, privateKeyPassword
 
 func (c *ConfigBuilder) WithGitRepository(repoURL, branch, repoPath string) *ConfigBuilder {
 	c.repoURL = repoURL
-	c.branch = branch
+	c.repoBranch = branch
 	c.repoPath = repoPath
 	return c
 }
@@ -157,14 +156,11 @@ type Config struct {
 	KubernetesClient k8s_client.Client
 	Logger           logger.Logger
 
-	WGEVersion string // user want this version in the cluster
-
-	Password string // cluster user password
+	WGEVersion      string // user want this version in the cluster
+	ClusterUserAuth ClusterUserAuthConfig
 
 	DomainType string
 	UserDomain string
-
-	GitScheme string
 
 	Silent bool
 
@@ -175,9 +171,16 @@ type Config struct {
 	GitUsername string
 	GitToken    string
 
-	RepoURL  string
-	Branch   string
+	// GitRepository contains the configuration for the git repo
+	GitRepository GitRepositoryConfig
+	// deprecated use GitRepository.Url instead
+	RepoURL string
+	// deprecated use GitRepository.Branch instead
+	Branch string
+	// deprecated use GitRepository.Path instead
 	RepoPath string
+	// deprecated use GitRepository.Scheme instead
+	GitScheme string
 
 	AuthType                string
 	InstallOIDC             string
@@ -208,31 +211,29 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		}
 	}
 
-	if cb.password != "" && len(cb.password) < 6 {
-		return Config{}, errors.New("password minimum characters should be >= 6")
+	clusterUserAuthConfig, err := NewClusterUserAuthConfig(cb.password, kubeHttp.Client)
+	if err != nil {
+		return Config{}, fmt.Errorf("error creating cluster user auth configuration: %v", err)
 	}
 
-	// parse repo scheme
-	var scheme string
-	if cb.repoURL != "" {
-		scheme, err = parseRepoScheme(cb.repoURL)
-		if err != nil {
-			return Config{}, err
-		}
+	gitRepositoryConfig, err := NewGitRepositoryConfig(cb.repoURL, cb.repoBranch, cb.repoPath)
+	if err != nil {
+		return Config{}, fmt.Errorf("error creating git repository configuration: %v", err)
 	}
 
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
 		KubernetesClient:        kubeHttp.Client,
 		WGEVersion:              cb.wgeVersion,
-		Password:                cb.password,
+		ClusterUserAuth:         clusterUserAuthConfig,
+		GitRepository:           gitRepositoryConfig,
+		GitScheme:               gitRepositoryConfig.Scheme,
+		Branch:                  gitRepositoryConfig.Branch,
+		RepoPath:                gitRepositoryConfig.Path,
 		Logger:                  cb.logger,
 		DomainType:              cb.domainType,
 		UserDomain:              cb.domain,
-		GitScheme:               scheme,
-		Branch:                  cb.branch,
 		Silent:                  cb.silent,
-		RepoPath:                cb.repoPath,
 		RepoURL:                 cb.repoURL,
 		PrivateKeyPath:          cb.privateKeyPath,
 		PrivateKeyPassword:      cb.privateKeyPassword,
