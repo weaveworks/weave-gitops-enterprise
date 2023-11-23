@@ -3,16 +3,17 @@ package steps
 import (
 	"testing"
 
-	"github.com/alecthomas/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateGitRepositoryConfig(t *testing.T) {
 
 	tests := []struct {
-		name   string
-		input  []StepInput
-		config *Config
-		err    bool
+		name    string
+		input   []StepInput
+		config  *Config
+		err     bool
+		wantErr assert.ErrorAssertionFunc
 	}{
 		{
 			name: "test with valid ssh repo scheme",
@@ -31,12 +32,15 @@ func TestCreateGitRepositoryConfig(t *testing.T) {
 				},
 			},
 			config: &Config{
-				RepoURL:   "ssh://git@github.com/my-org-name/my-repo-name",
-				RepoPath:  "test/test",
-				Branch:    "main",
-				GitScheme: sshScheme,
+				GitRepository: GitRepositoryConfig{
+					Url:    "ssh://git@github.com/my-org-name/my-repo-name",
+					Path:   "test/test",
+					Branch: "main",
+					Scheme: sshScheme,
+				},
 			},
-			err: false,
+			err:     false,
+			wantErr: assert.NoError,
 		},
 		{
 			name: "test with valid https repo scheme",
@@ -55,12 +59,14 @@ func TestCreateGitRepositoryConfig(t *testing.T) {
 				},
 			},
 			config: &Config{
-				RepoURL:   "https://github.com/my-org-name/my-repo-name",
-				RepoPath:  "test/test",
-				Branch:    "main",
-				GitScheme: httpsScheme,
+				GitRepository: GitRepositoryConfig{
+					Url:    "https://github.com/my-org-name/my-repo-name",
+					Path:   "test/test",
+					Branch: "main",
+					Scheme: httpsScheme,
+				},
 			},
-			err: false,
+			wantErr: assert.NoError,
 		},
 		{
 			name: "test with invalid repo scheme",
@@ -78,20 +84,47 @@ func TestCreateGitRepositoryConfig(t *testing.T) {
 					Value: "test/test",
 				},
 			},
-			err: true,
+			config: &Config{
+				GitRepository: GitRepositoryConfig{},
+			},
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), "unsupported repository scheme: ssl")
+				return true
+			},
+		},
+		{
+			name: "test with empty repo scheme",
+			input: []StepInput{
+				{
+					Name:  inRepoURL,
+					Value: "git@github.com/my-org-name/my-repo-name",
+				},
+				{
+					Name:  inBranch,
+					Value: "main",
+				},
+				{
+					Name:  inRepoPath,
+					Value: "test/test",
+				},
+			},
+			config: &Config{
+				GitRepository: GitRepositoryConfig{},
+			},
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), "repository scheme cannot be empty")
+				return true
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			config := makeTestConfig(t, Config{})
-
 			_, err := createGitRepositoryConfig(tt.input, &config)
-			if err != nil {
-				if tt.err {
-					assert.Error(t, err, "expected error")
-					return
-				}
-				t.Fatalf("unexpected error occurred: %v", err)
+			if !tt.wantErr(t, err, "createGitRepositoryConfig") {
+				return
 			}
 			assert.Equal(t, tt.config.RepoURL, config.RepoURL, "wrong repo url")
 			assert.Equal(t, tt.config.RepoPath, config.RepoPath, "wrong repo path")

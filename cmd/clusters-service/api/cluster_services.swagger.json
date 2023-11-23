@@ -263,7 +263,7 @@
     },
     "/v1/config": {
       "get": {
-        "summary": "Get the Weave Gitops Enterprise configuration",
+        "summary": "Get the Weave GitOps Enterprise configuration",
         "operationId": "ClustersService_GetConfig",
         "responses": {
           "200": {
@@ -368,7 +368,7 @@
     },
     "/v1/enterprise/version": {
       "get": {
-        "summary": "Get the Weave Gitops Enterprise version",
+        "summary": "Get the Weave GitOps Enterprise version",
         "operationId": "ClustersService_GetEnterpriseVersion",
         "responses": {
           "200": {

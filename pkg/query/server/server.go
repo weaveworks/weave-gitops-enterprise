@@ -113,13 +113,29 @@ func (s *server) DebugGetAccessRules(ctx context.Context, msg *pb.DebugGetAccess
 }
 
 func (s *server) ListFacets(ctx context.Context, msg *pb.ListFacetsRequest) (*pb.ListFacetsResponse, error) {
-	facets, err := s.qs.ListFacets(ctx)
+	facets, err := s.qs.ListFacets(ctx, configuration.ObjectCategory(msg.Category))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list facets: %w", err)
 	}
 
+	humanReadableLabelKeys := map[string]string{}
+
+	for _, objectKind := range configuration.SupportedObjectKinds {
+		for _, label := range objectKind.Labels {
+			if objectKind.HumanReadableLabelKeys != nil {
+				// Substitute human readable label keys for label with dot notation: labels.<label>
+				for labelKey, labelValue := range objectKind.HumanReadableLabelKeys {
+					if labelKey == label {
+						humanReadableLabelKeys[fmt.Sprintf("labels.%s", label)] = labelValue
+					}
+				}
+			}
+		}
+	}
+
 	return &pb.ListFacetsResponse{
-		Facets: convertToPbFacet(facets),
+		Facets:              convertToPbFacet(facets),
+		HumanReadableLabels: humanReadableLabelKeys,
 	}, nil
 }
 
@@ -182,7 +198,7 @@ func (so *ServerOpts) Validate() error {
 	return nil
 }
 
-func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error) {
+func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, retErr error) {
 	if err := opts.Validate(); err != nil {
 		return nil, nil, fmt.Errorf("invalid query server options: %w", err)
 	}
@@ -240,7 +256,7 @@ func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error)
 
 		ctx, cancel := context.WithCancel(context.Background())
 		defer func() {
-			if reterr != nil {
+			if retErr != nil {
 				cancel()
 			}
 		}()

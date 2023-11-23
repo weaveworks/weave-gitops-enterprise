@@ -222,7 +222,7 @@ cluster-bootstrap-controller:
 
 #### Explorer
 explorer:
-  enabled: false
+  enabled: true
   collector:
     # ServiceAccount that explorer will use to watch clusters for resources
     serviceAccount:
@@ -231,8 +231,8 @@ explorer:
   cleaner:
     disabled: false
   enabledFor:
-    - applications
-    - sources
+#    - applications
+#    - sources
     - gitopssets
     - templates
-    - clusterdiscovery
+#    - clusterdiscovery

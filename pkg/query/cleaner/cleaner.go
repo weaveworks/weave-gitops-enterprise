@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/cleaner/metrics"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
@@ -17,12 +18,14 @@ type ObjectCleaner interface {
 }
 
 type objectCleaner struct {
-	log    logr.Logger
-	ticker *time.Ticker
-	config []configuration.ObjectKind
-	idx    store.IndexWriter
-	store  store.Store
-	stop   chan bool
+	log              logr.Logger
+	ticker           *time.Ticker
+	config           []configuration.ObjectKind
+	idx              store.IndexWriter
+	store            store.Store
+	stop             chan bool
+	status           string
+	lastStatusChange time.Time
 }
 
 type CleanerOpts struct {
@@ -32,6 +35,12 @@ type CleanerOpts struct {
 	Store    store.Store
 	Index    store.IndexWriter
 }
+
+const (
+	CleanerStarting = "starting"
+	CleanerStarted  = "started"
+	CleanerStopped  = "stopped"
+)
 
 func NewObjectCleaner(opts CleanerOpts) (ObjectCleaner, error) {
 	return &objectCleaner{
@@ -44,10 +53,13 @@ func NewObjectCleaner(opts CleanerOpts) (ObjectCleaner, error) {
 }
 
 func (oc *objectCleaner) Start() error {
+	oc.setStatus(CleanerStarting)
 	stop := make(chan bool, 1)
 	oc.stop = stop
 
 	go func() {
+		oc.setStatus(CleanerStarted)
+
 		for {
 			select {
 			case <-oc.ticker.C:
@@ -66,11 +78,41 @@ func (oc *objectCleaner) Start() error {
 
 func (oc *objectCleaner) Stop() error {
 	oc.stop <- true
+	oc.setStatus(CleanerStopped)
 
 	return nil
 }
 
-func (oc *objectCleaner) removeOldObjects(ctx context.Context) error {
+// setStatus sets cleaner status and records it as a metric.
+func (oc *objectCleaner) setStatus(s string) {
+	if oc.status != "" {
+		metrics.CleanerWatcherDecrease(oc.status)
+	}
+
+	oc.lastStatusChange = time.Now()
+	oc.status = s
+
+	if oc.status != CleanerStopped {
+		metrics.CleanerWatcherIncrease(oc.status)
+	}
+}
+
+func recordCleanerMetrics(start time.Time, err error) {
+	metrics.CleanerAddInflightRequests(-1)
+
+	label := metrics.SuccessLabel
+	if err != nil {
+		label = metrics.FailedLabel
+	}
+
+	metrics.CleanerSetLatency(label, time.Since(start))
+}
+
+func (oc *objectCleaner) removeOldObjects(ctx context.Context) (retErr error) {
+	// metrics
+	metrics.CleanerAddInflightRequests(1)
+	defer recordCleanerMetrics(time.Now(), retErr)
+
 	iter, err := oc.store.GetAllObjects(ctx)
 
 	if err != nil {
@@ -80,12 +122,11 @@ func (oc *objectCleaner) removeOldObjects(ctx context.Context) error {
 	all, err := iter.All()
 
 	if err != nil {
-		return fmt.Errorf("could not get all objects: %w", err)
+		return fmt.Errorf("could not iterate over objects: %w", err)
 	}
 
 	for _, obj := range all {
 		for i, k := range oc.config {
-
 			kind := fmt.Sprintf("%s/%s", k.Gvk.GroupVersion().String(), k.Gvk.Kind)
 			gvk := obj.GroupVersionKind()
 			if kind == gvk {
@@ -95,11 +136,11 @@ func (oc *objectCleaner) removeOldObjects(ctx context.Context) error {
 					remove := []models.Object{obj}
 
 					if err := oc.store.DeleteObjects(ctx, remove); err != nil {
-						oc.log.Error(err, "could not delete object")
+						oc.log.Error(err, "could not delete object with ID: %s", obj.ID)
 					}
 
 					if err := oc.idx.Remove(ctx, remove); err != nil {
-						oc.log.Error(err, "could not delete object from index")
+						oc.log.Error(err, "could not delete object with ID: %s from index", obj.ID)
 					}
 				}
 			}

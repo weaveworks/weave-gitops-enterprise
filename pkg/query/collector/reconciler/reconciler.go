@@ -24,10 +24,11 @@ type Reconciler interface {
 type ProcessFunc func(models.ObjectTransaction) error
 
 var kindsWithoutFinalizers = map[string]bool{
-	"ClusterRoleBinding": true,
-	"ClusterRole":        true,
-	"RoleBinding":        true,
-	"Role":               true,
+	"ClusterRoleBinding":        true,
+	"ClusterRole":               true,
+	"RoleBinding":               true,
+	"Role":                      true,
+	"AutomatedClusterDiscovery": true,
 }
 
 func NewReconciler(clusterName string, objectKind configuration.ObjectKind, client client.Client, process ProcessFunc, log logr.Logger) (Reconciler, error) {

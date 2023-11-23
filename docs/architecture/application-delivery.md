@@ -1,5 +1,5 @@
 # Application Delivery 
-This document outlines an architecture documentation for Weave Gitops Application Delivery domain.
+This document outlines an architecture documentation for Weave GitOps Application Delivery domain.
 
 ## Motivation
 As software business, value is delivered to the users or customers by enabling them to do actions.
@@ -26,8 +26,8 @@ Pipelines enables a user to deliver application changes across different environ
 There are three main pipeline journeys:
 
 1. As developer, to add a pipeline for my application, which is a regular gitops flow [Pipeline](https://docs.gitops.weave.works/docs/pipelines/spec/v1alpha1/pipeline/) 
-2. As developer to view my application pipelines via [Weave Gitops UI](https://docs.gitops.weave.works/docs/pipelines/getting-started/)  
-3. As developer to promote my application along the pipeline stages via [Weave Gitops UI](https://docs.gitops.weave.works/docs/pipelines/promoting-applications/) 
+2. As developer to view my application pipelines via [Weave GitOps UI](https://docs.gitops.weave.works/docs/pipelines/getting-started/)  
+3. As developer to promote my application along the pipeline stages via [Weave GitOps UI](https://docs.gitops.weave.works/docs/pipelines/promoting-applications/) 
 
 ```mermaid
 C4Component

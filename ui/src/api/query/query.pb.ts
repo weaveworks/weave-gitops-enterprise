@@ -67,10 +67,12 @@ export type Subject = {
 }
 
 export type ListFacetsRequest = {
+  category?: string
 }
 
 export type ListFacetsResponse = {
   facets?: Facet[]
+  humanReadableLabels?: {[key: string]: string}
 }
 
 export type Facet = {

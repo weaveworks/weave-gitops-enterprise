@@ -14,7 +14,7 @@ func makeTestConfig(t *testing.T, config Config, objects ...runtime.Object) Conf
 		KubernetesClient:        fakeClient,
 		Logger:                  cliLogger,
 		WGEVersion:              config.WGEVersion,
-		Password:                config.Password,
+		ClusterUserAuth:         config.ClusterUserAuth,
 		DomainType:              config.DomainType,
 		UserDomain:              config.UserDomain,
 		GitScheme:               config.GitScheme,
