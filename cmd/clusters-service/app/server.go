@@ -1045,18 +1045,6 @@ func defaultOptions() *Options {
 	}
 }
 
-type spaFileSystem struct {
-	root http.FileSystem
-}
-
-func (fs *spaFileSystem) Open(name string) (http.File, error) {
-	f, err := fs.root.Open(name)
-	if os.IsNotExist(err) {
-		return fs.root.Open("index.html")
-	}
-	return f, err
-}
-
 func makeCostEstimator(ctx context.Context, log logr.Logger, p Params) (estimation.Estimator, error) {
 	var pricer estimation.Pricer
 	if p.CostEstimationFilename != "" {
