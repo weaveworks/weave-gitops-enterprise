@@ -12,12 +12,14 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io/fs"
 	"math/big"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
+	"path"
 	"strings"
 	"syscall"
 	"time"
@@ -128,6 +130,7 @@ type Params struct {
 	HelmRepoName                      string                    `mapstructure:"helm-repo-name"`
 	ProfileCacheLocation              string                    `mapstructure:"profile-cache-location"`
 	HtmlRootPath                      string                    `mapstructure:"html-root-path"`
+	RoutePrefix                       string                    `mapstructure:"route-prefix"`
 	OIDC                              OIDCAuthenticationOptions `mapstructure:",squash"`
 	GitProviderType                   string                    `mapstructure:"git-provider-type"`
 	GitProviderHostname               string                    `mapstructure:"git-provider-hostname"`
@@ -219,6 +222,7 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
 	cmdFlags.String("helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
 	cmdFlags.String("profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
+	cmdFlags.String("route-prefix", "", "Mount the UI and API endpoint under a path prefix, e.g. /weave-gitops")
 	cmdFlags.String("html-root-path", "/html", "Where to serve static assets from")
 	cmdFlags.String("git-provider-type", "", "")
 	cmdFlags.String("git-provider-hostname", "", "")
@@ -752,9 +756,17 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	// UI
 	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
-	staticAssets := http.StripPrefix("/", http.FileServer(&spaFileSystem{http.Dir(args.HtmlRootPath)}))
+
+	assetFS := getAssets()
+	assertFSHandler := http.FileServer(http.FS(assetFS))
+	redirectHandler := core.IndexHTMLHandler(assetFS, args.Log, args.RoutePrefix)
+	assetHandler := core.AssetHandler(assertFSHandler, redirectHandler)
 
 	mux := http.NewServeMux()
+
+	if args.RoutePrefix != "" {
+		mux = core.WithRoutePrefix(mux, args.RoutePrefix)
+	}
 
 	_, err = url.Parse(args.OIDC.IssuerURL)
 	if err != nil {
@@ -864,7 +876,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
 
-	staticAssetsWithGz := gziphandler.GzipHandler(staticAssets)
+	staticAssetsWithGz := gziphandler.GzipHandler(assetHandler)
 
 	mux.Handle("/", staticAssetsWithGz)
 
@@ -1105,4 +1117,15 @@ func IssueGitProviderCSRFCookie(domain string, path string, duration time.Durati
 
 		return nil
 	}
+}
+
+func getAssets() fs.FS {
+	exec, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+
+	f := os.DirFS(path.Join(path.Dir(exec), "dist"))
+
+	return f
 }

@@ -40,6 +40,7 @@ type Options struct {
 	CAPIClustersNamespace     string
 	CAPIEnabled               bool
 	EntitlementSecretKey      client.ObjectKey
+	RoutePrefix               string
 	HtmlRootPath              string
 	ClientGetter              kube.ClientGetter
 	AuthMethods               map[auth.AuthMethod]bool

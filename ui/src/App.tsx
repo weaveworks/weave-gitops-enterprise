@@ -8,6 +8,7 @@ import {
   AuthContextProvider,
   coreClient,
   CoreClientContextProvider,
+  getBasePath,
   LinkResolverProvider,
   Pendo,
   SignIn,
@@ -185,7 +186,7 @@ const AppContainer = () => {
   return (
     <RequestContextProvider fetch={window.fetch}>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter basename={process.env.PUBLIC_URL}>
+        <BrowserRouter basename={getBasePath()}>
           <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
             <PipelinesProvider api={Pipelines}>
               <GitAuthProvider>
