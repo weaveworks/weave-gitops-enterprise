@@ -143,7 +143,7 @@ func bootstrapFlux(c *Config) error {
 			"--branch", c.Branch,
 			"--path", c.RepoPath,
 			"--private-key-file", c.PrivateKeyPath,
-			"--gpg-passphrase", c.PrivateKeyPassword,
+			"--password", c.PrivateKeyPassword,
 			"-s",
 		)
 	case httpsScheme:
