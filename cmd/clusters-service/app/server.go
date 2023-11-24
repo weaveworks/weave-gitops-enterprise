@@ -12,14 +12,12 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io/fs"
 	"math/big"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
-	"path"
 	"strings"
 	"syscall"
 	"time"
@@ -752,9 +750,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// UI
 	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
 
-	assetFS := getAssets()
+	assetFS := os.DirFS(args.HtmlRootPath)
 	assertFSHandler := http.FileServer(http.FS(assetFS))
-	fmt.Println("assetFS", assetFS)
+	fmt.Println("args", args)
 	fmt.Println("root path", args.HtmlRootPath)
 	fmt.Println("route prefix", args.RoutePrefix)
 	redirectHandler := core.IndexHTMLHandler(assetFS, args.Log, args.RoutePrefix)
@@ -1103,15 +1101,4 @@ func IssueGitProviderCSRFCookie(domain string, path string, duration time.Durati
 
 		return nil
 	}
-}
-
-func getAssets() fs.FS {
-	exec, err := os.Executable()
-	if err != nil {
-		panic(err)
-	}
-
-	f := os.DirFS(path.Join(path.Dir(exec), "dist"))
-
-	return f
 }
