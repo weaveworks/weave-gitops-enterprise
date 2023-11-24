@@ -2,13 +2,13 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router-dom';
 import Pipelines from '..';
+import { APIContext } from '../../../contexts/API';
 import {
   defaultContexts,
   PipelinesClientMock,
   TestFilterableTable,
   withContext,
 } from '../../../utils/test-utils';
-import { APIContext } from '../../../contexts/API';
 
 const pipelines = {
   pipelines: [

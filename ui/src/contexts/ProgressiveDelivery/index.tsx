@@ -11,9 +11,9 @@ import {
   ListEventsResponse,
 } from '../../cluster-services/cluster_services.pb';
 import { formatError } from '../../utils/formatters';
+import { useAPI } from '../API';
 import { EnterpriseClientContext } from '../EnterpriseClient';
 import useNotifications from './../../contexts/Notifications';
-import { useAPI } from '../API';
 
 export const useProgressiveDelivery = () => {
   const { progressiveDeliveryService } = useAPI();

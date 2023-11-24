@@ -4,6 +4,7 @@ import {
   render,
   RenderResult,
 } from '@testing-library/react';
+import { APIContext } from '../../../contexts/API';
 import {
   defaultContexts,
   MockQueryService,
@@ -11,7 +12,6 @@ import {
 } from '../../../utils/test-utils';
 import Explorer from '../Explorer';
 import { addFieldsWithIndex } from '../ExplorerTable';
-import { APIContext } from '../../../contexts/API';
 
 describe('addExplorerFields', () => {
   const newField = (id: string, index?: number) => ({

@@ -1,5 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import { CanaryMetric } from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import { APIContext } from '../../../../contexts/API';
 import {
   defaultContexts,
   findTextByHeading,
@@ -7,7 +8,6 @@ import {
   withContext,
 } from '../../../../utils/test-utils';
 import { CanaryMetricsTable } from '../Analysis/CanaryMetricsTable';
-import { APIContext } from '../../../../contexts/API';
 
 describe('CanaryMetricsTable', () => {
   let wrap: (el: JSX.Element) => JSX.Element;

@@ -1,11 +1,11 @@
 import { act, render, screen } from '@testing-library/react';
+import { APIContext } from '../../../contexts/API';
 import {
   defaultContexts,
   ProgressiveDeliveryMock,
   withContext,
 } from '../../../utils/test-utils';
 import CanaryDetails from '../CanaryDetails';
-import { APIContext } from '../../../contexts/API';
 
 describe('CanaryDetails', () => {
   let wrap: (el: JSX.Element) => JSX.Element;

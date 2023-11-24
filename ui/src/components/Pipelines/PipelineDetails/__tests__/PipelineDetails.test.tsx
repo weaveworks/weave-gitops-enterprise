@@ -4,13 +4,13 @@ import { CoreClientContextProvider } from '@weaveworks/weave-gitops';
 import PipelineDetails from '..';
 import { GetPipelineResponse } from '../../../../api/pipelines/pipelines.pb';
 import { Pipeline } from '../../../../api/pipelines/types.pb';
+import { APIContext } from '../../../../contexts/API';
 import {
   CoreClientMock,
   PipelinesClientMock,
   defaultContexts,
   withContext,
 } from '../../../../utils/test-utils';
-import { APIContext } from '../../../../contexts/API';
 
 const res: GetPipelineResponse = {
   pipeline: {

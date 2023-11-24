@@ -1,12 +1,12 @@
 import { act, render, screen } from '@testing-library/react';
 import ListCanaries from '../';
+import { APIContext } from '../../../contexts/API';
 import {
   defaultContexts,
   ProgressiveDeliveryMock,
   withContext,
   findCellInCol,
 } from '../../../utils/test-utils';
-import { APIContext } from '../../../contexts/API';
 
 describe('ListCanaries', () => {
   let wrap: (el: JSX.Element) => JSX.Element;

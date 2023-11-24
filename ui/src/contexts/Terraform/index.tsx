@@ -9,8 +9,8 @@ import {
 } from '../../api/terraform/terraform.pb';
 import { ObjectRef } from '../../api/terraform/types.pb';
 import { formatError } from '../../utils/formatters';
-import useNotifications from './../../contexts/Notifications';
 import { useAPI } from '../API';
+import useNotifications from './../../contexts/Notifications';
 
 function useTerraform() {
   const { terraform } = useAPI();

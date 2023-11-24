@@ -8,10 +8,10 @@ import {
 } from '../../api/pipelines/pipelines.pb';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { formatError } from '../../utils/formatters';
+import { useAPI } from '../API';
 import useNotifications, {
   NotificationData,
 } from './../../contexts/Notifications';
-import { useAPI } from '../API';
 
 export const usePipelines = () => {
   const { pipelines } = useAPI();
