@@ -16,9 +16,9 @@ dependencies:
   version: 0.16.4
 - name: cluster-reflector-controller
   repository: oci://ghcr.io/weaveworks/charts
-  version: 0.0.9
+  version: 0.0.10
 - name: cluster-bootstrap-controller
   repository: oci://ghcr.io/weaveworks/charts
   version: 0.7.3
-digest: sha256:01a0075710244603f0f5df2d87e37b99af5965b97b6f896c1ca674ccb80d9463
-generated: "2023-11-14T10:53:22.368498+01:00"
+digest: sha256:85e155b7c101f0b576adccd3447e544f8d43cc14845ec68be8e8e591cca29439
+generated: "2023-11-24T15:46:50.927936+01:00"
