@@ -754,6 +754,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	assetFS := getAssets()
 	assertFSHandler := http.FileServer(http.FS(assetFS))
+	fmt.Println("assetFS", assetFS)
+	fmt.Println("root path", args.HtmlRootPath)
+	fmt.Println("route prefix", args.RoutePrefix)
 	redirectHandler := core.IndexHTMLHandler(assetFS, args.Log, args.RoutePrefix)
 	assetHandler := core.AssetHandler(assertFSHandler, redirectHandler)
 
