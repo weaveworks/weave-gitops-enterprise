@@ -180,5 +180,5 @@ else:
       ignore=["ui", "build", ".parcel-cache"],
       dockerfile='cmd/clusters-service/Dockerfile',
       build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'),'image_tag': 'tilt'},
-      entrypoint= ["/clusters-service", "--log-level=debug"]
+      entrypoint= ["/clusters-service", "--log-level=debug", "--route-prefix=/weave-gitops-enterprise"]
    )
