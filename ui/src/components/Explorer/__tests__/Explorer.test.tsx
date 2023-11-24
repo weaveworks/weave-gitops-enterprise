@@ -4,7 +4,6 @@ import {
   render,
   RenderResult,
 } from '@testing-library/react';
-import QueryServiceProvider from '../../../contexts/QueryService';
 import {
   defaultContexts,
   MockQueryService,
@@ -12,6 +11,7 @@ import {
 } from '../../../utils/test-utils';
 import Explorer from '../Explorer';
 import { addFieldsWithIndex } from '../ExplorerTable';
+import { APIContext } from '../../../contexts/API';
 
 describe('addExplorerFields', () => {
   const newField = (id: string, index?: number) => ({
@@ -50,7 +50,10 @@ describe('Explorer', () => {
 
   beforeEach(() => {
     api = new MockQueryService();
-    wrap = withContext([...defaultContexts(), [QueryServiceProvider, { api }]]);
+    wrap = withContext([
+      ...defaultContexts(),
+      [APIContext.Provider, { value: { query: api } }],
+    ]);
   });
 
   it('renders rows', async () => {

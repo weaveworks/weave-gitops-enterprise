@@ -2,37 +2,23 @@ import {
   GetCanaryResponse,
   ListCanariesResponse,
   ListCanaryObjectsResponse,
-  ProgressiveDeliveryService
 } from '@weaveworks/progressive-delivery';
 import _ from 'lodash';
 import React, { useContext } from 'react';
 import { useQuery } from 'react-query';
 import {
   ListEventsRequest,
-  ListEventsResponse
+  ListEventsResponse,
 } from '../../cluster-services/cluster_services.pb';
 import { formatError } from '../../utils/formatters';
 import { EnterpriseClientContext } from '../EnterpriseClient';
 import useNotifications from './../../contexts/Notifications';
+import { useAPI } from '../API';
 
-interface Props {
-  api: typeof ProgressiveDeliveryService;
-  children: any;
-}
-
-export const ProgressiveDeliveryContext = React.createContext<
-  typeof ProgressiveDeliveryService
->(null as any);
-
-export const ProgressiveDeliveryProvider = ({ api, children }: Props) => (
-  <ProgressiveDeliveryContext.Provider value={api}>
-    {children}
-  </ProgressiveDeliveryContext.Provider>
-);
-
-export const useProgressiveDelivery = () =>
-  React.useContext(ProgressiveDeliveryContext);
-
+export const useProgressiveDelivery = () => {
+  const { progressiveDeliveryService } = useAPI();
+  return progressiveDeliveryService;
+};
 const PD_QUERY_KEY = 'flagger';
 const FLAGGER_STATUS_KEY = 'status';
 

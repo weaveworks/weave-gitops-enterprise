@@ -21,7 +21,12 @@ import {
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import _ from 'lodash';
 import React from 'react';
-import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
+import {
+  Query,
+  QueryCache,
+  QueryClient,
+  QueryClientProvider,
+} from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import {

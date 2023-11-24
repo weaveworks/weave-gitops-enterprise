@@ -1,13 +1,12 @@
 import { useFeatureFlags } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
-import { useContext } from 'react';
 import { useQuery } from 'react-query';
 import {
   DoQueryResponse,
   EnabledComponent,
   ListEnabledComponentsResponse,
 } from '../api/query/query.pb';
-import { QueryServiceContext } from '../contexts/QueryService';
+import { useAPI } from '../contexts/API';
 
 type QueryOpts = {
   terms?: string;
@@ -56,7 +55,7 @@ export function useQueryService({
   category,
   descending,
 }: QueryOpts) {
-  const api = useContext(QueryServiceContext);
+  const { query: api } = useAPI();
 
   let formatted = formatFilters(filters || []);
 
@@ -85,13 +84,13 @@ export function useQueryService({
 }
 
 export function useListAccessRules() {
-  const api = useContext(QueryServiceContext);
+  const { query: api } = useAPI();
 
   return useQuery(['listAccessRules'], () => api.DebugGetAccessRules({}));
 }
 
 export function useListFacets(category?: string) {
-  const api = useContext(QueryServiceContext);
+  const { query: api } = useAPI();
 
   return useQuery(['facets'], () => api.ListFacets({ category }), {
     refetchIntervalInBackground: true,
@@ -100,7 +99,7 @@ export function useListFacets(category?: string) {
 }
 
 function useListEnabledComponents() {
-  const api = useContext(QueryServiceContext);
+  const { query: api } = useAPI();
 
   const { isFlagEnabled } = useFeatureFlags();
   const isExplorerEnabled = isFlagEnabled('WEAVE_GITOPS_FEATURE_EXPLORER');

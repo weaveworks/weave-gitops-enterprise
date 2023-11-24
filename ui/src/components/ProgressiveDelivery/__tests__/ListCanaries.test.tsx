@@ -1,12 +1,12 @@
 import { act, render, screen } from '@testing-library/react';
 import ListCanaries from '../';
-import { ProgressiveDeliveryProvider } from '../../../contexts/ProgressiveDelivery';
 import {
   defaultContexts,
   ProgressiveDeliveryMock,
   withContext,
   findCellInCol,
 } from '../../../utils/test-utils';
+import { APIContext } from '../../../contexts/API';
 
 describe('ListCanaries', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
@@ -16,7 +16,7 @@ describe('ListCanaries', () => {
     api = new ProgressiveDeliveryMock();
     wrap = withContext([
       ...defaultContexts(),
-      [ProgressiveDeliveryProvider, { api }],
+      [APIContext.Provider, { value: { progressiveDeliveryService: api } }],
     ]);
     api.IsFlaggerAvailableReturns = { clusters: { 'my-cluster': true } };
   });
