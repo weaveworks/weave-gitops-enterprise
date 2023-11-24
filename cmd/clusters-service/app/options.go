@@ -299,3 +299,9 @@ func WithExplorerEnabledFor(enabledFor []string) Option {
 		o.ExplorerEnabledFor = append(o.ExplorerEnabledFor, enabledFor...)
 	}
 }
+
+func WithRoutePrefix(routePrefix string) Option {
+	return func(o *Options) {
+		o.RoutePrefix = routePrefix
+	}
+}

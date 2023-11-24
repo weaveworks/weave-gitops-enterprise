@@ -590,6 +590,7 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		WithMonitoring(p.MonitoringEnabled, p.MonitoringBindAddress, p.MetricsEnabled, p.ProfilingEnabled, log),
 		WithExplorerCleanerDisabled(p.ExplorerCleanerDisabled),
 		WithExplorerEnabledFor(p.ExplorerEnabledFor),
+		WithRoutePrefix(p.RoutePrefix),
 	)
 }
 
