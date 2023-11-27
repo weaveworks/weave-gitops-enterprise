@@ -11,6 +11,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/cli-utils/pkg/object"
 )
 
 const (
@@ -38,6 +40,10 @@ const (
 	gitopssetsBindAddress             = "127.0.0.1:8080"
 	gitopssetsHealthBindAddress       = ":8081"
 )
+
+var Components = []string{"cluster-controller-manager",
+	"weave-gitops-enterprise-mccp-cluster-bootstrap-controller",
+	"weave-gitops-enterprise-mccp-cluster-service"}
 
 var getUserDomain = StepInput{
 	Name:         inUserDomain,
@@ -146,6 +152,14 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 		CommitMsg: wgeHelmReleaseCommitMsg,
 	}
 
+	// Wait for the components to be healthy
+
+	c.Logger.Actionf("waiting for components to be healthy")
+	err = reportComponentsHealth(c, Components, WGEDefaultNamespace, 5*time.Minute)
+	if err != nil {
+		return []StepOutput{}, err
+	}
+
 	return []StepOutput{
 		{
 			Name:  wgeHelmrepoFileName,
@@ -247,4 +261,29 @@ func isUserDomainEnabled(input []StepInput, c *Config) bool {
 		return true
 	}
 	return false
+}
+
+func reportComponentsHealth(c *Config, componentNames []string, namespace string, timeout time.Duration) error {
+	// Initialize the status checker
+	checker, err := utils.NewStatusChecker(c.KubernetesClient, 5*time.Second, timeout, c.Logger)
+	if err != nil {
+		return err
+	}
+
+	// Construct a list of resources to check
+	var identifiers []object.ObjMetadata
+	for _, name := range componentNames {
+		identifiers = append(identifiers, object.ObjMetadata{
+			Namespace: namespace,
+			Name:      name,
+			GroupKind: schema.GroupKind{Group: "apps", Kind: "Deployment"},
+		})
+	}
+
+	// Perform the health check
+	if err := checker.Assess(identifiers...); err != nil {
+		return err
+	}
+
+	return nil
 }
