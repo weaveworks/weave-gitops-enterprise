@@ -753,17 +753,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	assetFS := os.DirFS(args.HtmlRootPath)
 	assertFSHandler := http.FileServer(http.FS(assetFS))
-	fmt.Println("args", args)
-	fmt.Println("root path", args.HtmlRootPath)
-	fmt.Println("route prefix", args.RoutePrefix)
 	redirectHandler := core.IndexHTMLHandler(assetFS, args.Log, args.RoutePrefix)
 	assetHandler := core.AssetHandler(assertFSHandler, redirectHandler)
 
 	mux := http.NewServeMux()
-
-	if args.RoutePrefix != "" {
-		mux = core.WithRoutePrefix(mux, args.RoutePrefix)
-	}
 
 	_, err = url.Parse(args.OIDC.IssuerURL)
 	if err != nil {
@@ -876,6 +869,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	staticAssetsWithGz := gziphandler.GzipHandler(assetHandler)
 
 	mux.Handle("/", staticAssetsWithGz)
+
+	if args.RoutePrefix != "" {
+		mux = core.WithRoutePrefix(mux, args.RoutePrefix)
+	}
 
 	handler := http.Handler(mux)
 	handler = args.SessionManager.LoadAndSave(handler)
