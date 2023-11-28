@@ -150,9 +150,7 @@ func TestBootstrapCmd(t *testing.T) {
 				gitUsernameFlag, gitPasswordFlag, gitBranchFlag, gitRepoPathFlag,
 				repoHTTPSURLFlag,
 				oidcClientSecretFlag, "-s",
-				"--extra-controllers=policy-agent",
-				"--extra-controllers=capi",
-				"--extra-controllers=tf-controller",
+				"--components-extra=\"policy-agent,capi,tf-controller\"",
 			},
 			setup: func(t *testing.T) {
 				createEntitlements(t, testLog)

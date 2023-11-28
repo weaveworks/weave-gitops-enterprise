@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	extraControllersMsg = "do you want to install extra controllers from the following on your cluster"
+	extraComponentsMsg = "do you want to install extra Components from the following on your cluster"
 )
 
 const (
@@ -16,8 +16,8 @@ const (
 	allControllers        = "all of above"
 )
 
-// NewInstallExtraControllers start installing extra controllers
-func NewInstallExtraControllers(config Config) BootstrapStep {
+// NewInstallExtraComponents start installing extra Components
+func NewInstallExtraComponents(config Config) BootstrapStep {
 	inputs := []StepInput{}
 	controllersValues := []string{
 		defaultController,
@@ -27,35 +27,35 @@ func NewInstallExtraControllers(config Config) BootstrapStep {
 		allControllers,
 	}
 
-	installExtraControllersStep := StepInput{
-		Name:         inExtraControllers,
+	installExtraComponentsStep := StepInput{
+		Name:         inExtraComponents,
 		Type:         multiSelectionChoice,
-		Msg:          extraControllersMsg,
+		Msg:          extraComponentsMsg,
 		Values:       controllersValues,
 		DefaultValue: controllersValues[0],
 	}
 
-	if len(config.ExtraControllers) < 1 && !config.Silent {
-		inputs = append(inputs, installExtraControllersStep)
+	if len(config.ExtraComponents) < 1 && !config.Silent {
+		inputs = append(inputs, installExtraComponentsStep)
 	}
 
 	return BootstrapStep{
-		Name:  "install extra controllers",
+		Name:  "install extra components",
 		Input: inputs,
-		Step:  installExtraControllers,
+		Step:  installExtraComponents,
 	}
 }
 
-func installExtraControllers(input []StepInput, c *Config) ([]StepOutput, error) {
+func installExtraComponents(input []StepInput, c *Config) ([]StepOutput, error) {
 	for _, param := range input {
-		if param.Name == inExtraControllers {
-			extraControllers, ok := param.Value.(string)
+		if param.Name == inExtraComponents {
+			extraComponents, ok := param.Value.(string)
 			if ok {
-				c.ExtraControllers = append(c.ExtraControllers, extraControllers)
+				c.ExtraComponents = append(c.ExtraComponents, extraComponents)
 			}
 		}
 	}
-	for _, controller := range c.ExtraControllers {
+	for _, controller := range c.ExtraComponents {
 		switch controller {
 		case policyAgentController:
 			agentStep := NewInstallPolicyAgentStep(*c)

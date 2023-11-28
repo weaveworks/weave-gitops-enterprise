@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewInstallExtraControllers(t *testing.T) {
+func TestNewInstallExtraComponents(t *testing.T) {
 	tests := []struct {
 		name   string
 		config Config
@@ -17,12 +17,12 @@ func TestNewInstallExtraControllers(t *testing.T) {
 			name:   "return bootstrap step with inputs in case provided by user",
 			config: Config{},
 			want: BootstrapStep{
-				Name: "install extra controllers",
+				Name: "install extra components",
 				Input: []StepInput{
 					{
-						Name: inExtraControllers,
+						Name: inExtraComponents,
 						Type: multiSelectionChoice,
-						Msg:  extraControllersMsg,
+						Msg:  extraComponentsMsg,
 						Values: []string{
 							defaultController,
 							policyAgentController,
@@ -33,29 +33,29 @@ func TestNewInstallExtraControllers(t *testing.T) {
 						DefaultValue: defaultController,
 					},
 				},
-				Step: installExtraControllers,
+				Step: installExtraComponents,
 			},
 		},
 		{
 			name: "return bootstrap step with empty inputs in case not provided by user",
 			config: Config{
-				ExtraControllers: []string{
+				ExtraComponents: []string{
 					policyAgentController,
 					tfController,
 					capiController,
 				},
 			},
 			want: BootstrapStep{
-				Name:  "install extra controllers",
+				Name:  "install extra components",
 				Input: []StepInput{},
-				Step:  installExtraControllers,
+				Step:  installExtraComponents,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			config := makeTestConfig(t, tt.config)
-			step := NewInstallExtraControllers(config)
+			step := NewInstallExtraComponents(config)
 
 			assert.Equal(t, tt.want.Name, step.Name)
 			if diff := cmp.Diff(tt.want.Input, step.Input); diff != "" {
@@ -77,9 +77,9 @@ func TestInstallExtraControllers(t *testing.T) {
 			name: "test skip installing controllers with defaults (none)",
 			stepInput: []StepInput{
 				{
-					Name:  inExtraControllers,
+					Name:  inExtraComponents,
 					Type:  multiSelectionChoice,
-					Msg:   extraControllersMsg,
+					Msg:   extraComponentsMsg,
 					Value: defaultController,
 				},
 			},
@@ -89,7 +89,7 @@ func TestInstallExtraControllers(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			config := makeTestConfig(t, Config{})
-			_, err := installExtraControllers(tt.stepInput, &config)
+			_, err := installExtraComponents(tt.stepInput, &config)
 			assert.NoError(t, err, "unexpected error")
 			if err != nil {
 				if tt.err {

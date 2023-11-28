@@ -46,7 +46,7 @@ const (
 	inGitUserName        = "username"
 	inGitPassword        = "gitPassowrd"
 	inBootstrapFlux      = "bootstrapFlux"
-	inExtraControllers   = "extraControllers"
+	inExtraComponents    = "extraComponents"
 	inEnableAdmission    = "enableAdmission"
 )
 
@@ -82,7 +82,7 @@ type ConfigBuilder struct {
 	clientID                string
 	clientSecret            string
 	PromptedForDiscoveryURL bool
-	extraControllers        []string
+	extraComponents         []string
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -155,8 +155,8 @@ func (c *ConfigBuilder) WithSilentFlag(silent bool) *ConfigBuilder {
 	return c
 }
 
-func (c *ConfigBuilder) WithExtraControllers(extraControllers []string) *ConfigBuilder {
-	c.extraControllers = extraControllers
+func (c *ConfigBuilder) WithExtraComponents(extraComponents []string) *ConfigBuilder {
+	c.extraComponents = extraComponents
 	return c
 }
 
@@ -197,7 +197,7 @@ type Config struct {
 	RedirectURL             string
 	PromptedForDiscoveryURL bool
 
-	ExtraControllers []string
+	ExtraComponents []string
 }
 
 // Builds creates a valid config so boostrap could be executed. It uses values introduced
@@ -256,7 +256,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		ClientID:                cb.clientID,
 		ClientSecret:            cb.clientSecret,
 		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
-		ExtraControllers:        cb.extraControllers,
+		ExtraComponents:         cb.extraComponents,
 	}, nil
 
 }
