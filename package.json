@@ -2,6 +2,14 @@
   "name": "weave-gitops-enterprise",
   "version": "0.1.0",
   "private": true,
+  "targets": {
+    "default": {
+      "distDir": "build",
+      "source": "ui/index.html",
+      "sourceMap": false,
+      "publicUrl": "./"
+    }
+  },
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@fortawesome/fontawesome-free": "^5.15.3",
@@ -84,7 +92,7 @@
   },
   "scripts": {
     "start": "parcel serve ui/index.html --port 3000 --dist-dir build --hmr-port 1234",
-    "build": "parcel build ui/index.html --dist-dir build",
+    "build": "parcel build --target default",
     "test": "node ui/scripts/test.js",
     "lint": "eslint ui/src -c .eslintrc.js --max-warnings=0"
   },
