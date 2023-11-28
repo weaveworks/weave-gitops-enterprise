@@ -67,6 +67,11 @@ This will kick off the release process in GitHub actions
 
 ### Update release notes with *Dependencies* and *Highlights* and ensure the user guide references the new version
 
+> **Note**
+> 
+> Product Managers are responsible from this step onwards. 
+> Please, hand over explicitly (slack DM or release thread) to either Mostafa or Lauri.   
+
 #### Github releases page
 
 If this is a final (non-rc) release, de-select the `This is a pre-release` checkbox.
@@ -84,7 +89,7 @@ You can use a [previous release](https://github.com/weaveworks/weave-gitops-ente
 
 If the previous release was an `rc.x` release, add notes from its release notes.
 
-Notify your Product Manager at this stage that the release notes are available. They will combine with content from the product newsletter to update the website **after** the release.
+Review and combine the release notes with content from the product newsletter to update the website **after**. Publish the release notes.
 
 #### The https://docs.gitops.weave.works/ Enterprise releases page
 
