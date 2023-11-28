@@ -10,8 +10,8 @@ import {
   GetWorkspacePoliciesResponse,
 } from '../../cluster-services/cluster_services.pb';
 import { formatError } from '../../utils/formatters';
-import useNotifications from './../../contexts/Notifications';
 import { useAPI } from '../API';
+import useNotifications from './../../contexts/Notifications';
 
 const LIST_WORKSPACES_QUERY_KEY = 'workspaces';
 

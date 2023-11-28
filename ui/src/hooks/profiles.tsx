@@ -12,6 +12,7 @@ import {
   CreateRequestAnnotationV2,
   maybeParseJSON,
 } from '../components/Templates/Form/utils';
+import { useAPI } from '../contexts/API';
 import useNotifications from '../contexts/Notifications';
 import {
   GitopsClusterEnriched,
@@ -21,7 +22,6 @@ import {
 } from '../types/custom';
 import { maybeFromBase64 } from '../utils/base64';
 import { formatError } from '../utils/formatters';
-import { useAPI } from '../contexts/API';
 
 const getProfileLayer = (profiles: UpdatedProfile[], name: string) => {
   return profiles.find(p => p.name === name)?.layer;

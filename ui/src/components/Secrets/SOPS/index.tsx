@@ -2,6 +2,7 @@ import { MenuItem } from '@material-ui/core';
 import { Flex, GitRepository, Link } from '@weaveworks/weave-gitops';
 import { useCallback, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
+import { useAPI } from '../../../contexts/API';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import {
@@ -29,7 +30,6 @@ import {
   FormWrapperSecret,
 } from '../Shared/utils';
 import SecretData from './SecretData';
-import { useAPI } from '../../../contexts/API';
 
 const CreateSOPS = () => {
   const callbackState = useCallbackState();

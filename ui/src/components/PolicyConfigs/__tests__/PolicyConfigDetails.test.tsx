@@ -1,5 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import moment from 'moment';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   defaultContexts,
   PolicyConfigsClientMock,
@@ -7,7 +8,6 @@ import {
 } from '../../../utils/test-utils';
 import PolicyConfigDetails from '../PolicyConfigDetails';
 import { renderParameterValue } from '../PolicyConfigDetails/PolicyDetailsCard';
-import { EnterpriseClientContext } from '../../../contexts/API';
 
 const MockPolicyConfigDetailsResponse = {
   policyConfig: {

@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import Applications from '../';
+import { EnterpriseClientProvider } from '../../../contexts/API';
 import { GitAuthProvider } from '../../../contexts/GitAuth';
 import NotificationsProvider from '../../../contexts/Notifications/Provider';
 import RequestContextProvider from '../../../contexts/Request';
@@ -21,7 +22,6 @@ import {
   EnterpriseClientMock,
   withContext,
 } from '../../../utils/test-utils';
-import { EnterpriseClientProvider } from '../../../contexts/API';
 
 describe('Applications index test', () => {
   let wrap: (el: JSX.Element) => JSX.Element;

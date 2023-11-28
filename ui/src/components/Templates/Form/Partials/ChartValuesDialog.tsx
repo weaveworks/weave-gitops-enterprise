@@ -16,11 +16,11 @@ import {
   GetValuesForChartResponse,
   RepositoryRef,
 } from '../../../../cluster-services/cluster_services.pb';
+import { useAPI } from '../../../../contexts/API';
 import { UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_REPO } from '../../../../utils/config';
 import { Loader } from '../../../Loader';
 import { MuiDialogTitle } from '../../../Shared';
-import { useAPI } from '../../../../contexts/API';
 
 const useStyles = makeStyles(() => ({
   textarea: {

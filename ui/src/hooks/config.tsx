@@ -1,9 +1,9 @@
 import { useContext } from 'react';
 import { useQuery } from 'react-query';
 import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
+import { useAPI } from '../contexts/API';
 import useNotifications from '../contexts/Notifications';
 import { formatError } from '../utils/formatters';
-import { useAPI } from '../contexts/API';
 
 const useConfig = () => {
   const { setNotifications } = useNotifications();

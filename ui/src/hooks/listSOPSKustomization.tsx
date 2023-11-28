@@ -5,8 +5,8 @@ import {
   ListSopsKustomizationsRequest,
   ListSopsKustomizationsResponse,
 } from '../cluster-services/cluster_services.pb';
-import { RequestError } from '../types/custom';
 import { useAPI } from '../contexts/API';
+import { RequestError } from '../types/custom';
 
 export function useListKustomizationSOPS(
   req: ListSopsKustomizationsRequest,

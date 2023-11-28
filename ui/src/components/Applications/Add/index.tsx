@@ -9,6 +9,7 @@ import {
   CreateAutomationsPullRequestRequest,
   RepositoryRef,
 } from '../../../cluster-services/cluster_services.pb';
+import { useAPI } from '../../../contexts/API';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import {
@@ -35,7 +36,6 @@ import {
 } from '../../Templates/Form/utils';
 import AppFields from './form/Partials/AppFields';
 import { Preview } from './Preview';
-import { useAPI } from '../../../contexts/API';
 
 interface FormData {
   repo: GitRepository | null;

@@ -1,11 +1,11 @@
 import { act, render, screen } from '@testing-library/react';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   PolicyConfigsClientMock,
   defaultContexts,
   withContext,
 } from '../../../utils/test-utils';
 import CreatePolicyConfig from '../create';
-import { EnterpriseClientContext } from '../../../contexts/API';
 
 describe('CreatePolicyConfig', () => {
   let wrap: (el: JSX.Element) => JSX.Element;

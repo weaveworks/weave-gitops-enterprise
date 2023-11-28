@@ -8,8 +8,8 @@ import {
   ListPolicyConfigsResponse,
 } from '../../cluster-services/cluster_services.pb';
 import { formatError } from '../../utils/formatters';
-import useNotifications from './../../contexts/Notifications';
 import { useAPI } from '../API';
+import useNotifications from './../../contexts/Notifications';
 
 const LIST_ALL_POLICYCONFIS_QUERY_KEY = 'policyConfigs-list';
 

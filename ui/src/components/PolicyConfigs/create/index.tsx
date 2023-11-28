@@ -16,6 +16,7 @@ import {
   CreateAutomationsPullRequestRequest,
   PolicyConfigApplicationMatch,
 } from '../../../cluster-services/cluster_services.pb';
+import { useAPI } from '../../../contexts/API';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import { useGetClustersList } from '../../../contexts/PolicyConfigs';
@@ -40,7 +41,6 @@ import {
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
 import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { Preview } from './Preview';
-import { useAPI } from '../../../contexts/API';
 
 const FormWrapperPolicyConfig = styled(FormWrapper)`
   .policyField {

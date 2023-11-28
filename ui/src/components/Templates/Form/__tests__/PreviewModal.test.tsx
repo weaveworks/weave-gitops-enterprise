@@ -1,11 +1,11 @@
 import { act, render, screen } from '@testing-library/react';
+import { EnterpriseClientContext } from '../../../../contexts/API';
 import {
   ClustersServiceClientMock,
   defaultContexts,
   withContext,
 } from '../../../../utils/test-utils';
 import PreviewModal from '../Partials/PreviewModal';
-import { EnterpriseClientContext } from '../../../../contexts/API';
 
 Object.assign(navigator, {
   clipboard: {

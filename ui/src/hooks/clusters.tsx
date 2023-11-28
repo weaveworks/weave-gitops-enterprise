@@ -6,13 +6,13 @@ import {
   GetKubeconfigRequest,
   ListGitopsClustersResponse,
 } from '../cluster-services/cluster_services.pb';
+import { useAPI } from '../contexts/API';
 import useNotifications from '../contexts/Notifications';
 import {
   GitopsClusterEnriched,
   DeleteClustersPRRequestEnriched,
 } from '../types/custom';
 import { rawRequest } from '../utils/request';
-import { useAPI } from '../contexts/API';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 

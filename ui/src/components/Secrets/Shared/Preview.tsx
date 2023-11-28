@@ -4,6 +4,7 @@ import {
   ClustersService,
   RenderAutomationResponse,
 } from '../../../cluster-services/cluster_services.pb';
+import { useAPI } from '../../../contexts/API';
 import useNotifications from '../../../contexts/Notifications';
 import { validateFormData } from '../../../utils/form';
 import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
@@ -14,7 +15,6 @@ import {
   getFormattedPayload,
   handleError,
 } from './utils';
-import { useAPI } from '../../../contexts/API';
 
 export enum SecretType {
   SOPS,

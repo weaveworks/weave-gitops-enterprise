@@ -4,10 +4,10 @@ import {
   ClusterAutomation,
   RenderAutomationResponse,
 } from '../../../cluster-services/cluster_services.pb';
+import { useAPI } from '../../../contexts/API';
 import useNotifications from '../../../contexts/Notifications';
 import { validateFormData } from '../../../utils/form';
 import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
-import { useAPI } from '../../../contexts/API';
 
 export const Preview = ({
   clusterAutomations,
