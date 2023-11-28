@@ -39,9 +39,6 @@ gitops bootstrap --version=<version> --password=<admin-password> --discovery-url
 # Start WGE installation with OIDC and flux bootstrap with ssh
 gitops bootstrap --version=<version> --password=<admin-password> --discovery-url=<oidc-discovery-url> --client-id=<oidc-client-id> --private-key-path=<private-key-path> --private-key-password=<private-key-password> --branch=<git-branch> --repo-path=<path-in-repo-for-management-cluster> --repo-url=ssh://<repo-url> --client-secret=<oidc-secret> -s
 
-# Start WGE installation with extra controller like policy agent
-gitops bootstrap --components-extra="policy-agent"
-
 # Start WGE installation with more than one extra controller 
 gitops bootstrap --components-extra="policy-agent,capi,tf-controller"
 `
