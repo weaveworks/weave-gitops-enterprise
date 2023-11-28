@@ -118,8 +118,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [formError, setFormError] = useState<string>('');
   const { enterprise } = useAPI();
 
-  console.log(enterprise);
-
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (
       <>

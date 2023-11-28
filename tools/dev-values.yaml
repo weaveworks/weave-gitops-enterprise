@@ -64,8 +64,8 @@ global:
 enableNewPipelines: true
 # Run the UI and API under /weave-gitops-enterprise
 
-additionalArgs:
-  - "--route-prefix=/weave-gitops-enterprise"
+# additionalArgs:
+#   - "--route-prefix=/weave-gitops-enterprise"
 # Enable ingress running under a path
 # Note:
 # Run ./tools/kind-with-ingress.sh # create a kind cluster with ingress

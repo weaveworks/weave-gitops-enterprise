@@ -219,7 +219,7 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
 	cmdFlags.String("helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
 	cmdFlags.String("profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
-	cmdFlags.String("route-prefix", "", "Mount the UI and API endpoint under a path prefix, e.g. /weave-gitops")
+	cmdFlags.String("route-prefix", "", "Mount the UI and API endpoint under a path prefix, e.g. /weave-gitops-enterprise")
 	cmdFlags.String("html-root-path", "/html", "Where to serve static assets from")
 	cmdFlags.String("git-provider-type", "", "")
 	cmdFlags.String("git-provider-hostname", "", "")
