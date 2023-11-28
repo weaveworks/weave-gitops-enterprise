@@ -72,7 +72,8 @@ export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
   cluster,
 }) => {
   const clusterKind =
-    cluster.labels?.['weave.works/cluster-kind'] ||
+    cluster.annotations?.['weave.works/cluster-kind'] ||
+    cluster.labels?.['clusters.weave.works/origin-type'] ||
     cluster.capiCluster?.infrastructureRef?.kind;
   return (
     <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
