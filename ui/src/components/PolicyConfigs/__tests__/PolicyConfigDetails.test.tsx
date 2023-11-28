@@ -1,6 +1,5 @@
 import { act, render, screen } from '@testing-library/react';
 import moment from 'moment';
-import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   defaultContexts,
   PolicyConfigsClientMock,
@@ -8,6 +7,7 @@ import {
 } from '../../../utils/test-utils';
 import PolicyConfigDetails from '../PolicyConfigDetails';
 import { renderParameterValue } from '../PolicyConfigDetails/PolicyDetailsCard';
+import { EnterpriseClientContext } from '../../../contexts/API';
 
 const MockPolicyConfigDetailsResponse = {
   policyConfig: {
@@ -67,7 +67,7 @@ describe('GetPolicyConfigDetails', () => {
     api = new PolicyConfigsClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientProvider, { api }],
+      [EnterpriseClientContext.Provider, { value: { enterprise: api } }],
     ]);
   });
   it('renders get policyConfig details with Applied Namespaces', async () => {

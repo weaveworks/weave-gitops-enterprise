@@ -1,11 +1,11 @@
 import { act, render, screen } from '@testing-library/react';
-import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   PolicyConfigsClientMock,
   defaultContexts,
   withContext,
 } from '../../../utils/test-utils';
 import CreatePolicyConfig from '../create';
+import { EnterpriseClientContext } from '../../../contexts/API';
 
 describe('CreatePolicyConfig', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
@@ -16,7 +16,7 @@ describe('CreatePolicyConfig', () => {
 
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientProvider, { api }],
+      [EnterpriseClientContext.Provider, { value: { enterprise: api } }],
     ]);
   });
   it('renders create policyConfig form fields', async () => {

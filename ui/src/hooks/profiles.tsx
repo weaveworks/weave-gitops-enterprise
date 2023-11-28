@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { useContext, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useQuery } from 'react-query';
 import {
   GetConfigResponse,
@@ -12,7 +12,6 @@ import {
   CreateRequestAnnotationV2,
   maybeParseJSON,
 } from '../components/Templates/Form/utils';
-import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import useNotifications from '../contexts/Notifications';
 import {
   GitopsClusterEnriched,
@@ -22,6 +21,7 @@ import {
 } from '../types/custom';
 import { maybeFromBase64 } from '../utils/base64';
 import { formatError } from '../utils/formatters';
+import { useAPI } from '../contexts/API';
 
 const getProfileLayer = (profiles: UpdatedProfile[], name: string) => {
   return profiles.find(p => p.name === name)?.layer;
@@ -168,7 +168,7 @@ const useProfiles = (
 ) => {
   const { setNotifications } = useNotifications();
 
-  const { api } = useContext(EnterpriseClientContext);
+  const { enterprise } = useAPI();
 
   const clusterData =
     cluster?.annotations?.['templates.weave.works/create-request'];
@@ -176,7 +176,7 @@ const useProfiles = (
   const onError = (error: Error) => setNotifications(formatError(error));
 
   const getConfigResponse = useQuery<GetConfigResponse, Error>('config', () =>
-    api.GetConfig({}),
+    enterprise.GetConfig({}),
   );
 
   const { isLoading, data } = useQuery<ListChartsForRepositoryResponse, Error>(
@@ -188,7 +188,7 @@ const useProfiles = (
       helmRepo.cluster?.namespace,
     ],
     () =>
-      api.ListChartsForRepository({
+      enterprise.ListChartsForRepository({
         repository: {
           name: helmRepo.name || 'weaveworks-charts',
           namespace: helmRepo.namespace || 'flux-system',

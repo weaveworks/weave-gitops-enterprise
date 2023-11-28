@@ -1,8 +1,7 @@
 import { MenuItem } from '@material-ui/core';
 import { Flex, GitRepository, Link } from '@weaveworks/weave-gitops';
-import { useCallback, useContext, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import {
@@ -30,6 +29,7 @@ import {
   FormWrapperSecret,
 } from '../Shared/utils';
 import SecretData from './SecretData';
+import { useAPI } from '../../../contexts/API';
 
 const CreateSOPS = () => {
   const callbackState = useCallbackState();
@@ -54,7 +54,7 @@ const CreateSOPS = () => {
     token,
   );
 
-  const { api } = useContext(EnterpriseClientContext);
+  const { enterprise } = useAPI();
 
   const handleCreateSecret = useCallback(() => {
     setLoading(true);
@@ -63,8 +63,10 @@ const CreateSOPS = () => {
       .then(async () => {
         try {
           const { encryptionPayload, cluster } = getFormattedPayload(formData);
-          const encrypted = await api.EncryptSopsSecret(encryptionPayload);
-          const response = await api.CreateAutomationsPullRequest(
+          const encrypted = await enterprise.EncryptSopsSecret(
+            encryptionPayload,
+          );
+          const response = await enterprise.CreateAutomationsPullRequest(
             {
               headBranch: formData.branchName,
               title: formData.pullRequestTitle,
@@ -113,7 +115,7 @@ const CreateSOPS = () => {
         setNotifications([expiredTokenNotification]);
       })
       .finally(() => setLoading(false));
-  }, [api, formData, setNotifications, token, validateToken]);
+  }, [enterprise, formData, setNotifications, token, validateToken]);
 
   const authRedirectPage = Routes.CreateSopsSecret;
 

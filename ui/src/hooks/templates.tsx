@@ -4,9 +4,9 @@ import {
   CreatePullRequestRequest,
   ListTemplatesResponse,
 } from '../cluster-services/cluster_services.pb';
-import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import useNotifications from '../contexts/Notifications';
 import { TemplateEnriched } from '../types/custom';
+import { useAPI } from '../contexts/API';
 
 const useTemplates = (
   opts: { enabled: boolean } = {
@@ -15,14 +15,14 @@ const useTemplates = (
 ) => {
   const [loading, setLoading] = useState<boolean>(false);
   const { setNotifications } = useNotifications();
-  const { api } = useContext(EnterpriseClientContext);
+  const { enterprise } = useAPI();
 
   const onError = (error: Error) =>
     setNotifications([{ message: { text: error.message }, severity: 'error' }]);
 
   const { isLoading, data } = useQuery<ListTemplatesResponse, Error>(
     'templates',
-    () => api.ListTemplates({}),
+    () => enterprise.ListTemplates({}),
     {
       keepPreviousData: true,
       onError,
@@ -34,18 +34,18 @@ const useTemplates = (
   const getTemplate = (templateName: string) =>
     templates?.find(template => template.name === templateName) || null;
 
-  const renderTemplate = api.RenderTemplate;
+  const renderTemplate = enterprise.RenderTemplate;
 
   const addResource = useCallback(
     ({ ...data }: CreatePullRequestRequest, token: string | null) => {
       setLoading(true);
-      return api
+      return enterprise
         .CreatePullRequest(data, {
           headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
         })
         .finally(() => setLoading(false));
     },
-    [api],
+    [enterprise],
   );
 
   return {

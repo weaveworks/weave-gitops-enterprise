@@ -1,10 +1,9 @@
 import { Button } from '@weaveworks/weave-gitops';
-import { Dispatch, useCallback, useContext, useState } from 'react';
+import { Dispatch, useCallback, useState } from 'react';
 import {
   ClustersService,
   RenderAutomationResponse,
 } from '../../../cluster-services/cluster_services.pb';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import useNotifications from '../../../contexts/Notifications';
 import { validateFormData } from '../../../utils/form';
 import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
@@ -15,6 +14,7 @@ import {
   getFormattedPayload,
   handleError,
 } from './utils';
+import { useAPI } from '../../../contexts/API';
 
 export enum SecretType {
   SOPS,
@@ -66,12 +66,12 @@ export const Preview = ({
     null,
   );
   const { setNotifications } = useNotifications();
-  const { api } = useContext(EnterpriseClientContext);
+  const { enterprise } = useAPI();
 
   const handlePRPreview = useCallback(async () => {
     setPreviewLoading(true);
     try {
-      const render = getRender(api, secretType, formData);
+      const render = getRender(enterprise, secretType, formData);
       setOpenPreview(true);
       setPRPreview(await render);
     } catch (err: any) {
@@ -79,7 +79,7 @@ export const Preview = ({
     } finally {
       setPreviewLoading(false);
     }
-  }, [api, formData, secretType, setNotifications]);
+  }, [enterprise, formData, secretType, setNotifications]);
 
   return (
     <>

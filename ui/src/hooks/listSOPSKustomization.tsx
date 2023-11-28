@@ -3,11 +3,10 @@ import { useContext } from 'react';
 import { useQuery } from 'react-query';
 import {
   ListSopsKustomizationsRequest,
-  ListSopsKustomizationsResponse
+  ListSopsKustomizationsResponse,
 } from '../cluster-services/cluster_services.pb';
-import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import { RequestError } from '../types/custom';
-
+import { useAPI } from '../contexts/API';
 
 export function useListKustomizationSOPS(
   req: ListSopsKustomizationsRequest,
@@ -16,10 +15,10 @@ export function useListKustomizationSOPS(
     refetchInterval: 30000,
   },
 ) {
-  const { api } = useContext(EnterpriseClientContext);
+  const { enterprise } = useAPI();
   return useQuery<ListSopsKustomizationsResponse, RequestError>(
     ['list_sops', req.clusterName || ''],
-    () => api.ListSopsKustomizations(req),
+    () => enterprise.ListSopsKustomizations(req),
     opts,
   );
 }

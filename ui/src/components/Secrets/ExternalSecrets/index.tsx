@@ -1,7 +1,6 @@
 import { Flex, GitRepository, Link, Page } from '@weaveworks/weave-gitops';
-import { useCallback, useContext, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import {
@@ -28,6 +27,7 @@ import {
 } from '../Shared/utils';
 import ListSecretsStore from './ListSecretsStore';
 import { SecretProperty } from './SecretProperty';
+import { useAPI } from '../../../contexts/API';
 
 const CreateExternalSecret = () => {
   const callbackState = useCallbackState();
@@ -42,7 +42,7 @@ const CreateExternalSecret = () => {
   const handleFormData = (value: any, key: string) => {
     setFormData(f => ({ ...f, [key]: value }));
   };
-  const { api } = useContext(EnterpriseClientContext);
+  const { enterprise } = useAPI();
 
   const handleSecretStoreChange = (value: string) => {
     const [secretStoreRef, secretStoreKind, secretNamespace, secretStoreType] =
@@ -75,7 +75,7 @@ const CreateExternalSecret = () => {
       .then(async () => {
         try {
           const payload = getESFormattedPayload(formData);
-          const response = await api.CreateAutomationsPullRequest(
+          const response = await enterprise.CreateAutomationsPullRequest(
             {
               headBranch: formData.branchName,
               title: formData.pullRequestTitle,
@@ -115,7 +115,7 @@ const CreateExternalSecret = () => {
         setNotifications([expiredTokenNotification]);
       })
       .finally(() => setLoading(false));
-  }, [api, formData, setNotifications, token, validateToken]);
+  }, [enterprise, formData, setNotifications, token, validateToken]);
 
   const authRedirectPage = Routes.CreateSecret;
 

@@ -2,20 +2,13 @@ import { Box } from '@material-ui/core';
 import { GitRepository, Link, useListSources } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import {
   ClusterAutomation,
   CreateAutomationsPullRequestRequest,
   RepositoryRef,
 } from '../../../cluster-services/cluster_services.pb';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import {
@@ -42,6 +35,7 @@ import {
 } from '../../Templates/Form/utils';
 import AppFields from './form/Partials/AppFields';
 import { Preview } from './Preview';
+import { useAPI } from '../../../contexts/API';
 
 interface FormData {
   repo: GitRepository | null;
@@ -122,7 +116,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const history = useHistory();
   const authRedirectPage = `/applications/create`;
   const [formError, setFormError] = useState<string>('');
-  const { api } = useContext(EnterpriseClientContext);
+  const { enterprise } = useAPI();
+
+  console.log(enterprise);
 
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (
@@ -309,7 +305,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     setLoading(true);
     return validateToken()
       .then(() =>
-        api
+        enterprise
           .CreateAutomationsPullRequest(payload, {
             headers: new Headers({
               'Git-Provider-Token': `token ${getProviderToken(
@@ -350,7 +346,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       })
       .finally(() => setLoading(false));
   }, [
-    api,
+    enterprise,
     formData,
     history,
     getKustomizations,

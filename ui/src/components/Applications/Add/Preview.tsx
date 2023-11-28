@@ -1,13 +1,13 @@
 import { Button } from '@weaveworks/weave-gitops';
-import { Dispatch, useCallback, useContext, useState } from 'react';
+import { Dispatch, useCallback, useState } from 'react';
 import {
   ClusterAutomation,
   RenderAutomationResponse,
 } from '../../../cluster-services/cluster_services.pb';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import useNotifications from '../../../contexts/Notifications';
 import { validateFormData } from '../../../utils/form';
 import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
+import { useAPI } from '../../../contexts/API';
 
 export const Preview = ({
   clusterAutomations,
@@ -24,11 +24,11 @@ export const Preview = ({
     null,
   );
   const { setNotifications } = useNotifications();
-  const { api } = useContext(EnterpriseClientContext);
+  const { enterprise } = useAPI();
 
   const handlePRPreview = useCallback(() => {
     setPreviewLoading(true);
-    return api
+    return enterprise
       .RenderAutomation({
         clusterAutomations,
       })
@@ -46,7 +46,7 @@ export const Preview = ({
         ]),
       )
       .finally(() => setPreviewLoading(false));
-  }, [api, setOpenPreview, clusterAutomations, setNotifications]);
+  }, [enterprise, setOpenPreview, clusterAutomations, setNotifications]);
 
   return (
     <>

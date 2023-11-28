@@ -2,9 +2,9 @@ import { GetVersionResponse } from '@weaveworks/progressive-delivery';
 import { useContext, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
-import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import { GitAuth } from '../contexts/GitAuth';
 import { useRequest } from '../contexts/Request';
+import { useAPI } from '../contexts/API';
 
 export function useListVersion() {
   const { requestWithEntitlementHeader } = useRequest();
@@ -21,10 +21,10 @@ export interface ListConfigResponse extends GetConfigResponse {
 }
 
 export function useListConfig() {
-  const { api } = useContext(EnterpriseClientContext);
+  const { enterprise } = useAPI();
   const [provider, setProvider] = useState<string>('');
   const queryResponse = useQuery<GetConfigResponse, Error>('config', () =>
-    api.GetConfig({}),
+    enterprise.GetConfig({}),
   );
   const { gitAuthClient } = useContext(GitAuth);
 

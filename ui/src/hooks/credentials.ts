@@ -1,11 +1,11 @@
 import { useContext } from 'react';
 import { useQuery } from 'react-query';
 import { ListCredentialsResponse } from '../cluster-services/cluster_services.pb';
-import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
+import { useAPI } from '../contexts/API';
 
 export function useListCredentials() {
-  const { api } = useContext(EnterpriseClientContext);
+  const { enterprise } = useAPI();
   return useQuery<ListCredentialsResponse, Error>('credentials', () =>
-    api.ListCredentials({}),
+    enterprise.ListCredentials({}),
   );
 }

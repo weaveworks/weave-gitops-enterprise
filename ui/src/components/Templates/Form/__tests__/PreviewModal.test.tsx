@@ -1,11 +1,11 @@
 import { act, render, screen } from '@testing-library/react';
-import EnterpriseClientProvider from '../../../../contexts/EnterpriseClient/Provider';
 import {
   ClustersServiceClientMock,
   defaultContexts,
   withContext,
 } from '../../../../utils/test-utils';
 import PreviewModal from '../Partials/PreviewModal';
+import { EnterpriseClientContext } from '../../../../contexts/API';
 
 Object.assign(navigator, {
   clipboard: {
@@ -34,7 +34,7 @@ describe('PR Preview when creating resources', () => {
     api = new ClustersServiceClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientProvider, { api }],
+      [EnterpriseClientContext.Provider, { value: { enterprise: api } }],
     ]);
   });
 

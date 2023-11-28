@@ -1,13 +1,12 @@
 import { act, render, screen } from '@testing-library/react';
 import moment from 'moment';
-import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   SecretsClientMock,
   defaultContexts,
   withContext,
 } from '../../../utils/test-utils';
-
 import SecretDetails from '../SecretDetails';
+import { EnterpriseClientContext } from '../../../contexts/API';
 
 const MockSecretResponse = {
   secretName: 'secret Name',
@@ -31,7 +30,7 @@ describe('SecretDetails', () => {
     api = new SecretsClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientProvider, { api }],
+      [EnterpriseClientContext.Provider, { value: { enterprise: api } }],
     ]);
   });
 

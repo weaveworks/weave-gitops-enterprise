@@ -12,7 +12,6 @@ import {
 } from '../../cluster-services/cluster_services.pb';
 import { formatError } from '../../utils/formatters';
 import { useAPI } from '../API';
-import { EnterpriseClientContext } from '../EnterpriseClient';
 import useNotifications from './../../contexts/Notifications';
 
 export const useProgressiveDelivery = () => {
@@ -90,13 +89,13 @@ export const useListFlaggerObjects = (params: CanaryParams) => {
 const EVENTS_QUERY_KEY = 'events';
 
 export function useListEvents(req: ListEventsRequest) {
-  const { api } = useContext(EnterpriseClientContext);
+  const { enterprise } = useAPI();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
 
   return useQuery<ListEventsResponse, Error>(
     [EVENTS_QUERY_KEY, req],
-    () => api.ListEvents(req),
+    () => enterprise.ListEvents(req),
     {
       onError,
       refetchInterval: 5000,

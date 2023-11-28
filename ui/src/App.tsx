@@ -29,17 +29,16 @@ import ProximaNova from 'url:./fonts/proximanova-regular.woff';
 import RobotoMono from 'url:./fonts/roboto-mono-regular.woff';
 import bgDark from './assets/img/bg-dark.png';
 import bg from './assets/img/bg.svg';
-import { ClustersService } from './cluster-services/cluster_services.pb';
 import App from './components/Layout/App';
 import MemoizedHelpLinkWrapper from './components/Layout/HelpLinkWrapper';
 import Compose from './components/ProvidersCompose';
-import EnterpriseClientProvider from './contexts/EnterpriseClient/Provider';
 import { GitAuthProvider } from './contexts/GitAuth/index';
 import NotificationsProvider from './contexts/Notifications/Provider';
 import RequestContextProvider from './contexts/Request';
 import { muiTheme } from './muiTheme';
 import { resolver } from './utils/link-resolver';
 import { addTFSupport } from './utils/request';
+import { EnterpriseClientProvider } from './contexts/API';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -183,7 +182,7 @@ const AppContainer = () => {
             <AppContextProvider footer={<MemoizedHelpLinkWrapper />}>
               <StylesProvider>
                 <AuthContextProvider>
-                  <EnterpriseClientProvider api={ClustersService}>
+                  <EnterpriseClientProvider>
                     <CoreClientContextProvider api={coreClient}>
                       <LinkResolverProvider resolver={resolver}>
                         <Pendo

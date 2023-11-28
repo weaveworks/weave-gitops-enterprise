@@ -22,15 +22,15 @@ interface Props {
   children: React.ReactNode;
 }
 
-export const APIContext = React.createContext<APIs>({} as APIs);
+export const EnterpriseClientContext = React.createContext<APIs>({} as APIs);
 
 function wrap<T>(api: T): T {
   return UnAuthorizedInterceptor(setAPIPathPrefix(api)) as unknown as T;
 }
 
-export const useAPI = () => React.useContext(APIContext);
+export const useAPI = () => React.useContext(EnterpriseClientContext);
 
-export function APIProvider({ children }: Props) {
+export function EnterpriseClientProvider({ children }: Props) {
   const api: APIs = {
     terraform: wrap(Terraform),
     enterprise: wrap(ClustersService),
@@ -39,5 +39,9 @@ export function APIProvider({ children }: Props) {
     query: wrap(Query),
   };
 
-  return <APIContext.Provider value={api}>{children}</APIContext.Provider>;
+  return (
+    <EnterpriseClientContext.Provider value={api}>
+      {children}
+    </EnterpriseClientContext.Provider>
+  );
 }

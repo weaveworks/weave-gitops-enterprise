@@ -1,25 +1,25 @@
 import { ReactQueryOptions } from '@weaveworks/weave-gitops/ui/lib/types';
 import fileDownload from 'js-file-download';
-import { useCallback, useContext, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
 import {
   GetKubeconfigRequest,
   ListGitopsClustersResponse,
 } from '../cluster-services/cluster_services.pb';
-import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import useNotifications from '../contexts/Notifications';
 import {
   GitopsClusterEnriched,
   DeleteClustersPRRequestEnriched,
 } from '../types/custom';
 import { rawRequest } from '../utils/request';
+import { useAPI } from '../contexts/API';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
 const useClusters = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const { notifications, setNotifications } = useNotifications();
-  const { api } = useContext(EnterpriseClientContext);
+  const { enterprise } = useAPI();
 
   const onError = (error: Error) => {
     if (
@@ -37,7 +37,7 @@ const useClusters = () => {
 
   const { isLoading, data } = useQuery<ListGitopsClustersResponse, Error>(
     'clusters',
-    () => api.ListGitopsClusters({}),
+    () => enterprise.ListGitopsClusters({}),
     {
       keepPreviousData: true,
       refetchInterval: CLUSTERS_POLL_INTERVAL,
@@ -80,13 +80,13 @@ const useClusters = () => {
   const deleteCreatedClusters = useCallback(
     (data: DeleteClustersPRRequestEnriched, token: string | null) => {
       setLoading(true);
-      return api
+      return enterprise
         .CreateDeletionPullRequest(data, {
           headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
         })
         .finally(() => setLoading(false));
     },
-    [api],
+    [enterprise],
   );
 
   return {
@@ -105,7 +105,7 @@ export const useListCluster = (
     keepPreviousData: true,
   },
 ) => {
-  const { api } = useContext(EnterpriseClientContext);
+  const { enterprise } = useAPI();
   const { notifications, setNotifications } = useNotifications();
 
   const onError = (error: Error) => {
@@ -123,7 +123,7 @@ export const useListCluster = (
   };
   return useQuery<ListGitopsClustersResponse, Error>(
     'clusters',
-    () => api.ListGitopsClusters({}),
+    () => enterprise.ListGitopsClusters({}),
     {
       ...opts,
       onError,
