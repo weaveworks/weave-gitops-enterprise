@@ -1,12 +1,12 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import WorkspacesList from '..';
-import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   defaultContexts,
   WorkspaceClientMock,
   TestFilterableTable,
   withContext,
 } from '../../../utils/test-utils';
+import { EnterpriseClientContext } from '../../../contexts/API';
 
 const listWorkspacesResponse = {
   workspaces: [
@@ -54,7 +54,7 @@ describe('ListWorkspaces', () => {
     api = new WorkspaceClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientProvider, { api }],
+      [EnterpriseClientContext.Provider, { value: { enterprise: api } }],
     ]);
   });
   it('renders list workspaces errors', async () => {

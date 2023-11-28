@@ -84,11 +84,11 @@ import {
 } from '../api/query/query.pb';
 
 import Compose from '../components/ProvidersCompose';
-import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import { GitAuthProvider } from '../contexts/GitAuth';
 import NotificationProvider from '../contexts/Notifications/Provider';
 import RequestContextProvider from '../contexts/Request';
 import { muiTheme } from '../muiTheme';
+import { EnterpriseClientProvider } from '../contexts/API';
 
 export type RequestError = Error & {
   code?: number;

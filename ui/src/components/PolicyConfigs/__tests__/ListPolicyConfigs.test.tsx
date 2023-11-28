@@ -1,13 +1,13 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import moment from 'moment';
 import PolicyConfigsList from '..';
-import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   defaultContexts,
   PolicyConfigsClientMock,
   TestFilterableTable,
   withContext,
 } from '../../../utils/test-utils';
+import { EnterpriseClientContext } from '../../../contexts/API';
 
 const listPolicyConfigsResponse = {
   policyConfigs: [
@@ -61,7 +61,7 @@ describe('ListPolicyConfigs', () => {
     api = new PolicyConfigsClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientProvider, { api }],
+      [EnterpriseClientContext.Provider, { value: { enterprise: api } }],
     ]);
   });
   it('renders list policies errors', async () => {
