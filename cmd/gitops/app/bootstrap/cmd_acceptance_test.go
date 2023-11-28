@@ -126,7 +126,6 @@ func TestBootstrapCmd(t *testing.T) {
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
 				"--client-id=weave-gitops-enterprise",
 				oidcClientSecretFlag,
-				"--extra-controllers=none",
 				"-s",
 			},
 			setup: func(t *testing.T) {
@@ -151,34 +150,11 @@ func TestBootstrapCmd(t *testing.T) {
 				gitUsernameFlag, gitPasswordFlag, gitBranchFlag, gitRepoPathFlag,
 				repoHTTPSURLFlag,
 				oidcClientSecretFlag, "-s",
-				"--extra-controllers=none",
-			},
-			setup: func(t *testing.T) {
-				createEntitlements(t, testLog)
-			},
-			reset: func(t *testing.T) {
-				deleteEntitlements(t, testLog)
-				deleteClusterUser(t, testLog)
-				uninstallFlux(g, kubeconfigFlag)
-			},
-			expectedErrorStr: "",
-		},
-		{
-			name: "journey bootstrap with extra controllers policy-agent capi and tf-controller",
-			flags: []string{kubeconfigFlag,
-				"--version=0.36.0",
-				privateKeyFlag, privateKeyPasswordFlag,
-				"--password=admin123",
-				"--domain-type=localhost",
-				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
-				"--client-id=weave-gitops-enterprise",
-				oidcClientSecretFlag, "-s",
 				"--extra-controllers=policy-agent",
 				"--extra-controllers=capi",
 				"--extra-controllers=tf-controller",
 			},
 			setup: func(t *testing.T) {
-				bootstrapFluxSsh(g, kubeconfigFlag)
 				createEntitlements(t, testLog)
 			},
 			reset: func(t *testing.T) {

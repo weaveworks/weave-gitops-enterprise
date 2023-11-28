@@ -35,7 +35,7 @@ func NewInstallExtraControllers(config Config) BootstrapStep {
 		DefaultValue: controllersValues[0],
 	}
 
-	if len(config.ExtraControllers) < 1 {
+	if len(config.ExtraControllers) < 1 && !config.Silent {
 		inputs = append(inputs, installExtraControllersStep)
 	}
 
