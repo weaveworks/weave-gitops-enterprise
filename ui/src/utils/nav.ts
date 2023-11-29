@@ -48,6 +48,7 @@ export enum Routes {
   Notifications = '/notifications',
   ClusterDiscovery = '/cluster-discovery',
   ClusterDiscoveryDetails = '/cluster-discovery/object',
+  CreatePipeline = '/pipeline/create',
 }
 
 export function getKindRoute(k: Kind | string): string {
