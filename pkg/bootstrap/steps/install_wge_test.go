@@ -126,15 +126,17 @@ status: {}
 
 func TestInstallWge(t *testing.T) {
 	tests := []struct {
-		name       string
-		domainType string
-		input      []StepInput
-		output     []StepOutput
-		err        bool
+		name               string
+		domainType         string
+		skipComponentCheck bool
+		input              []StepInput
+		output             []StepOutput
+		err                bool
 	}{
 		{
-			name:       "unsupported domain type",
-			domainType: "wrongType",
+			name:               "unsupported domain type",
+			domainType:         "wrongType",
+			skipComponentCheck: true, // This should skip the health check
 			input: []StepInput{
 				{
 					Name:  inUserDomain,
@@ -144,8 +146,9 @@ func TestInstallWge(t *testing.T) {
 			err: true,
 		},
 		{
-			name:       "install with domaintype localhost",
-			domainType: domainTypeLocalhost,
+			name:               "install with domaintype localhost",
+			domainType:         domainTypeLocalhost,
+			skipComponentCheck: true, // This should skip the health check
 			input: []StepInput{
 				{
 					Name:  inUserDomain,
@@ -175,8 +178,9 @@ func TestInstallWge(t *testing.T) {
 			err: false,
 		},
 		{
-			name:       "install with domaintype external dns",
-			domainType: domainTypeExternalDNS,
+			name:               "install with domaintype external dns",
+			domainType:         domainTypeExternalDNS,
+			skipComponentCheck: true, // This should skip the health check
 			input: []StepInput{
 				{
 					Name:  inUserDomain,
@@ -210,8 +214,9 @@ func TestInstallWge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			testConfig := Config{
-				WGEVersion: "1.0.0",
-				DomainType: tt.domainType,
+				WGEVersion:         "1.0.0",
+				DomainType:         tt.domainType,
+				SkipComponentCheck: tt.skipComponentCheck,
 			}
 
 			config := makeTestConfig(t, testConfig)

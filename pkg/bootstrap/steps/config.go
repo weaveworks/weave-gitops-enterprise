@@ -78,6 +78,7 @@ type ConfigBuilder struct {
 	clientID                string
 	clientSecret            string
 	PromptedForDiscoveryURL bool
+	SkipComponentCheck      bool
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -190,6 +191,8 @@ type Config struct {
 	ClientSecret            string
 	RedirectURL             string
 	PromptedForDiscoveryURL bool
+
+	SkipComponentCheck bool // skip checking if components are installed
 }
 
 // Builds creates a valid config so boostrap could be executed. It uses values introduced
@@ -245,6 +248,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		ClientID:                cb.clientID,
 		ClientSecret:            cb.clientSecret,
 		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
+		SkipComponentCheck:      cb.SkipComponentCheck,
 	}, nil
 
 }
