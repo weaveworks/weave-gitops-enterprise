@@ -184,7 +184,7 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 	defer recordIndexerMetrics(metrics.SearchAction, time.Now(), err)
 
 	// Match all by default.
-	// Conjunction queries will return results that match all of the subqueries.
+	// Conjunction queries will return results that match all the sub-queries.
 	query := bleve.NewConjunctionQuery(bleve.NewMatchAllQuery())
 
 	terms := q.GetTerms()
@@ -243,6 +243,7 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 	// We order by score here so that we can get the most relevant results first.
 	orders = append(orders, &search.SortField{
 		Field: "_score",
+		Desc:  true,
 		Type:  search.SortFieldAuto,
 	})
 
@@ -253,8 +254,10 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 		return nil, fmt.Errorf("failed to search for objects: %w", err)
 	}
 
+	log := i.log
 	// Strip the `_unstructured` suffix from the ID so we can get the object from the store.
 	for i, hit := range searchResults.Hits {
+		log.Info("hit", "id", hit.ID, "score", hit.Score)
 		if strings.Contains(hit.ID, unstructuredSuffix) {
 			hit.ID = strings.Replace(hit.ID, "_unstructured", "", 1)
 		}

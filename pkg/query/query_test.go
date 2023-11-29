@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/go-logr/logr"
+	"github.com/go-logr/logr/testr"
 	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -683,7 +684,7 @@ func TestQueryOrdering_Realistic(t *testing.T) {
 	s, err := store.NewSQLiteStore(db, logr.Discard())
 	g.Expect(err).NotTo(HaveOccurred())
 
-	idx, err := store.NewIndexer(s, dir, logr.Discard())
+	idx, err := store.NewIndexer(s, dir, testr.New(t))
 	g.Expect(err).NotTo(HaveOccurred())
 
 	ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{
@@ -706,8 +707,8 @@ func TestQueryOrdering_Realistic(t *testing.T) {
 	g.Expect(idx.Add(context.Background(), objects)).To(Succeed())
 
 	q := &qs{
-		log:        logr.Discard(),
-		debug:      logr.Discard(),
+		log:        testr.New(t),
+		debug:      testr.New(t),
 		r:          s,
 		index:      idx,
 		authorizer: allowAll,
@@ -757,11 +758,10 @@ func TestQueryOrdering_Realistic(t *testing.T) {
 		g.Expect(err).NotTo(HaveOccurred())
 
 		expected := []string{
-			"kube-prometheus-stack",
 			"flux-system",
-			"kube-prometheus-stack",
 			"monitoring-config",
 			"flux-system",
+			"kube-prometheus-stack",
 		}
 
 		actual := []string{}
