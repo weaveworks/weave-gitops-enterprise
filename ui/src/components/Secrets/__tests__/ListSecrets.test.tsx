@@ -1,13 +1,13 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import moment from 'moment';
 import SecretsList from '..';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   defaultContexts,
   SecretsClientMock,
   TestFilterableTable,
   withContext,
 } from '../../../utils/test-utils';
-import { EnterpriseClientContext } from '../../../contexts/API';
 
 const ListExternalSecretsResponse = {
   secrets: [

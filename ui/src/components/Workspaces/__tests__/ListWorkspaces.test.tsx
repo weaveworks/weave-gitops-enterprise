@@ -1,12 +1,12 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import WorkspacesList from '..';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   defaultContexts,
   WorkspaceClientMock,
   TestFilterableTable,
   withContext,
 } from '../../../utils/test-utils';
-import { EnterpriseClientContext } from '../../../contexts/API';
 
 const listWorkspacesResponse = {
   workspaces: [

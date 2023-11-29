@@ -1,13 +1,13 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import moment from 'moment';
 import PolicyConfigsList from '..';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   defaultContexts,
   PolicyConfigsClientMock,
   TestFilterableTable,
   withContext,
 } from '../../../utils/test-utils';
-import { EnterpriseClientContext } from '../../../contexts/API';
 
 const listPolicyConfigsResponse = {
   policyConfigs: [
