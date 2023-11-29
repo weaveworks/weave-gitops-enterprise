@@ -89,7 +89,7 @@ You can use a [previous release](https://github.com/weaveworks/weave-gitops-ente
 
 If the previous release was an `rc.x` release, add notes from its release notes.
 
-Review and combine the release notes with content from the product newsletter to update the website **after**. Publish the release notes.
+Review and combine the release notes with content from the product newsletter. Publish the release notes.
 
 #### The https://docs.gitops.weave.works/ Enterprise releases page
 
