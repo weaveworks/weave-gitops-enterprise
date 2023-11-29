@@ -194,7 +194,6 @@ export function getDefaultGitRepo(
 }
 
 export const FormWrapper = styled.form`
-  width: 80%;
   .gitops-cta {
     padding: ${({ theme }) => theme.spacing.medium};
     button:first-of-type {

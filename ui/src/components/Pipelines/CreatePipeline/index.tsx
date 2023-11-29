@@ -1,4 +1,3 @@
-import { Grid } from '@material-ui/core';
 import {
   Button,
   Flex,
@@ -8,6 +7,7 @@ import {
   Text,
 } from '@weaveworks/weave-gitops';
 import { useCallback, useContext, useMemo, useState } from 'react';
+import styled from 'styled-components';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
@@ -28,6 +28,25 @@ import { FormWrapper } from '../../Templates/Form/utils';
 import { FollowSteps } from './FollowSteps';
 import ListApplications from './ListApplications';
 import { Pipeline, getPipelineInitialData } from './utils';
+
+const PipelineContainer = styled(Flex)`
+  border-bottom: 1px solid ${props => props.theme.colors.neutral20};
+
+  .MuiInputBase-root {
+    margin-right: 0;
+  }
+`;
+
+const CreateEnvironmentContainer = styled(Flex)`
+  .w-50 {
+    width: 50%;
+  }
+  .card {
+    padding: 20px;
+    background: ${props => props.theme.colors.pipelinesBackGray};
+    min-height: 350px;
+  }
+`;
 
 const CreatePipeline = () => {
   const callbackState = useCallbackState();
@@ -109,7 +128,7 @@ const CreatePipeline = () => {
     <Page
       path={[
         { label: 'Pipeline', url: Routes.Pipelines },
-        { label: 'Create new pipeline' },
+        { label: 'Create and Edit Your Pipeline' },
       ]}
     >
       <CallbackStateContextProvider
@@ -128,42 +147,46 @@ const CreatePipeline = () => {
               validateFormData(event, handleCreatePipeline, setFormError);
             }}
           >
-            <Flex wide gap="16" column>
-              <Flex column gap="4">
-                <Text color="neutral30" size="large">
-                  Use this area to set up your pipeline or to make changes.
-                </Text>
-                <Text color="neutral30" size="large">
-                  When you're done, click the "Apply" button at the bottom.
-                </Text>
-              </Flex>
-              <Flex wide alignItems="center" gap="4" >
-                <InputDebounced
-                  required
-                  name="pipelineName"
-                  label="PIPELINE NAME"
-                  value={formData.pipelineName}
-                  handleFormData={val => handleFormData(val, 'pipelineName')}
-                  error={validateForm && !formData.pipelineName}
-                />
-                <InputDebounced
-                  required
-                  name="namespace"
-                  label="ADD NAMESPACE"
-                  value={formData.pipelineNamespace}
-                  handleFormData={val =>
-                    handleFormData(val, 'pipelineNamespace')
-                  }
-                  error={validateForm && !formData.pipelineNamespace}
-                />
-                <ListApplications
-                  value={formData.applicationName}
-                  handleFormData={val => handleFormData(val, 'applicationName')}
-                  validateForm={validateForm && !formData.applicationName}
-                />
-              </Flex>
+            <Flex wide column gap="24">
+              <PipelineContainer wide  column gap="20">
+                <Flex column gap="4">
+                  <Text color="neutral30" size="large">
+                    Use this area to set up your pipeline or to make changes.
+                  </Text>
+                  <Text color="neutral30" size="large">
+                    When you're done, click the "Apply" button at the bottom.
+                  </Text>
+                </Flex>
+                <Flex wide center alignItems="center" between gap="20">
+                  <InputDebounced
+                    required
+                    name="pipelineName"
+                    label="ENTER NEW PIPELINE NAME"
+                    value={formData.pipelineName}
+                    handleFormData={val => handleFormData(val, 'pipelineName')}
+                    error={validateForm && !formData.pipelineName}
+                  />
+                  <InputDebounced
+                    required
+                    name="namespace"
+                    label="ADD NAMESPACE"
+                    value={formData.pipelineNamespace}
+                    handleFormData={val =>
+                      handleFormData(val, 'pipelineNamespace')
+                    }
+                    error={validateForm && !formData.pipelineNamespace}
+                  />
+                  <ListApplications
+                    value={formData.applicationName}
+                    handleFormData={val =>
+                      handleFormData(val, 'applicationName')
+                    }
+                    validateForm={validateForm && !formData.applicationName}
+                  />
+                </Flex>
+              </PipelineContainer>
 
-              <Flex gap="16" column center wide>
+              <Flex wide column center gap="20">
                 <Flex wrap between wide>
                   <Flex column gap="4">
                     <Text color="neutral30" size="large">
@@ -191,31 +214,12 @@ const CreatePipeline = () => {
                     </Button>
                   </Flex>
                 </Flex>
-
-                <Grid alignItems="center" container>
-                  <Grid
-                    item
-                    xs={6}
-                    sm={6}
-                    md={6}
-                    lg={6}
-                    style={{
-                      background: '#D8D8D8',
-                    }}
-                  >
+                <CreateEnvironmentContainer wide gap="20">
+                  <div className="card w-50">
                     <FollowSteps />
-                  </Grid>
-                  <Grid
-                    item
-                    xs={6}
-                    sm={6}
-                    md={6}
-                    lg={6}
-                    style={{
-                      background: '#D8D8D8',
-                    }}
-                  ></Grid>
-                </Grid>
+                  </div>
+                  <div className="card w-50"></div>
+                </CreateEnvironmentContainer>
               </Flex>
               <GitOps
                 loading={loading}
