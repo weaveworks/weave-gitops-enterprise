@@ -36,6 +36,7 @@ import ImageAutomationPage from './components/ImageAutomation';
 import { Page } from './components/Layout/App';
 import { NotificationsWrapper } from './components/Layout/NotificationsWrapper';
 import Pipelines from './components/Pipelines';
+import CreatePipeline from './components/Pipelines/CreatePipeline';
 import PipelineDetails from './components/Pipelines/PipelineDetails';
 import Policies from './components/Policies/PoliciesListPage';
 import PolicyDetailsPage from './components/Policies/PolicyDetailsPage';
@@ -205,6 +206,7 @@ const AppRoutes = () => {
         path={Routes.PipelineDetails}
         component={withSearchParams(PipelineDetails)}
       />
+      <Route exact path={Routes.CreatePipeline} component={CreatePipeline} />
       <Route path={Routes.ImageAutomation} component={ImageAutomationPage} />
       <Route
         path={V2Routes.ImageAutomationUpdatesDetails}

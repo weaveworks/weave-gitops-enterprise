@@ -32,10 +32,7 @@ const Pipelines = ({ className }: any) => {
           data-testid="create-pipeline"
           startIcon={<Icon type={IconType.AddIcon} size="base" />}
           onClick={() => {
-            const filtersValues = toFilterQueryString([
-              { key: `templateType`, value: 'pipeline' },
-            ]);
-            history.push(`/templates?filters=${filtersValues}`);
+            history.push(Routes.CreatePipeline);
           }}
         >
           CREATE A PIPELINE
