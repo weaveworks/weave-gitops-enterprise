@@ -1,4 +1,5 @@
 import { GetVersionResponse } from '@weaveworks/progressive-delivery';
+import { withBasePath } from '@weaveworks/weave-gitops';
 import { useContext, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
@@ -12,7 +13,7 @@ export function useListVersion() {
     { data: GetVersionResponse; entitlement: string | null },
     Error
   >('version', () =>
-    requestWithEntitlementHeader('GET', '/v1/enterprise/version'),
+    requestWithEntitlementHeader('GET', withBasePath('/v1/enterprise/version')),
   );
 }
 export interface ListConfigResponse extends GetConfigResponse {

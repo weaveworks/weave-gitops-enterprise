@@ -45,6 +45,8 @@ extraEnvVars:
     value: "false"
   - name: BITBUCKET_SERVER_HOSTNAME
     value: "bitbucket.yiannis.net"
+  - name: ROUTE_PREFIX
+    value: /weave-gitops-enterprise
 
 extraEnvVarsSecret: ""
 
@@ -62,18 +64,15 @@ global:
   capiEnabled: true
 
 enableNewPipelines: true
-# Run the UI and API under /weave-gitops-enterprise
 
-# additionalArgs:
-#   - "--route-prefix=/weave-gitops-enterprise"
 # Enable ingress running under a path
 # Note:
 # Run ./tools/kind-with-ingress.sh # create a kind cluster with ingress
 # Open http://localhost:30080/weave-gitops-enterprise # access the weave-gitops-enterprise app
-# ingress:
-#   enabled: true
-#   hosts:
-#   - host: ""
-#     paths:
-#       - path: /weave-gitops-enterprise
-#         pathType: Prefix
+ingress:
+  enabled: true
+  hosts:
+    - host: ""
+      paths:
+        - path: /weave-gitops-enterprise
+          pathType: Prefix
