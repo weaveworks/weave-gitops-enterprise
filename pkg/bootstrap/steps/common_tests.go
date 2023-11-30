@@ -15,8 +15,6 @@ func makeTestConfig(t *testing.T, config Config, objects ...runtime.Object) Conf
 		Logger:                  cliLogger,
 		WGEVersion:              config.WGEVersion,
 		ClusterUserAuth:         config.ClusterUserAuth,
-		DomainType:              config.DomainType,
-		UserDomain:              config.UserDomain,
 		GitScheme:               config.GitScheme,
 		FluxInstallated:         config.FluxInstallated,
 		PrivateKeyPath:          config.PrivateKeyPath,

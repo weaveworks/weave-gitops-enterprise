@@ -1,8 +1,6 @@
 package steps
 
 import (
-	"strings"
-
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 )
 
@@ -25,12 +23,6 @@ func checkUIDomain(input []StepInput, c *Config) ([]StepOutput, error) {
 	if err := utils.ReconcileHelmRelease(WgeHelmReleaseName); err != nil {
 		return []StepOutput{}, err
 	}
-	if !strings.Contains(c.UserDomain, domainTypeLocalhost) {
-		c.Logger.Actionf(credsMsg)
-		c.Logger.Successf(installSuccessMsg, c.WGEVersion, c.UserDomain)
-		return []StepOutput{}, nil
-	}
-
 	c.Logger.Successf(portforwardMsg, c.WGEVersion)
 	c.Logger.Actionf(credsMsg)
 	c.Logger.Println(portforwardCmdMsg, WGEDefaultNamespace)

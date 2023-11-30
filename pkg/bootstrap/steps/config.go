@@ -28,11 +28,8 @@ const (
 const (
 	inPassword           = "password"
 	inWGEVersion         = "wgeVersion"
-	inUserDomain         = "userDomain"
 	inPrivateKeyPath     = "privateKeyPath"
 	inPrivateKeyPassword = "privateKeyPassword"
-	inExistingCreds      = "existingCreds"
-	inDomainType         = "domainType"
 	inDiscoveryURL       = "discoveryURL"
 	inClientID           = "clientID"
 	inClientSecret       = "clientSecret"
@@ -62,8 +59,6 @@ type ConfigBuilder struct {
 	kubeconfig              string
 	password                string
 	wgeVersion              string
-	domainType              string
-	domain                  string
 	privateKeyPath          string
 	privateKeyPassword      string
 	silent                  bool
@@ -102,18 +97,6 @@ func (c *ConfigBuilder) WithKubeconfig(kubeconfig string) *ConfigBuilder {
 func (c *ConfigBuilder) WithVersion(version string) *ConfigBuilder {
 	c.wgeVersion = version
 	return c
-}
-
-func (c *ConfigBuilder) WithDomainType(domainType string) *ConfigBuilder {
-	c.domainType = domainType
-	return c
-
-}
-
-func (c *ConfigBuilder) WithDomain(domain string) *ConfigBuilder {
-	c.domain = domain
-	return c
-
 }
 
 func (c *ConfigBuilder) WithGitAuthentication(privateKeyPath, privateKeyPassword, gitUsername, gitToken string) *ConfigBuilder {
@@ -158,9 +141,6 @@ type Config struct {
 
 	WGEVersion      string // user want this version in the cluster
 	ClusterUserAuth ClusterUserAuthConfig
-
-	DomainType string
-	UserDomain string
 
 	Silent bool
 
@@ -231,8 +211,6 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		Branch:                  gitRepositoryConfig.Branch,
 		RepoPath:                gitRepositoryConfig.Path,
 		Logger:                  cb.logger,
-		DomainType:              cb.domainType,
-		UserDomain:              cb.domain,
 		Silent:                  cb.silent,
 		RepoURL:                 cb.repoURL,
 		PrivateKeyPath:          cb.privateKeyPath,

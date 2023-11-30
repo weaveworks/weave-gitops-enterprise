@@ -3,7 +3,10 @@ package steps
 import (
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
+	v1 "k8s.io/api/core/v1"
 )
 
 const (
@@ -124,6 +127,59 @@ status: {}
 `
 )
 
+func TestInstallWge_Execute(t *testing.T) {
+	tests := []struct {
+		name       string
+		config     Config
+		wantOutput []StepOutput
+		wantErr    string
+	}{
+		{
+			name: "should install weave gitops enterprise",
+			config: makeTestConfig(t, Config{
+				WGEVersion: "1.0.0",
+			}),
+			wantOutput: []StepOutput{
+				{
+					Name: wgeHelmrepoFileName,
+					Type: typeFile,
+					Value: fileContent{
+						Name:      wgeHelmrepoFileName,
+						Content:   helmrepositoryTestFile,
+						CommitMsg: wgeHelmRepoCommitMsg,
+					},
+				},
+				{
+					Name: wgeHelmReleaseFileName,
+					Type: typeFile,
+					Value: fileContent{
+						Name:      wgeHelmReleaseFileName,
+						Content:   hrFileContentLocalhost,
+						CommitMsg: wgeHelmReleaseCommitMsg,
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			step := NewInstallWGEStep()
+			gotOutputs, err := step.Execute(&tt.config)
+			if tt.wantErr != "" {
+				if msg := err.Error(); msg != tt.wantErr {
+					t.Fatalf("got error %q, want %q", msg, tt.wantErr)
+				}
+				return
+			}
+
+			assert.NoError(t, err)
+			if diff := cmp.Diff(tt.wantOutput, gotOutputs, cmpopts.IgnoreFields(v1.Secret{}, "Data")); diff != "" {
+				t.Fatalf("expected output:\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestInstallWge(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -135,23 +191,12 @@ func TestInstallWge(t *testing.T) {
 		{
 			name:       "unsupported domain type",
 			domainType: "wrongType",
-			input: []StepInput{
-				{
-					Name:  inUserDomain,
-					Value: "example.com",
-				},
-			},
-			err: true,
+			input:      []StepInput{},
+			err:        true,
 		},
 		{
-			name:       "install with domaintype localhost",
-			domainType: domainTypeLocalhost,
-			input: []StepInput{
-				{
-					Name:  inUserDomain,
-					Value: "localhost",
-				},
-			},
+			name:  "install with domaintype localhost",
+			input: []StepInput{},
 			output: []StepOutput{
 				{
 					Name: wgeHelmrepoFileName,
@@ -175,14 +220,8 @@ func TestInstallWge(t *testing.T) {
 			err: false,
 		},
 		{
-			name:       "install with domaintype external dns",
-			domainType: domainTypeExternalDNS,
-			input: []StepInput{
-				{
-					Name:  inUserDomain,
-					Value: "example.com",
-				},
-			},
+			name:  "install with domaintype external dns",
+			input: []StepInput{},
 			output: []StepOutput{
 				{
 					Name: wgeHelmrepoFileName,
@@ -211,7 +250,6 @@ func TestInstallWge(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			testConfig := Config{
 				WGEVersion: "1.0.0",
-				DomainType: tt.domainType,
 			}
 
 			config := makeTestConfig(t, testConfig)
