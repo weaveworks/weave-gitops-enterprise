@@ -3,10 +3,13 @@ package steps
 import (
 	"testing"
 
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -128,6 +131,7 @@ status: {}
 )
 
 func TestInstallWge_Execute(t *testing.T) {
+
 	tests := []struct {
 		name       string
 		config     Config
@@ -137,8 +141,16 @@ func TestInstallWge_Execute(t *testing.T) {
 		{
 			name: "should install weave gitops enterprise",
 			config: makeTestConfig(t, Config{
-				WGEVersion: "1.0.0",
-			}),
+				WGEVersion:  "1.0.0",
+				GitUsername: "test",
+				GitToken:    "abc",
+				GitRepository: GitRepositoryConfig{
+					Url:    "https://test.com.git",
+					Branch: "main",
+					Path:   "/",
+					Scheme: "https",
+				},
+			}, fluxSystemGitRepository(), fluxSystemKustomization()),
 			wantOutput: []StepOutput{
 				{
 					Name: wgeHelmrepoFileName,
@@ -278,5 +290,45 @@ func TestInstallWge(t *testing.T) {
 				assert.Equal(t, outFileContent.Content, inFileContent.Content, "wrong content")
 			}
 		})
+	}
+}
+
+func fluxSystemGitRepository() *sourcev1.GitRepository {
+	return &sourcev1.GitRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "flux-system",
+			Namespace: "flux-system",
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1.GitRepositoryKind,
+			APIVersion: sourcev1.GroupVersion.String(),
+		},
+		Spec: sourcev1.GitRepositorySpec{
+			URL: "https://example.com/owner/repo",
+			Reference: &sourcev1.GitRepositoryRef{
+				Branch: "main",
+			},
+		},
+	}
+}
+
+func fluxSystemKustomization() *kustomizev1.Kustomization {
+	return &kustomizev1.Kustomization{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       kustomizev1.KustomizationKind,
+			APIVersion: kustomizev1.GroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "flux-system",
+			Namespace: "flux-system",
+		},
+		Spec: kustomizev1.KustomizationSpec{
+			Path: "/foo",
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Kind:      sourcev1.GitRepositoryKind,
+				Name:      "flux-system",
+				Namespace: "flux-system",
+			},
+		},
 	}
 }

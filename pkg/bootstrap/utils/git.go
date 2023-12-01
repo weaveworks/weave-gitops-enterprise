@@ -26,6 +26,11 @@ const (
 	httpsAuth       = "https"
 )
 
+type GitClient interface {
+	CloneRepo(kubeClient k8s_client.Client, repoName string, namespace string, authType string, privateKeyPath string, privateKeyPassword string, username string, token string) (string, error)
+	CreateFileToRepo(filename, filecontent, path, commitmsg, authType, privateKeyPath, privateKeyPassword, username, token string) error
+}
+
 // GetGitRepositoryObject get the default source git repository object to be used in cloning
 func GetGitRepositoryObject(client k8s_client.Client, repoName string, namespace string) (*sourcev1.GitRepository, error) {
 	gitRepo := &sourcev1.GitRepository{}
@@ -64,9 +69,10 @@ func getRepoPath(client k8s_client.Client, repoName string, namespace string) (s
 	return kustomization.Spec.Path, nil
 }
 
+type RealGitClient struct{}
+
 // CloneRepo shallow clones the user repo's branch under temp and returns the current path.
-func CloneRepo(client k8s_client.Client,
-	repoName string,
+func (c *RealGitClient) CloneRepo(kubeClient k8s_client.Client, repoName string,
 	namespace string,
 	authType string,
 	privateKeyPath string,
@@ -78,7 +84,7 @@ func CloneRepo(client k8s_client.Client,
 		return "", err
 	}
 
-	gitRepo, err := GetGitRepositoryObject(client, repoName, namespace)
+	gitRepo, err := GetGitRepositoryObject(kubeClient, repoName, namespace)
 	if err != nil {
 		return "", err
 	}
@@ -86,7 +92,7 @@ func CloneRepo(client k8s_client.Client,
 	repoUrl := getRepoUrl(gitRepo)
 	repoBranch := getRepoBranch(gitRepo)
 
-	repoPath, err := getRepoPath(client, repoName, namespace)
+	repoPath, err := getRepoPath(kubeClient, repoName, namespace)
 	if err != nil {
 		return "", err
 	}
@@ -111,7 +117,7 @@ func CloneRepo(client k8s_client.Client,
 }
 
 // CreateFileToRepo create a file and add to the repo.
-func CreateFileToRepo(filename, filecontent, path, commitmsg, authType, privateKeyPath, privateKeyPassword, username, token string) error {
+func (c *RealGitClient) CreateFileToRepo(filename, filecontent, path, commitmsg, authType, privateKeyPath, privateKeyPassword, username, token string) error {
 	repo, err := git.PlainOpen(workingDir)
 	if err != nil {
 		return err

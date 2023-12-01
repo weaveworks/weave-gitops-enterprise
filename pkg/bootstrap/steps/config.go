@@ -137,7 +137,12 @@ func (c *ConfigBuilder) WithSilentFlag(silent bool) *ConfigBuilder {
 // configuration values as well as other required structs like clients
 type Config struct {
 	KubernetesClient k8s_client.Client
-	Logger           logger.Logger
+	// TODO move me to a better package
+	GitClient utils.GitClient
+	// TODO move me to a better package
+	FluxClient utils.FluxClient
+
+	Logger logger.Logger
 
 	WGEVersion      string // user want this version in the cluster
 	ClusterUserAuth ClusterUserAuthConfig
@@ -159,7 +164,7 @@ type Config struct {
 	Branch string
 	// deprecated use GitRepository.Path instead
 	RepoPath string
-	// deprecated use GitRepository.Scheme instead
+	// Deprecated: use GitRepository.Scheme instead
 	GitScheme string
 
 	AuthType                string
