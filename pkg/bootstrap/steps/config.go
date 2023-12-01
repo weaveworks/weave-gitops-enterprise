@@ -164,8 +164,6 @@ type Config struct {
 	Branch string
 	// Deprecated: use GitRepository.Path instead
 	RepoPath string
-	// Deprecated: use GitRepository.Scheme instead
-	GitScheme string
 
 	AuthType                string
 	InstallOIDC             string
@@ -214,7 +212,6 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		WGEVersion:              cb.wgeVersion,
 		ClusterUserAuth:         clusterUserAuthConfig,
 		GitRepository:           gitRepositoryConfig,
-		GitScheme:               gitRepositoryConfig.Scheme,
 		Branch:                  gitRepositoryConfig.Branch,
 		RepoPath:                gitRepositoryConfig.Path,
 		Logger:                  cb.logger,

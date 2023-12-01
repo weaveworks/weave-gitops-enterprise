@@ -220,7 +220,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 			}()
 			c.Logger.Successf("cloned flux git repo: %s/%s", WGEDefaultRepoName, WGEDefaultRepoName)
 
-			err = c.GitClient.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg, c.GitScheme, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
+			err = c.GitClient.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg, c.GitRepository.Scheme, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
 			if err != nil {
 				return err
 			}
