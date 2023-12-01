@@ -9,6 +9,7 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
+	"gopkg.in/yaml.v3"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -47,6 +48,49 @@ func NewInstallWGEStep() BootstrapStep {
 	}
 }
 
+var defaultServiceValuesString = `service:
+type: ClusterIP
+ports:
+  https: 8000
+targetPorts:
+  https: 8000
+nodePorts:
+  http: ""
+  https: ""
+  tcp: {}
+  udp: {}
+clusterIP: ""
+externalIPs: []
+loadBalancerIP: ""
+loadBalancerSourceRanges: []
+externalTrafficPolicy: ""
+healthCheckNodePort: 0
+annotations: {}
+`
+
+var defaultIngressValuesString = `ingress:
+enabled: false
+className: ""
+# Service target information for ingress
+# Port is required if no 'https' service port is defined
+service:
+  name: clusters-service
+  port: 8000
+annotations: {}
+# kubernetes.io/ingress.class: nginx
+# kubernetes.io/tls-acme: "true"
+hosts:
+  - host: ""
+    paths:
+      - path: /
+        pathType: ImplementationSpecific
+#
+tls: []
+#  - secretName: chart-example-tls
+#    hosts:
+#      - chart-example.local
+`
+
 // InstallWge installs weave gitops enterprise chart.
 func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 	c.Logger.Actionf(wgeInstallMsg, c.WGEVersion)
@@ -56,6 +100,20 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 		return []StepOutput{}, err
 	}
 	c.Logger.Actionf("rendered HelmRepository file")
+
+	defaultServiceValues := make(map[string]interface{})
+	err = yaml.Unmarshal([]byte(defaultServiceValuesString), &defaultServiceValues)
+	if err != nil {
+		return []StepOutput{}, fmt.Errorf("error creating service values: %v", err)
+	}
+	serviceValues := defaultServiceValues
+
+	defaultIngressValues := make(map[string]interface{})
+	err = yaml.Unmarshal([]byte(defaultIngressValuesString), &defaultIngressValues)
+	if err != nil {
+		return []StepOutput{}, fmt.Errorf("error creating service values: %v", err)
+	}
+	ingressValues := defaultIngressValues
 
 	gitOpsSetsValues := map[string]interface{}{
 		"enabled": true,
@@ -84,7 +142,8 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 		}}
 
 	wgeValues := valuesFile{
-		//Ingress: ingressValues,
+		Service: serviceValues,
+		Ingress: ingressValues,
 		TLS: map[string]interface{}{
 			"enabled": false,
 		},
@@ -94,6 +153,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 	}
 
 	wgeHelmRelease, err := constructWGEhelmRelease(wgeValues, c.WGEVersion)
+	fmt.Println(wgeHelmRelease)
 	if err != nil {
 		return []StepOutput{}, err
 	}

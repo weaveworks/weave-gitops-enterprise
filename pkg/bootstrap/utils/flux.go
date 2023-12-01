@@ -19,7 +19,7 @@ type FluxClient interface {
 	ReconcileHelmRelease(hrName string) error
 }
 
-type fluxClient struct{}
+type CmdFluxClient struct{}
 
 // CreateHelmReleaseYamlString create HelmRelease yaml string to add to file.
 func CreateHelmReleaseYamlString(hr helmv2.HelmRelease) (string, error) {
@@ -98,7 +98,7 @@ func CreateHelmRepositoryYamlString(helmRepo sourcev1.HelmRepository) (string, e
 
 // ReconcileFlux reconcile flux default source and kustomization
 // Reconciliation is important to apply the effect of adding resources to the git repository
-func (fc fluxClient) ReconcileFlux() error {
+func (fc CmdFluxClient) ReconcileFlux() error {
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "source", "git", "flux-system")
 	if err != nil {
@@ -116,7 +116,7 @@ func (fc fluxClient) ReconcileFlux() error {
 }
 
 // ReconcileHelmRelease reconcile a particular helmrelease
-func (fc fluxClient) ReconcileHelmRelease(hrName string) error {
+func (fc CmdFluxClient) ReconcileHelmRelease(hrName string) error {
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "helmrelease", hrName)
 	if err != nil {

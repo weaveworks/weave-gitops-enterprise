@@ -69,10 +69,10 @@ func getRepoPath(client k8s_client.Client, repoName string, namespace string) (s
 	return kustomization.Spec.Path, nil
 }
 
-type RealGitClient struct{}
+type GoGitClient struct{}
 
 // CloneRepo shallow clones the user repo's branch under temp and returns the current path.
-func (c *RealGitClient) CloneRepo(kubeClient k8s_client.Client, repoName string,
+func (c *GoGitClient) CloneRepo(kubeClient k8s_client.Client, repoName string,
 	namespace string,
 	authType string,
 	privateKeyPath string,
@@ -117,7 +117,7 @@ func (c *RealGitClient) CloneRepo(kubeClient k8s_client.Client, repoName string,
 }
 
 // CreateFileToRepo create a file and add to the repo.
-func (c *RealGitClient) CreateFileToRepo(filename, filecontent, path, commitmsg, authType, privateKeyPath, privateKeyPassword, username, token string) error {
+func (c *GoGitClient) CreateFileToRepo(filename, filecontent, path, commitmsg, authType, privateKeyPath, privateKeyPassword, username, token string) error {
 	repo, err := git.PlainOpen(workingDir)
 	if err != nil {
 		return err

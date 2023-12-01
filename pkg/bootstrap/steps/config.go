@@ -158,11 +158,11 @@ type Config struct {
 
 	// GitRepository contains the configuration for the git repo
 	GitRepository GitRepositoryConfig
-	// deprecated use GitRepository.Url instead
+	// Deprecated: use GitRepository.Url instead
 	RepoURL string
-	// deprecated use GitRepository.Branch instead
+	// Deprecated: use GitRepository.Branch instead
 	Branch string
-	// deprecated use GitRepository.Path instead
+	// Deprecated: use GitRepository.Path instead
 	RepoPath string
 	// Deprecated: use GitRepository.Scheme instead
 	GitScheme string
@@ -209,6 +209,8 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
 		KubernetesClient:        kubeHttp.Client,
+		GitClient:               &utils.GoGitClient{},
+		FluxClient:              &utils.CmdFluxClient{},
 		WGEVersion:              cb.wgeVersion,
 		ClusterUserAuth:         clusterUserAuthConfig,
 		GitRepository:           gitRepositoryConfig,
@@ -241,6 +243,7 @@ type fileContent struct {
 // ValuesFile store the wge values
 type valuesFile struct {
 	Config             ValuesWGEConfig        `json:"config,omitempty"`
+	Service            map[string]interface{} `json:"service,omitempty"`
 	Ingress            map[string]interface{} `json:"ingress,omitempty"`
 	TLS                map[string]interface{} `json:"tls,omitempty"`
 	PolicyAgent        map[string]interface{} `json:"policy-agent,omitempty"`
