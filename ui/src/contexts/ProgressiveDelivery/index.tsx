@@ -4,7 +4,6 @@ import {
   ListCanaryObjectsResponse,
 } from '@weaveworks/progressive-delivery';
 import _ from 'lodash';
-import React, { useContext } from 'react';
 import { useQuery } from 'react-query';
 import {
   ListEventsRequest,

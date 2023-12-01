@@ -303,7 +303,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     setLoading(true);
     return validateToken()
       .then(() =>
-        enterprise
+        clustersService
           .CreateAutomationsPullRequest(payload, {
             headers: new Headers({
               'Git-Provider-Token': `token ${getProviderToken(
@@ -344,7 +344,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       })
       .finally(() => setLoading(false));
   }, [
-    enterprise,
+    clustersService,
     formData,
     history,
     getKustomizations,

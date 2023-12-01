@@ -115,7 +115,7 @@ const CreateExternalSecret = () => {
         setNotifications([expiredTokenNotification]);
       })
       .finally(() => setLoading(false));
-  }, [enterprise, formData, setNotifications, token, validateToken]);
+  }, [clustersService, formData, setNotifications, token, validateToken]);
 
   const authRedirectPage = Routes.CreateSecret;
 

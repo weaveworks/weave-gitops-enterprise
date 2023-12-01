@@ -80,13 +80,13 @@ const useClusters = () => {
   const deleteCreatedClusters = useCallback(
     (data: DeleteClustersPRRequestEnriched, token: string | null) => {
       setLoading(true);
-      return enterprise
+      return clustersService
         .CreateDeletionPullRequest(data, {
           headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
         })
         .finally(() => setLoading(false));
     },
-    [enterprise],
+    [clustersService],
   );
 
   return {

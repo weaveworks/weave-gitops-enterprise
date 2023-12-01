@@ -71,7 +71,7 @@ export const Preview = ({
   const handlePRPreview = useCallback(async () => {
     setPreviewLoading(true);
     try {
-      const render = getRender(enterprise, secretType, formData);
+      const render = getRender(clustersService, secretType, formData);
       setOpenPreview(true);
       setPRPreview(await render);
     } catch (err: any) {
@@ -79,7 +79,7 @@ export const Preview = ({
     } finally {
       setPreviewLoading(false);
     }
-  }, [enterprise, formData, secretType, setNotifications]);
+  }, [clustersService, formData, secretType, setNotifications]);
 
   return (
     <>

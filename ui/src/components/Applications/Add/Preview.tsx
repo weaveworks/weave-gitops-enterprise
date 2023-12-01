@@ -28,7 +28,7 @@ export const Preview = ({
 
   const handlePRPreview = useCallback(() => {
     setPreviewLoading(true);
-    return enterprise
+    return clustersService
       .RenderAutomation({
         clusterAutomations,
       })
@@ -46,7 +46,7 @@ export const Preview = ({
         ]),
       )
       .finally(() => setPreviewLoading(false));
-  }, [enterprise, setOpenPreview, clusterAutomations, setNotifications]);
+  }, [clustersService, setOpenPreview, clusterAutomations, setNotifications]);
 
   return (
     <>

@@ -258,7 +258,7 @@ const CreatePolicyConfig = () => {
     setLoading(true);
     return validateToken()
       .then(() =>
-        enterprise
+        clustersService
           .CreateAutomationsPullRequest(payload, {
             headers: new Headers({
               'Git-Provider-Token': `token ${getProviderToken(
@@ -299,7 +299,7 @@ const CreatePolicyConfig = () => {
       })
       .finally(() => setLoading(false));
   }, [
-    enterprise,
+    clustersService,
     formData,
     getClusterAutomations,
     history,

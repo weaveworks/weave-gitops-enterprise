@@ -33,7 +33,6 @@ import App from './components/Layout/App';
 import MemoizedHelpLinkWrapper from './components/Layout/HelpLinkWrapper';
 import Compose from './components/ProvidersCompose';
 import { EnterpriseClientProvider } from './contexts/API';
-import { GitAuthProvider } from './contexts/GitAuth/index';
 import NotificationsProvider from './contexts/Notifications/Provider';
 import RequestContextProvider from './contexts/Request';
 import { muiTheme } from './muiTheme';
@@ -178,45 +177,43 @@ const AppContainer = () => {
     <RequestContextProvider fetch={window.fetch}>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter basename={getBasePath()}>
-          <GitAuthProvider>
-            <AppContextProvider footer={<MemoizedHelpLinkWrapper />}>
-              <StylesProvider>
-                <AuthContextProvider>
-                  <EnterpriseClientProvider>
-                    <CoreClientContextProvider api={coreClient}>
-                      <LinkResolverProvider resolver={resolver}>
-                        <Pendo
-                          defaultTelemetryFlag="true"
-                          tier="enterprise"
-                          version={process.env.REACT_APP_VERSION}
-                        />
-                        <Compose components={[NotificationsProvider]}>
-                          <Switch>
-                            <Route
-                              component={() => <SignIn />}
-                              exact={true}
-                              path="/sign_in"
-                            />
-                            <Route path="*">
-                              {/* Check we've got a logged in user otherwise redirect back to signin */}
-                              <AuthCheck>
-                                <App />
-                              </AuthCheck>
-                            </Route>
-                          </Switch>
-                          <ToastContainer
-                            position="top-center"
-                            autoClose={5000}
-                            newestOnTop={false}
+          <AppContextProvider footer={<MemoizedHelpLinkWrapper />}>
+            <StylesProvider>
+              <AuthContextProvider>
+                <EnterpriseClientProvider>
+                  <CoreClientContextProvider api={coreClient}>
+                    <LinkResolverProvider resolver={resolver}>
+                      <Pendo
+                        defaultTelemetryFlag="true"
+                        tier="enterprise"
+                        version={process.env.REACT_APP_VERSION}
+                      />
+                      <Compose components={[NotificationsProvider]}>
+                        <Switch>
+                          <Route
+                            component={() => <SignIn />}
+                            exact={true}
+                            path="/sign_in"
                           />
-                        </Compose>
-                      </LinkResolverProvider>
-                    </CoreClientContextProvider>
-                  </EnterpriseClientProvider>
-                </AuthContextProvider>
-              </StylesProvider>
-            </AppContextProvider>
-          </GitAuthProvider>
+                          <Route path="*">
+                            {/* Check we've got a logged in user otherwise redirect back to signin */}
+                            <AuthCheck>
+                              <App />
+                            </AuthCheck>
+                          </Route>
+                        </Switch>
+                        <ToastContainer
+                          position="top-center"
+                          autoClose={5000}
+                          newestOnTop={false}
+                        />
+                      </Compose>
+                    </LinkResolverProvider>
+                  </CoreClientContextProvider>
+                </EnterpriseClientProvider>
+              </AuthContextProvider>
+            </StylesProvider>
+          </AppContextProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </RequestContextProvider>

@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useQuery } from 'react-query';
 import {
   CreatePullRequestRequest,
@@ -39,13 +39,13 @@ const useTemplates = (
   const addResource = useCallback(
     ({ ...data }: CreatePullRequestRequest, token: string | null) => {
       setLoading(true);
-      return enterprise
+      return clustersService
         .CreatePullRequest(data, {
           headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
         })
         .finally(() => setLoading(false));
     },
-    [enterprise],
+    [clustersService],
   );
 
   return {
