@@ -12,6 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8syaml "sigs.k8s.io/yaml"
 )
 
 const (
@@ -48,7 +49,7 @@ func NewInstallWGEStep() BootstrapStep {
 	}
 }
 
-var defaultServiceValuesString = `service:
+var defaultServiceValuesString = `
 type: ClusterIP
 ports:
   https: 8000
@@ -68,7 +69,7 @@ healthCheckNodePort: 0
 annotations: {}
 `
 
-var defaultIngressValuesString = `ingress:
+var defaultIngressValuesString = `
 enabled: false
 className: ""
 # Service target information for ingress
@@ -102,7 +103,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 	c.Logger.Actionf("rendered HelmRepository file")
 
 	defaultServiceValues := make(map[string]interface{})
-	err = yaml.Unmarshal([]byte(defaultServiceValuesString), &defaultServiceValues)
+	err = k8syaml.Unmarshal([]byte(defaultServiceValuesString), &defaultServiceValues)
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("error creating service values: %v", err)
 	}
