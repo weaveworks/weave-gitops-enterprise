@@ -66,7 +66,7 @@ export const Preview = ({
     null,
   );
   const { setNotifications } = useNotifications();
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
 
   const handlePRPreview = useCallback(async () => {
     setPreviewLoading(true);

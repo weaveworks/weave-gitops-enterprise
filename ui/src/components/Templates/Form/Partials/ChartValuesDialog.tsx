@@ -50,11 +50,11 @@ const ChartValuesDialog: FC<{
   onDiscard,
 }) => {
   const classes = useStyles();
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
   const [yamlPreview, setYamlPreview] = useState<string>(yaml);
 
   const getConfigResp = useQuery<GetConfigResponse, Error>('config', () =>
-    enterprise.GetConfig({}),
+    clustersService.GetConfig({}),
   );
 
   const {
@@ -64,7 +64,7 @@ const ChartValuesDialog: FC<{
   } = useQuery<GetValuesForChartResponse, Error>(
     `values-job-${profile.name}-${version}`,
     () =>
-      enterprise.GetValuesForChart({
+      clustersService.GetValuesForChart({
         repository: {
           cluster: cluster || {
             name: getConfigResp?.data?.managementClusterName,
@@ -88,7 +88,7 @@ const ChartValuesDialog: FC<{
   >(
     `values-job-${jobData?.jobId}`,
     () =>
-      enterprise.GetChartsJob({
+      clustersService.GetChartsJob({
         jobId: jobData?.jobId,
       }),
     {

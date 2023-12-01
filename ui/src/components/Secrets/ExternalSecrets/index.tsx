@@ -42,7 +42,7 @@ const CreateExternalSecret = () => {
   const handleFormData = (value: any, key: string) => {
     setFormData(f => ({ ...f, [key]: value }));
   };
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
 
   const handleSecretStoreChange = (value: string) => {
     const [secretStoreRef, secretStoreKind, secretNamespace, secretStoreType] =
@@ -75,7 +75,7 @@ const CreateExternalSecret = () => {
       .then(async () => {
         try {
           const payload = getESFormattedPayload(formData);
-          const response = await enterprise.CreateAutomationsPullRequest(
+          const response = await clustersService.CreateAutomationsPullRequest(
             {
               headBranch: formData.branchName,
               title: formData.pullRequestTitle,

@@ -89,13 +89,13 @@ export const useListFlaggerObjects = (params: CanaryParams) => {
 const EVENTS_QUERY_KEY = 'events';
 
 export function useListEvents(req: ListEventsRequest) {
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
 
   return useQuery<ListEventsResponse, Error>(
     [EVENTS_QUERY_KEY, req],
-    () => enterprise.ListEvents(req),
+    () => clustersService.ListEvents(req),
     {
       onError,
       refetchInterval: 5000,

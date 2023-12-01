@@ -116,7 +116,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const history = useHistory();
   const authRedirectPage = `/applications/create`;
   const [formError, setFormError] = useState<string>('');
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
 
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (

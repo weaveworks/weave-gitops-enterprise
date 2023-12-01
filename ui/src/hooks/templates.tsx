@@ -15,14 +15,14 @@ const useTemplates = (
 ) => {
   const [loading, setLoading] = useState<boolean>(false);
   const { setNotifications } = useNotifications();
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
 
   const onError = (error: Error) =>
     setNotifications([{ message: { text: error.message }, severity: 'error' }]);
 
   const { isLoading, data } = useQuery<ListTemplatesResponse, Error>(
     'templates',
-    () => enterprise.ListTemplates({}),
+    () => clustersService.ListTemplates({}),
     {
       keepPreviousData: true,
       onError,
@@ -34,7 +34,7 @@ const useTemplates = (
   const getTemplate = (templateName: string) =>
     templates?.find(template => template.name === templateName) || null;
 
-  const renderTemplate = enterprise.RenderTemplate;
+  const renderTemplate = clustersService.RenderTemplate;
 
   const addResource = useCallback(
     ({ ...data }: CreatePullRequestRequest, token: string | null) => {

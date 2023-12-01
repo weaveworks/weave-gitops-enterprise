@@ -4,8 +4,8 @@ import { ListCredentialsResponse } from '../cluster-services/cluster_services.pb
 import { useAPI } from '../contexts/API';
 
 export function useListCredentials() {
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
   return useQuery<ListCredentialsResponse, Error>('credentials', () =>
-    enterprise.ListCredentials({}),
+    clustersService.vice.ListCredentials({}),
   );
 }

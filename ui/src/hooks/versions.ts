@@ -22,10 +22,10 @@ export interface ListConfigResponse extends GetConfigResponse {
 }
 
 export function useListConfig() {
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
   const [provider, setProvider] = useState<string>('');
   const queryResponse = useQuery<GetConfigResponse, Error>('config', () =>
-    enterprise.GetConfig({}),
+    clustersService.GetConfig({}),
   );
   const { gitAuthClient } = useContext(GitAuth);
 

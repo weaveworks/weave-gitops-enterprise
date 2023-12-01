@@ -168,7 +168,7 @@ const useProfiles = (
 ) => {
   const { setNotifications } = useNotifications();
 
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
 
   const clusterData =
     cluster?.annotations?.['templates.weave.works/create-request'];
@@ -176,7 +176,7 @@ const useProfiles = (
   const onError = (error: Error) => setNotifications(formatError(error));
 
   const getConfigResponse = useQuery<GetConfigResponse, Error>('config', () =>
-    enterprise.GetConfig({}),
+    clustersService.GetConfig({}),
   );
 
   const { isLoading, data } = useQuery<ListChartsForRepositoryResponse, Error>(
@@ -188,7 +188,7 @@ const useProfiles = (
       helmRepo.cluster?.namespace,
     ],
     () =>
-      enterprise.ListChartsForRepository({
+      clustersService.ListChartsForRepository({
         repository: {
           name: helmRepo.name || 'weaveworks-charts',
           namespace: helmRepo.namespace || 'flux-system',

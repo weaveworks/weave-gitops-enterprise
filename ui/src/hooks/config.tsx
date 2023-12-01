@@ -8,13 +8,13 @@ import { formatError } from '../utils/formatters';
 const useConfig = () => {
   const { setNotifications } = useNotifications();
 
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
 
   const onError = (error: Error) => setNotifications(formatError(error));
 
   return useQuery<GetConfigResponse, Error>(
     'config',
-    () => enterprise.GetConfig({}),
+    () => clustersService.GetConfig({}),
     {
       onError,
     },

@@ -15,10 +15,10 @@ export function useListKustomizationSOPS(
     refetchInterval: 30000,
   },
 ) {
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
   return useQuery<ListSopsKustomizationsResponse, RequestError>(
     ['list_sops', req.clusterName || ''],
-    () => enterprise.ListSopsKustomizations(req),
+    () => clustersService.ListSopsKustomizations(req),
     opts,
   );
 }

@@ -54,7 +54,7 @@ const CreateSOPS = () => {
     token,
   );
 
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
 
   const handleCreateSecret = useCallback(() => {
     setLoading(true);
@@ -63,10 +63,10 @@ const CreateSOPS = () => {
       .then(async () => {
         try {
           const { encryptionPayload, cluster } = getFormattedPayload(formData);
-          const encrypted = await enterprise.EncryptSopsSecret(
+          const encrypted = await clustersService.EncryptSopsSecret(
             encryptionPayload,
           );
-          const response = await enterprise.CreateAutomationsPullRequest(
+          const response = await clustersService.CreateAutomationsPullRequest(
             {
               headBranch: formData.branchName,
               title: formData.pullRequestTitle,

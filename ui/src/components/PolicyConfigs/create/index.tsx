@@ -243,7 +243,7 @@ const CreatePolicyConfig = () => {
     token,
   );
 
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
 
   const handleCreatePolicyConfig = useCallback(() => {
     const payload: CreateAutomationsPullRequestRequest = {

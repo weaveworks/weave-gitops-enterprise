@@ -19,7 +19,7 @@ const CLUSTERS_POLL_INTERVAL = 5000;
 const useClusters = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const { notifications, setNotifications } = useNotifications();
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
 
   const onError = (error: Error) => {
     if (
@@ -37,7 +37,7 @@ const useClusters = () => {
 
   const { isLoading, data } = useQuery<ListGitopsClustersResponse, Error>(
     'clusters',
-    () => enterprise.ListGitopsClusters({}),
+    () => clustersService.ListGitopsClusters({}),
     {
       keepPreviousData: true,
       refetchInterval: CLUSTERS_POLL_INTERVAL,
@@ -105,7 +105,7 @@ export const useListCluster = (
     keepPreviousData: true,
   },
 ) => {
-  const { enterprise } = useAPI();
+  const { clustersService } = useAPI();
   const { notifications, setNotifications } = useNotifications();
 
   const onError = (error: Error) => {
@@ -123,7 +123,7 @@ export const useListCluster = (
   };
   return useQuery<ListGitopsClustersResponse, Error>(
     'clusters',
-    () => enterprise.ListGitopsClusters({}),
+    () => clustersService.ListGitopsClusters({}),
     {
       ...opts,
       onError,
