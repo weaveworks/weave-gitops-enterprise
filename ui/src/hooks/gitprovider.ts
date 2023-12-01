@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GitProvider } from '../api/gitauth/gitauth.pb';
-import { NotificationData } from './../contexts/Notifications';
 import { useEnterpriseClient } from '../contexts/API';
+import { NotificationData } from './../contexts/Notifications';
 
 const providerTokenHeaderName = 'Git-Provider-Token';
 
