@@ -1,10 +1,9 @@
 import { GetVersionResponse } from '@weaveworks/progressive-delivery';
 import { withBasePath } from '@weaveworks/weave-gitops';
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
 import { useEnterpriseClient } from '../contexts/API';
-import { GitAuth } from '../contexts/GitAuth';
 import { useRequest } from '../contexts/Request';
 
 export function useListVersion() {
@@ -27,16 +26,16 @@ export function useListConfig() {
   const queryResponse = useQuery<GetConfigResponse, Error>('config', () =>
     clustersService.GetConfig({}),
   );
-  const { gitAuthClient } = useContext(GitAuth);
+  const { gitAuth } = useEnterpriseClient();
 
   const repositoryURL = queryResponse?.data?.repositoryUrl || '';
   const uiConfig = JSON.parse(queryResponse?.data?.uiConfig || '{}');
   useEffect(() => {
     repositoryURL &&
-      gitAuthClient.ParseRepoURL({ url: repositoryURL }).then(res => {
+      gitAuth.ParseRepoURL({ url: repositoryURL }).then(res => {
         setProvider(res.provider || '');
       });
-  }, [repositoryURL, gitAuthClient]);
+  }, [repositoryURL, gitAuth]);
 
   return {
     ...queryResponse,
