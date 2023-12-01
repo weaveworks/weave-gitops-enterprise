@@ -1,7 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { CoreClientContextProvider, Kind } from '@weaveworks/weave-gitops';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
-import { GitAuthProvider } from '../../../contexts/GitAuth';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { gitlabOAuthRedirectURI } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
@@ -13,6 +12,7 @@ import {
   withContext,
 } from '../../../utils/test-utils';
 import { RepoInputWithAuth } from '../RepoInputWithAuth';
+import { EnterpriseClientContext } from '../../../contexts/API';
 
 Object.assign(navigator, {
   clipboard: {
@@ -54,7 +54,7 @@ describe('Gitlab Authenticate', () => {
 
     wrap = withContext([
       ...defaultContexts(),
-      [GitAuthProvider, { api }],
+      [EnterpriseClientContext.Provider, { value: { gitAuth: api } }],
       [CoreClientContextProvider, { api: coreApi }],
     ]);
 

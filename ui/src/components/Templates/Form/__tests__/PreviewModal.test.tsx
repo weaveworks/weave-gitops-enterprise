@@ -34,7 +34,7 @@ describe('PR Preview when creating resources', () => {
     api = new ClustersServiceClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientContext.Provider, { value: { enterprise: api } }],
+      [EnterpriseClientContext.Provider, { value: { clustersService: api } }],
     ]);
   });
 

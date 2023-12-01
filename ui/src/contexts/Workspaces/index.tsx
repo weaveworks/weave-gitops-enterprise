@@ -60,7 +60,7 @@ export function useGetWorkspaceRoleBinding(req: GetWorkspaceRequest) {
   const onError = (error: Error) => setNotifications(formatError(error));
   return useQuery<GetWorkspaceRoleBindingsResponse, Error>(
     [GET_WORKSPACE_Role_Binding_QUERY_KEY, req],
-    () => clustersService.vice.GetWorkspaceRoleBindings(req),
+    () => clustersService.GetWorkspaceRoleBindings(req),
     { onError },
   );
 }
@@ -86,7 +86,7 @@ export function useGetWorkspacePolicies(req: GetWorkspaceRequest) {
   const onError = (error: Error) => setNotifications(formatError(error));
   return useQuery<GetWorkspacePoliciesResponse, Error>(
     [GET_WORKSPACE_Policies_QUERY_KEY, req],
-    () => clustersService.vice.GetWorkspacePolicies(req),
+    () => clustersService.GetWorkspacePolicies(req),
     { onError },
   );
 }

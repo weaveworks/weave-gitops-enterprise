@@ -12,7 +12,6 @@ import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import Applications from '../';
 import { EnterpriseClientProvider } from '../../../contexts/API';
-import { GitAuthProvider } from '../../../contexts/GitAuth';
 import NotificationsProvider from '../../../contexts/Notifications/Provider';
 import RequestContextProvider from '../../../contexts/Request';
 import { muiTheme } from '../../../muiTheme';
@@ -53,7 +52,7 @@ describe('Applications index test', () => {
         },
       ],
       [CoreClientContextProvider, { api }],
-      [GitAuthProvider, { api: appsApi }],
+      [EnterpriseClientProvider, { gitAuth: appsApi }],
       [MemoryRouter],
       [NotificationsProvider],
     ]);

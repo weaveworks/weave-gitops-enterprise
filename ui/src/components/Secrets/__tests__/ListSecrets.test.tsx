@@ -76,7 +76,7 @@ describe('ListSecrets', () => {
     api = new SecretsClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientContext.Provider, { value: { enterprise: api } }],
+      [EnterpriseClientContext.Provider, { value: { clustersService: api } }],
     ]);
     api.ListSecretsReturns = ListExternalSecretsResponse;
   });

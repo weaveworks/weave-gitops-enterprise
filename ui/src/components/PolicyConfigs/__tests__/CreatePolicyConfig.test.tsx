@@ -16,7 +16,7 @@ describe('CreatePolicyConfig', () => {
 
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientContext.Provider, { value: { enterprise: api } }],
+      [EnterpriseClientContext.Provider, { value: { clustersService: api } }],
     ]);
   });
   it('renders create policyConfig form fields', async () => {

@@ -67,7 +67,7 @@ describe('GetPolicyConfigDetails', () => {
     api = new PolicyConfigsClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientContext.Provider, { value: { enterprise: api } }],
+      [EnterpriseClientContext.Provider, { value: { clustersService: api } }],
     ]);
   });
   it('renders get policyConfig details with Applied Namespaces', async () => {

@@ -3,7 +3,6 @@ import {
   GetGithubDeviceCodeResponse,
   GitProvider,
 } from '../../../api/gitauth/gitauth.pb';
-import { GitAuthProvider } from '../../../contexts/GitAuth';
 import {
   ApplicationsClientMock,
   defaultContexts,
@@ -11,6 +10,7 @@ import {
 } from '../../../utils/test-utils';
 import { GithubDeviceAuthModal } from '../GithubDeviceAuthModal';
 import { getProviderToken } from '../utils';
+import { EnterpriseClientContext } from '../../../contexts/API';
 
 Object.assign(navigator, {
   clipboard: {
@@ -37,7 +37,10 @@ describe('Github Authenticate', () => {
     });
 
     api = new ApplicationsClientMock();
-    wrap = withContext([...defaultContexts(), [GitAuthProvider, { api }]]);
+    wrap = withContext([
+      ...defaultContexts(),
+      [EnterpriseClientContext.Provider, { value: { gitAuth: api } }],
+    ]);
   });
 
   it('renders the GithubAuth modal and user code', async () => {

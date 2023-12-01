@@ -54,7 +54,7 @@ describe('ListWorkspaces', () => {
     api = new WorkspaceClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientContext.Provider, { value: { enterprise: api } }],
+      [EnterpriseClientContext.Provider, { value: { clustersService: api } }],
     ]);
   });
   it('renders list workspaces errors', async () => {

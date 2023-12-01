@@ -61,7 +61,7 @@ describe('ListPolicyConfigs', () => {
     api = new PolicyConfigsClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientContext.Provider, { value: { enterprise: api } }],
+      [EnterpriseClientContext.Provider, { value: { clustersService: api } }],
     ]);
   });
   it('renders list policies errors', async () => {
