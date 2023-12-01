@@ -8,13 +8,13 @@ import {
   ListPolicyConfigsResponse,
 } from '../../cluster-services/cluster_services.pb';
 import { formatError } from '../../utils/formatters';
-import { useAPI } from '../API';
+import { useEnterpriseClient } from '../API';
 import useNotifications from './../../contexts/Notifications';
 
 const LIST_ALL_POLICYCONFIS_QUERY_KEY = 'policyConfigs-list';
 
 export function useListPolicyConfigs(req: ListPolicyConfigsRequest) {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
 
@@ -28,7 +28,7 @@ export function useListPolicyConfigs(req: ListPolicyConfigsRequest) {
 const LIST_POLICYCONFIG_DETAILS_QUERY_KEY = 'policyConfig-details';
 
 export function useGetPolicyConfigDetails(req: GetPolicyConfigRequest) {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
   return useQuery<GetPolicyConfigResponse, Error>(
@@ -41,7 +41,7 @@ export function useGetPolicyConfigDetails(req: GetPolicyConfigRequest) {
 const LIST_CLUSTERS_QUERY_KEY = 'clusters';
 
 export function useGetClustersList(req: ListGitopsClustersRequest) {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
   return useQuery<ListGitopsClustersResponse, Error>(

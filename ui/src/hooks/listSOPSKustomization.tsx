@@ -5,7 +5,7 @@ import {
   ListSopsKustomizationsRequest,
   ListSopsKustomizationsResponse,
 } from '../cluster-services/cluster_services.pb';
-import { useAPI } from '../contexts/API';
+import { useEnterpriseClient } from '../contexts/API';
 import { RequestError } from '../types/custom';
 
 export function useListKustomizationSOPS(
@@ -15,7 +15,7 @@ export function useListKustomizationSOPS(
     refetchInterval: 30000,
   },
 ) {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   return useQuery<ListSopsKustomizationsResponse, RequestError>(
     ['list_sops', req.clusterName || ''],
     () => clustersService.ListSopsKustomizations(req),

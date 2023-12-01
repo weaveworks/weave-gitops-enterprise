@@ -8,13 +8,13 @@ import {
 } from '../../api/pipelines/pipelines.pb';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { formatError } from '../../utils/formatters';
-import { useAPI } from '../API';
+import { useEnterpriseClient } from '../API';
 import useNotifications, {
   NotificationData,
 } from './../../contexts/Notifications';
 
 export const usePipelines = () => {
-  const { pipelines } = useAPI();
+  const { pipelines } = useEnterpriseClient();
   return pipelines;
 };
 type SetNotificationsType = React.Dispatch<

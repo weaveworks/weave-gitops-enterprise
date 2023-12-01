@@ -9,11 +9,11 @@ import {
 } from '../../api/terraform/terraform.pb';
 import { ObjectRef } from '../../api/terraform/types.pb';
 import { formatError } from '../../utils/formatters';
-import { useAPI } from '../API';
+import { useEnterpriseClient } from '../API';
 import useNotifications from './../../contexts/Notifications';
 
 function useTerraform() {
-  const { terraform } = useAPI();
+  const { terraform } = useEnterpriseClient();
   return terraform;
 }
 

@@ -4,7 +4,7 @@ import {
   ClusterAutomation,
   RenderAutomationResponse,
 } from '../../../cluster-services/cluster_services.pb';
-import { useAPI } from '../../../contexts/API';
+import { useEnterpriseClient } from '../../../contexts/API';
 import useNotifications from '../../../contexts/Notifications';
 import { validateFormData } from '../../../utils/form';
 import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
@@ -24,7 +24,7 @@ export const Preview = ({
     null,
   );
   const { setNotifications } = useNotifications();
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const handlePRPreview = useCallback(() => {
     setPreviewLoading(true);
     return enterprise

@@ -1,10 +1,10 @@
 import { useContext } from 'react';
 import { useQuery } from 'react-query';
 import { ListCredentialsResponse } from '../cluster-services/cluster_services.pb';
-import { useAPI } from '../contexts/API';
+import { useEnterpriseClient } from '../contexts/API';
 
 export function useListCredentials() {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   return useQuery<ListCredentialsResponse, Error>('credentials', () =>
     clustersService.vice.ListCredentials({}),
   );

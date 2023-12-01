@@ -9,7 +9,7 @@ import {
   CreateAutomationsPullRequestRequest,
   RepositoryRef,
 } from '../../../cluster-services/cluster_services.pb';
-import { useAPI } from '../../../contexts/API';
+import { useEnterpriseClient } from '../../../contexts/API';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import {
@@ -116,7 +116,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const history = useHistory();
   const authRedirectPage = `/applications/create`;
   const [formError, setFormError] = useState<string>('');
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
 
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (

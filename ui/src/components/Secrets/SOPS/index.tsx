@@ -2,7 +2,7 @@ import { MenuItem } from '@material-ui/core';
 import { Flex, GitRepository, Link } from '@weaveworks/weave-gitops';
 import { useCallback, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
-import { useAPI } from '../../../contexts/API';
+import { useEnterpriseClient } from '../../../contexts/API';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import {
@@ -54,7 +54,7 @@ const CreateSOPS = () => {
     token,
   );
 
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
 
   const handleCreateSecret = useCallback(() => {
     setLoading(true);

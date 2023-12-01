@@ -16,7 +16,7 @@ import {
   GetValuesForChartResponse,
   RepositoryRef,
 } from '../../../../cluster-services/cluster_services.pb';
-import { useAPI } from '../../../../contexts/API';
+import { useEnterpriseClient } from '../../../../contexts/API';
 import { UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_REPO } from '../../../../utils/config';
 import { Loader } from '../../../Loader';
@@ -50,7 +50,7 @@ const ChartValuesDialog: FC<{
   onDiscard,
 }) => {
   const classes = useStyles();
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const [yamlPreview, setYamlPreview] = useState<string>(yaml);
 
   const getConfigResp = useQuery<GetConfigResponse, Error>('config', () =>

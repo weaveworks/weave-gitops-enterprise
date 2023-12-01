@@ -16,7 +16,7 @@ import {
   CreateAutomationsPullRequestRequest,
   PolicyConfigApplicationMatch,
 } from '../../../cluster-services/cluster_services.pb';
-import { useAPI } from '../../../contexts/API';
+import { useEnterpriseClient } from '../../../contexts/API';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import { useGetClustersList } from '../../../contexts/PolicyConfigs';
@@ -243,7 +243,7 @@ const CreatePolicyConfig = () => {
     token,
   );
 
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
 
   const handleCreatePolicyConfig = useCallback(() => {
     const payload: CreateAutomationsPullRequestRequest = {

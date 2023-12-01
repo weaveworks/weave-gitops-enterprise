@@ -4,7 +4,7 @@ import {
   CreatePullRequestRequest,
   ListTemplatesResponse,
 } from '../cluster-services/cluster_services.pb';
-import { useAPI } from '../contexts/API';
+import { useEnterpriseClient } from '../contexts/API';
 import useNotifications from '../contexts/Notifications';
 import { TemplateEnriched } from '../types/custom';
 
@@ -15,7 +15,7 @@ const useTemplates = (
 ) => {
   const [loading, setLoading] = useState<boolean>(false);
   const { setNotifications } = useNotifications();
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
 
   const onError = (error: Error) =>
     setNotifications([{ message: { text: error.message }, severity: 'error' }]);

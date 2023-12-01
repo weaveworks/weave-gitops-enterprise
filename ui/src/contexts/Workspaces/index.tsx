@@ -10,13 +10,13 @@ import {
   GetWorkspacePoliciesResponse,
 } from '../../cluster-services/cluster_services.pb';
 import { formatError } from '../../utils/formatters';
-import { useAPI } from '../API';
+import { useEnterpriseClient } from '../API';
 import useNotifications from './../../contexts/Notifications';
 
 const LIST_WORKSPACES_QUERY_KEY = 'workspaces';
 
 export function useListWorkspaces(req: ListWorkspacesRequest) {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
   return useQuery<ListWorkspacesResponse, Error>(
@@ -29,7 +29,7 @@ export function useListWorkspaces(req: ListWorkspacesRequest) {
 const GET_WORKSPACE_QUERY_KEY = 'workspace-details';
 
 export function useGetWorkspaceDetails(req: GetWorkspaceRequest) {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
   return useQuery<GetWorkspaceResponse, Error>(
@@ -42,7 +42,7 @@ export function useGetWorkspaceDetails(req: GetWorkspaceRequest) {
 const GET_WORKSPACE_Roles_QUERY_KEY = 'workspace-roles';
 
 export function useGetWorkspaceRoles(req: GetWorkspaceRequest) {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
   return useQuery<GetWorkspaceRolesResponse, Error>(
@@ -55,7 +55,7 @@ export function useGetWorkspaceRoles(req: GetWorkspaceRequest) {
 const GET_WORKSPACE_Role_Binding_QUERY_KEY = 'workspace-role-binding';
 
 export function useGetWorkspaceRoleBinding(req: GetWorkspaceRequest) {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
   return useQuery<GetWorkspaceRoleBindingsResponse, Error>(
@@ -68,7 +68,7 @@ export function useGetWorkspaceRoleBinding(req: GetWorkspaceRequest) {
 const GET_WORKSPACE_Service_Account_QUERY_KEY = 'workspace-service-account';
 
 export function useGetWorkspaceServiceAccount(req: GetWorkspaceRequest) {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
   return useQuery<GetWorkspaceServiceAccountsResponse, Error>(
@@ -81,7 +81,7 @@ export function useGetWorkspaceServiceAccount(req: GetWorkspaceRequest) {
 const GET_WORKSPACE_Policies_QUERY_KEY = 'workspace-policies';
 
 export function useGetWorkspacePolicies(req: GetWorkspaceRequest) {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
   return useQuery<GetWorkspacePoliciesResponse, Error>(

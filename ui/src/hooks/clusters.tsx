@@ -6,7 +6,7 @@ import {
   GetKubeconfigRequest,
   ListGitopsClustersResponse,
 } from '../cluster-services/cluster_services.pb';
-import { useAPI } from '../contexts/API';
+import { useEnterpriseClient } from '../contexts/API';
 import useNotifications from '../contexts/Notifications';
 import {
   GitopsClusterEnriched,
@@ -19,7 +19,7 @@ const CLUSTERS_POLL_INTERVAL = 5000;
 const useClusters = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const { notifications, setNotifications } = useNotifications();
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
 
   const onError = (error: Error) => {
     if (
@@ -105,7 +105,7 @@ export const useListCluster = (
     keepPreviousData: true,
   },
 ) => {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const { notifications, setNotifications } = useNotifications();
 
   const onError = (error: Error) => {

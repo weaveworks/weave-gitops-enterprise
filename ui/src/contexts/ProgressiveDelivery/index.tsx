@@ -11,11 +11,11 @@ import {
   ListEventsResponse,
 } from '../../cluster-services/cluster_services.pb';
 import { formatError } from '../../utils/formatters';
-import { useAPI } from '../API';
+import { useEnterpriseClient } from '../API';
 import useNotifications from './../../contexts/Notifications';
 
 export const useProgressiveDelivery = () => {
-  const { progressiveDeliveryService } = useAPI();
+  const { progressiveDeliveryService } = useEnterpriseClient();
   return progressiveDeliveryService;
 };
 const PD_QUERY_KEY = 'flagger';
@@ -89,7 +89,7 @@ export const useListFlaggerObjects = (params: CanaryParams) => {
 const EVENTS_QUERY_KEY = 'events';
 
 export function useListEvents(req: ListEventsRequest) {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
 

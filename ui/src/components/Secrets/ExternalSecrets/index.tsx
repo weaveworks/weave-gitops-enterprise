@@ -1,7 +1,7 @@
 import { Flex, GitRepository, Link, Page } from '@weaveworks/weave-gitops';
 import { useCallback, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
-import { useAPI } from '../../../contexts/API';
+import { useEnterpriseClient } from '../../../contexts/API';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import {
@@ -42,7 +42,7 @@ const CreateExternalSecret = () => {
   const handleFormData = (value: any, key: string) => {
     setFormData(f => ({ ...f, [key]: value }));
   };
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
 
   const handleSecretStoreChange = (value: string) => {
     const [secretStoreRef, secretStoreKind, secretNamespace, secretStoreType] =

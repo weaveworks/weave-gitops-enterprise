@@ -3,7 +3,7 @@ import { withBasePath } from '@weaveworks/weave-gitops';
 import { useContext, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
-import { useAPI } from '../contexts/API';
+import { useEnterpriseClient } from '../contexts/API';
 import { GitAuth } from '../contexts/GitAuth';
 import { useRequest } from '../contexts/Request';
 
@@ -22,7 +22,7 @@ export interface ListConfigResponse extends GetConfigResponse {
 }
 
 export function useListConfig() {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const [provider, setProvider] = useState<string>('');
   const queryResponse = useQuery<GetConfigResponse, Error>('config', () =>
     clustersService.GetConfig({}),

@@ -8,13 +8,13 @@ import {
   ListExternalSecretStoresResponse,
 } from '../../cluster-services/cluster_services.pb';
 import { formatError } from '../../utils/formatters';
-import { useAPI } from '../API';
+import { useEnterpriseClient } from '../API';
 import useNotifications from './../../contexts/Notifications';
 
 const LIST_ALL_SECRETS_QUERY_KEY = 'secrets-list';
 
 export function useListSecrets(req: ListExternalSecretsRequest) {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
 
@@ -28,7 +28,7 @@ export function useListSecrets(req: ListExternalSecretsRequest) {
 const GET_SECRET_QUERY_KEY = 'secret-details';
 
 export function useGetSecretDetails(req: GetExternalSecretRequest) {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
   return useQuery<GetExternalSecretResponse, Error>(
@@ -43,7 +43,7 @@ const List_SECRET_STORE_QUERY_KEY = 'list-secret-store';
 export function useListExternalSecretStores(
   req: ListExternalSecretStoresRequest,
 ) {
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
   return useQuery<ListExternalSecretStoresResponse, Error>(

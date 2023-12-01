@@ -28,7 +28,8 @@ function wrap<T>(api: T): T {
   return UnAuthorizedInterceptor(setAPIPathPrefix(api)) as unknown as T;
 }
 
-export const useAPI = () => React.useContext(EnterpriseClientContext);
+export const useEnterpriseClient = () =>
+  React.useContext(EnterpriseClientContext);
 
 export function EnterpriseClientProvider({ children }: Props) {
   const api: APIs = {

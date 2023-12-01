@@ -6,7 +6,7 @@ import {
   EnabledComponent,
   ListEnabledComponentsResponse,
 } from '../api/query/query.pb';
-import { useAPI } from '../contexts/API';
+import { useEnterpriseClient } from '../contexts/API';
 
 type QueryOpts = {
   terms?: string;
@@ -55,7 +55,7 @@ export function useQueryService({
   category,
   descending,
 }: QueryOpts) {
-  const { query: api } = useAPI();
+  const { query: api } = useEnterpriseClient();
 
   let formatted = formatFilters(filters || []);
 
@@ -84,13 +84,13 @@ export function useQueryService({
 }
 
 export function useListAccessRules() {
-  const { query: api } = useAPI();
+  const { query: api } = useEnterpriseClient();
 
   return useQuery(['listAccessRules'], () => api.DebugGetAccessRules({}));
 }
 
 export function useListFacets(category?: string) {
-  const { query: api } = useAPI();
+  const { query: api } = useEnterpriseClient();
 
   return useQuery(['facets'], () => api.ListFacets({ category }), {
     refetchIntervalInBackground: true,
@@ -99,7 +99,7 @@ export function useListFacets(category?: string) {
 }
 
 function useListEnabledComponents() {
-  const { query: api } = useAPI();
+  const { query: api } = useEnterpriseClient();
 
   const { isFlagEnabled } = useFeatureFlags();
   const isExplorerEnabled = isFlagEnabled('WEAVE_GITOPS_FEATURE_EXPLORER');

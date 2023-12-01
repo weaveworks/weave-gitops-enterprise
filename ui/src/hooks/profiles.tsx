@@ -12,7 +12,7 @@ import {
   CreateRequestAnnotationV2,
   maybeParseJSON,
 } from '../components/Templates/Form/utils';
-import { useAPI } from '../contexts/API';
+import { useEnterpriseClient } from '../contexts/API';
 import useNotifications from '../contexts/Notifications';
 import {
   GitopsClusterEnriched,
@@ -168,7 +168,7 @@ const useProfiles = (
 ) => {
   const { setNotifications } = useNotifications();
 
-  const { clustersService } = useAPI();
+  const { clustersService } = useEnterpriseClient();
 
   const clusterData =
     cluster?.annotations?.['templates.weave.works/create-request'];
