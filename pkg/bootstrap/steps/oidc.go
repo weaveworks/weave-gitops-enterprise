@@ -136,21 +136,10 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 		return []StepOutput{}, nil
 	}
 
-	//// process user domain if not passed
-	//if c.UserDomain == "" {
-	//	domain, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmDomainProperty)
-	//	if err != nil {
-	//		return []StepOutput{}, fmt.Errorf("error getting helm release domain: %v", err)
-	//	}
-	//	if strings.Contains(domain, domainTypeLocalhost) {
-	//		c.DomainType = domainTypeLocalhost
-	//		c.UserDomain = domainTypeLocalhost
-	//	} else {
-	//		c.DomainType = domainTypeExternalDNS
-	//		c.UserDomain = domain
-	//	}
-	//	c.Logger.Actionf("setting user domain: %s", domain)
-	//}
+	domain, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmDomainProperty)
+	if err != nil {
+		return []StepOutput{}, fmt.Errorf("error resolving domain: %v", err)
+	}
 
 	issuerUrl, err := getIssuerFromDiscoveryUrl(c)
 	if err != nil {
@@ -158,7 +147,7 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 	}
 	c.Logger.Actionf("retrieved issuer url: %s", issuerUrl)
 	c.IssuerURL = issuerUrl
-	c.RedirectURL = "http://localhost:8000/oauth2/callback"
+	c.RedirectURL = fmt.Sprintf("http://%s/oauth2/callback", domain)
 	c.Logger.Actionf("setting redirect url: %s", c.RedirectURL)
 
 	oidcSecretData := map[string][]byte{

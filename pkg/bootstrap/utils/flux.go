@@ -14,6 +14,11 @@ import (
 	k8syaml "sigs.k8s.io/yaml"
 )
 
+const (
+	HelmVersionProperty = "version"
+	HelmDomainProperty  = "domain"
+)
+
 type FluxClient interface {
 	ReconcileFlux() error
 	ReconcileHelmRelease(hrName string) error
@@ -138,14 +143,19 @@ func GetHelmReleaseProperty(client k8s_client.Client, releaseName string, namesp
 	}
 
 	switch property {
-	case "version":
+	case HelmVersionProperty:
 		return helmrelease.Spec.Chart.Spec.Version, nil
-	case "domain":
+	case HelmDomainProperty:
+		//TODO this would only work for host-based ingress  but not path-based so it is limited
 		values := map[string]interface{}{}
 		if err := json.Unmarshal(helmrelease.Spec.Values.Raw, &values); err != nil {
 			return "", err
 		}
-		return values["ingress"].(map[string]interface{})["hosts"].([]interface{})[0].(map[string]interface{})["host"].(string), nil
+		ingressDomain := values["ingress"].(map[string]interface{})["hosts"].([]interface{})[0].(map[string]interface{})["host"].(string)
+		if ingressDomain == "" {
+			return "localhost:8000", nil
+		}
+		return ingressDomain, nil
 	default:
 		return "", fmt.Errorf("unsupported property: %s", property)
 	}
