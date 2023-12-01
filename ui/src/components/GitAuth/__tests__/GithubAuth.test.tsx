@@ -3,6 +3,7 @@ import {
   GetGithubDeviceCodeResponse,
   GitProvider,
 } from '../../../api/gitauth/gitauth.pb';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   ApplicationsClientMock,
   defaultContexts,
@@ -10,7 +11,6 @@ import {
 } from '../../../utils/test-utils';
 import { GithubDeviceAuthModal } from '../GithubDeviceAuthModal';
 import { getProviderToken } from '../utils';
-import { EnterpriseClientContext } from '../../../contexts/API';
 
 Object.assign(navigator, {
   clipboard: {
