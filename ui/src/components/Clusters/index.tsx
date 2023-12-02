@@ -26,6 +26,7 @@ import Docker from '../../assets/img/docker.svg';
 import EKS from '../../assets/img/EKS.svg';
 import GKE from '../../assets/img/GKE.svg';
 import Kubernetes from '../../assets/img/Kubernetes.svg';
+import Azure from '../../assets/img/Azure.svg';
 import LiquidMetal from '../../assets/img/LiquidMetal.svg';
 import Openshift from '../../assets/img/Openshift.svg';
 import Rancher from '../../assets/img/Rancher.svg';
@@ -114,9 +115,10 @@ const getClusterTypeIcon = (clusterType?: string) => {
     return EKS;
   } else if (
     clusterType === 'AzureCluster' ||
-    clusterType === 'AzureManagedCluster'
+    clusterType === 'AzureManagedCluster'||
+    clusterType === 'Aks'
   ) {
-    return Kubernetes;
+    return Azure;
   } else if (clusterType === 'GCPCluster') {
     return GKE;
   } else if (clusterType === 'VSphereCluster') {
