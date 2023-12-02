@@ -116,7 +116,7 @@ const getClusterTypeIcon = (clusterType?: string) => {
   } else if (
     clusterType === 'AzureCluster' ||
     clusterType === 'AzureManagedCluster'||
-    clusterType === 'Aks'
+    clusterType === 'aks'
   ) {
     return Azure;
   } else if (clusterType === 'GCPCluster') {
