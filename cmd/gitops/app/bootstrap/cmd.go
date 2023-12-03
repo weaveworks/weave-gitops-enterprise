@@ -17,7 +17,7 @@ const (
 	cmdLongDescription  = `Installs Weave GitOps Enterprise in simple steps:
 - Entitlements: check that you have valid entitlements.
 - Flux: check or bootstrap Flux. 
-- Weave Gitops: check or install a supported Weave GitOps version with default configuration.
+- Weave GitOps: check or install a supported Weave GitOps version with default configuration.
 - Authentication: check or setup cluster user authentication to access the dashboard.
 `
 	cmdExamples = `
