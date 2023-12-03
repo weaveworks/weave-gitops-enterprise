@@ -24,13 +24,12 @@ func TestNewInstallExtraComponents(t *testing.T) {
 						Type: multiSelectionChoice,
 						Msg:  extraComponentsMsg,
 						Values: []string{
-							defaultController,
 							policyAgentController,
 							tfController,
 							capiController,
 							allControllers,
 						},
-						DefaultValue: defaultController,
+						DefaultValue: "",
 					},
 				},
 				Step: installExtraComponents,
@@ -74,13 +73,13 @@ func TestInstallExtraControllers(t *testing.T) {
 		err       bool
 	}{
 		{
-			name: "test skip installing controllers with defaults (none)",
+			name: "test skip installing controllers with defaults (\"\")",
 			stepInput: []StepInput{
 				{
 					Name:  inExtraComponents,
 					Type:  multiSelectionChoice,
 					Msg:   extraComponentsMsg,
-					Value: defaultController,
+					Value: "",
 				},
 			},
 			err: false,

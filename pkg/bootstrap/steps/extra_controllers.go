@@ -9,7 +9,6 @@ const (
 )
 
 const (
-	defaultController     = "none"
 	policyAgentController = "policy-agent"
 	tfController          = "tf-controller"
 	capiController        = "capi"
@@ -20,7 +19,6 @@ const (
 func NewInstallExtraComponents(config Config) BootstrapStep {
 	inputs := []StepInput{}
 	controllersValues := []string{
-		defaultController,
 		policyAgentController,
 		tfController,
 		capiController,
@@ -32,7 +30,7 @@ func NewInstallExtraComponents(config Config) BootstrapStep {
 		Type:         multiSelectionChoice,
 		Msg:          extraComponentsMsg,
 		Values:       controllersValues,
-		DefaultValue: controllersValues[0],
+		DefaultValue: "",
 	}
 
 	if len(config.ExtraComponents) < 1 && !config.Silent {
