@@ -67,9 +67,8 @@ func installPolicyAgent(input []StepInput, c *Config) ([]StepOutput, error) {
 			Kind:       sourcev1beta2.HelmRepositoryKind,
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name:              agentHelmRepoName,
-			Namespace:         WGEDefaultNamespace,
-			CreationTimestamp: v1.Now(),
+			Name:      agentHelmRepoName,
+			Namespace: WGEDefaultNamespace,
 		},
 		Spec: sourcev1beta2.HelmRepositorySpec{
 			URL: agentChartURL,
@@ -124,9 +123,8 @@ func installPolicyAgent(input []StepInput, c *Config) ([]StepOutput, error) {
 			APIVersion: helmv2.GroupVersion.Identifier(),
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name:              agentHelmReleaseName,
-			Namespace:         WGEDefaultNamespace,
-			CreationTimestamp: v1.Now(),
+			Name:      agentHelmReleaseName,
+			Namespace: WGEDefaultNamespace,
 		}, Spec: helmv2.HelmReleaseSpec{
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
