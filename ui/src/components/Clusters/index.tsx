@@ -1,4 +1,4 @@
-import { Checkbox } from '@material-ui/core';
+import { Badge, Checkbox } from '@material-ui/core';
 import {
   Button,
   DataTable,
@@ -74,14 +74,18 @@ export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
   const clusterKind =
     cluster.labels?.['weave.works/cluster-kind'] ||
     cluster.capiCluster?.infrastructureRef?.kind;
+
+  const isACD = cluster;
   return (
     <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
-      <IconSpan>
-        <img
-          src={getClusterTypeIcon(clusterKind)}
-          alt={clusterKind || 'kubernetes'}
-        />
-      </IconSpan>
+      <Badge badgeContent="ACD" color="primary" invisible={false}>
+        <IconSpan>
+          <img
+            src={getClusterTypeIcon(clusterKind)}
+            alt={clusterKind || 'kubernetes'}
+          />
+        </IconSpan>
+      </Badge>
     </Tooltip>
   );
 };
