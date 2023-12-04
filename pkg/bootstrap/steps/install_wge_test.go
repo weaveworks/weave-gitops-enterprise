@@ -3,14 +3,11 @@ package steps
 import (
 	"testing"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8syaml "sigs.k8s.io/yaml"
 )
 
 const (
@@ -69,45 +66,37 @@ spec:
           - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix,Config
       enabled: true
     global: {}
-	ingress:
-	  enabled: false
-	  className: ""
-	  # Service target information for ingress
-	  # Port is required if no 'https' service port is defined
-	  service:
-		name: clusters-service
-		port: 8000
-	  annotations: {}
-	  # kubernetes.io/ingress.class: nginx
-	  # kubernetes.io/tls-acme: "true"
-	  hosts:
-		- host: ""
-		  paths:
-			- path: /
-			  pathType: ImplementationSpecific
-	  #
-	  tls: []
-	  #  - secretName: chart-example-tls
-	  #    hosts:
-	  #      - chart-example.local
-	service:
-	  type: ClusterIP
-	  ports:
-		https: 8000
-	  targetPorts:
-		https: 8000
-	  nodePorts:
-		http: ""
-		https: ""
-		tcp: {}
-		udp: {}
-	  clusterIP: ""
-	  externalIPs: []
-	  loadBalancerIP: ""
-	  loadBalancerSourceRanges: []
-	  externalTrafficPolicy: ""
-	  healthCheckNodePort: 0
-	  annotations: {}
+    ingress:
+      annotations: {}
+      className: ""
+      enabled: false
+      hosts:
+      - host: ""
+        paths:
+        - path: /
+          pathType: ImplementationSpecific
+      service:
+        name: clusters-service
+        port: 8000
+      tls: []
+    service:
+      annotations: {}
+      clusterIP: ""
+      externalIPs: []
+      externalTrafficPolicy: ""
+      healthCheckNodePort: 0
+      loadBalancerIP: ""
+      loadBalancerSourceRanges: []
+      nodePorts:
+        http: ""
+        https: ""
+        tcp: {}
+        udp: {}
+      port:
+        https: 8000
+      targetPort:
+        https: 8000
+      type: ClusterIP
     tls:
       enabled: false
 status: {}
@@ -173,18 +162,22 @@ func TestInstallWge_Execute(t *testing.T) {
 				t.Fatalf("unexpected helm repository:\n%s", diff)
 			}
 			// assert helm release
-			if diff := cmp.Diff(tt.wantOutput[1], gotOutputs[1], cmpopts.IgnoreFields(fileContent{}, "Content")); diff != "" {
+			if diff := cmp.Diff(tt.wantOutput[1], gotOutputs[1]); diff != "" {
 				t.Fatalf("unexpected helm release:\n%s", diff)
 			}
 
-			var release v2beta1.HelmRelease
-			helmReleaseString := gotOutputs[1].Value.(fileContent).Content
-			err = k8syaml.Unmarshal([]byte(helmReleaseString), &release)
-			assert.NoError(t, err)
-			assert.Equal(t, "weave-gitops-enterprise", release.Name)
-			values := release.GetValues()
-			assert.NotNil(t, values["service"])
-			assert.NotNil(t, values["ingress"])
+			//if diff := cmp.Diff(tt.wantOutput[1], gotOutputs[1], cmpopts.IgnoreFields(fileContent{}, "Content")); diff != "" {
+			//	t.Fatalf("unexpected helm release:\n%s", diff)
+			//}
+
+			//var release v2beta1.HelmRelease
+			//helmReleaseString := gotOutputs[1].Value.(fileContent).Content
+			//err = k8syaml.Unmarshal([]byte(helmReleaseString), &release)
+			//assert.NoError(t, err)
+			//assert.Equal(t, "weave-gitops-enterprise", release.Name)
+			//values := release.GetValues()
+			//assert.NotNil(t, values["service"])
+			//assert.NotNil(t, values["ingress"])
 		})
 	}
 }
