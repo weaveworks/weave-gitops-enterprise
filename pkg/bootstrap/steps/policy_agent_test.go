@@ -39,6 +39,7 @@ spec:
     crds: CreateReplace
     createNamespace: true
   interval: 10m0s
+  targetNamespace: policy-system
   values:
     config:
       admission:
@@ -78,6 +79,7 @@ spec:
     crds: CreateReplace
     createNamespace: true
   interval: 10m0s
+  targetNamespace: policy-system
   values:
     config:
       admission:

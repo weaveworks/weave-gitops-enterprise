@@ -70,7 +70,7 @@ func CreateHelmReleaseYamlString(hr helmv2.HelmRelease) (string, error) {
 	}
 
 	if hr.Spec.TargetNamespace != "" {
-		hr.Spec.TargetNamespace = helmRelease.Spec.TargetNamespace
+		helmRelease.Spec.TargetNamespace = hr.Spec.TargetNamespace
 	}
 
 	helmReleaseBytes, err := k8syaml.Marshal(helmRelease)
