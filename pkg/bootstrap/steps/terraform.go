@@ -3,8 +3,6 @@ package steps
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 )
@@ -31,18 +29,8 @@ func NewInstallTFControllerStep(config Config) BootstrapStep {
 // installTerraform start installing terraform controller helm release
 func installTerraform(input []StepInput, c *Config) ([]StepOutput, error) {
 	c.Logger.Actionf(tfInstallInfoMsg)
-	resp, err := http.Get(tfControllerUrl)
-	if err != nil {
-		return []StepOutput{}, fmt.Errorf("error getting Terraform Controller HelmRelease: %v", err)
-	}
-	defer resp.Body.Close()
 
-	var bodyBytes []byte
-	if resp.StatusCode != http.StatusOK {
-		return []StepOutput{}, fmt.Errorf("error getting Terraform Controller HelmRelease. status code: %d", resp.StatusCode)
-	}
-
-	bodyBytes, err = io.ReadAll(resp.Body)
+	bodyBytes, err := doBasicAuthGetRequest(tfControllerUrl, "", "")
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("error getting Terraform Controller HelmRelease: %v", err)
 	}

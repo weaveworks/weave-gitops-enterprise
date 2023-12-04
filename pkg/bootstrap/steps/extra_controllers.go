@@ -73,7 +73,7 @@ func installExtraComponents(input []StepInput, c *Config) ([]StepOutput, error) 
 				return []StepOutput{}, fmt.Errorf("can't install capi controller: %v", err)
 			}
 		default:
-			c.Logger.Warningf("unsupported or empty controller, selected: %s", controller)
+			c.Logger.Warningf("unsupported or empty controller selected: %s", controller)
 			return []StepOutput{}, nil
 		}
 	}
