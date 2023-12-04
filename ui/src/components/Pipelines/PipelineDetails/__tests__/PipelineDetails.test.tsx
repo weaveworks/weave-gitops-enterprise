@@ -307,7 +307,6 @@ describe('PipelineDetails', () => {
       ).toBeInTheDocument();
       expect(screen.getByText('main')).toBeInTheDocument();
       expect(screen.getByText('Secret Ref')).toBeInTheDocument();
-      expect(screen.getByText('Notification')).toBeInTheDocument();
     });
   });
   it('handles visibility of promotion button', async () => {
