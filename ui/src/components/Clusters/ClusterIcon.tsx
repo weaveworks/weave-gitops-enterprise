@@ -1,7 +1,6 @@
-import { FC } from 'react';
-import { GitopsClusterEnriched } from '../../types/custom';
 import { Badge, Tooltip } from '@material-ui/core';
 import { Link } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
 import styled from 'styled-components';
 import Docker from '../../assets/img/docker.svg';
 import EKS from '../../assets/img/EKS.svg';
@@ -11,6 +10,7 @@ import LiquidMetal from '../../assets/img/LiquidMetal.svg';
 import Openshift from '../../assets/img/Openshift.svg';
 import Rancher from '../../assets/img/Rancher.svg';
 import Vsphere from '../../assets/img/Vsphere.svg';
+import { GitopsClusterEnriched } from '../../types/custom';
 
 
 
