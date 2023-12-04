@@ -19,6 +19,13 @@ const (
 	HelmDomainProperty  = "domain"
 )
 
+type FluxClient interface {
+	ReconcileFlux() error
+	ReconcileHelmRelease(hrName string) error
+}
+
+type CmdFluxClient struct{}
+
 // CreateHelmReleaseYamlString create HelmRelease yaml string to add to file.
 func CreateHelmReleaseYamlString(hr helmv2.HelmRelease) (string, error) {
 	helmRelease := helmv2.HelmRelease{
@@ -96,7 +103,7 @@ func CreateHelmRepositoryYamlString(helmRepo sourcev1.HelmRepository) (string, e
 
 // ReconcileFlux reconcile flux default source and kustomization
 // Reconciliation is important to apply the effect of adding resources to the git repository
-func ReconcileFlux() error {
+func (fc CmdFluxClient) ReconcileFlux() error {
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "source", "git", "flux-system")
 	if err != nil {
@@ -114,7 +121,7 @@ func ReconcileFlux() error {
 }
 
 // ReconcileHelmRelease reconcile a particular helmrelease
-func ReconcileHelmRelease(hrName string) error {
+func (fc CmdFluxClient) ReconcileHelmRelease(hrName string) error {
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "helmrelease", hrName)
 	if err != nil {
@@ -136,14 +143,19 @@ func GetHelmReleaseProperty(client k8s_client.Client, releaseName string, namesp
 	}
 
 	switch property {
-	case "version":
+	case HelmVersionProperty:
 		return helmrelease.Spec.Chart.Spec.Version, nil
-	case "domain":
+	case HelmDomainProperty:
+		//TODO this would only work for host-based ingress  but not path-based so it is limited
 		values := map[string]interface{}{}
 		if err := json.Unmarshal(helmrelease.Spec.Values.Raw, &values); err != nil {
 			return "", err
 		}
-		return values["ingress"].(map[string]interface{})["hosts"].([]interface{})[0].(map[string]interface{})["host"].(string), nil
+		ingressDomain := values["ingress"].(map[string]interface{})["hosts"].([]interface{})[0].(map[string]interface{})["host"].(string)
+		if ingressDomain == "" {
+			return "localhost:8000", nil
+		}
+		return ingressDomain, nil
 	default:
 		return "", fmt.Errorf("unsupported property: %s", property)
 	}

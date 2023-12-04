@@ -269,7 +269,6 @@ function TerraformObjectDetail({ className, ...params }: Props) {
             <RouterTab name="Yaml" path={`${path}/yaml`}>
               <YamlView
                 yaml={yaml || ''}
-                type="Terraform"
                 header={createYamlCommand(
                   'Terraform',
                   object?.name,
