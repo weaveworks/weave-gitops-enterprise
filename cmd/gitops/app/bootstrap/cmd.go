@@ -17,7 +17,7 @@ const (
 	cmdLongDescription  = `Installs Weave GitOps Enterprise in simple steps:
 - Entitlements: check that you have valid entitlements.
 - Flux: check or bootstrap Flux. 
-- Weave Gitops: check or install a supported Weave GitOps version with default configuration.
+- Weave GitOps: check or install a supported Weave GitOps version with default configuration.
 - Authentication: check or setup cluster user authentication to access the dashboard.
 `
 	cmdExamples = `
@@ -44,10 +44,6 @@ gitops bootstrap --version=<version> --password=<admin-password> --discovery-url
 type bootstrapFlags struct {
 	// wge version flags
 	version string
-
-	// domain flags
-	domainType string
-	domain     string
 
 	// ssh git auth flags
 	privateKeyPath     string
@@ -82,8 +78,6 @@ func Command(opts *config.Options) *cobra.Command {
 		RunE:    getBootstrapCmdRun(opts),
 	}
 
-	cmd.Flags().StringVarP(&flags.domainType, "domain-type", "t", "", "dashboard domain type: could be 'localhost' or 'externaldns'")
-	cmd.Flags().StringVarP(&flags.domain, "domain", "d", "", "the domain to access the dashboard in case of using externaldns")
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "version of Weave GitOps Enterprise (should be from the latest 3 versions)")
 	cmd.PersistentFlags().BoolVarP(&flags.silent, "bootstrap-flux", "s", false, "always choose yes for interactive questions")
 	cmd.PersistentFlags().StringVarP(&flags.gitUsername, "git-username", "", "", "git username used in https authentication type")
@@ -110,8 +104,6 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			WithKubeconfig(opts.Kubeconfig).
 			WithPassword(opts.Password).
 			WithVersion(flags.version).
-			WithDomainType(flags.domainType).
-			WithDomain(flags.domain).
 			WithGitRepository(flags.repoURL,
 				flags.branch,
 				flags.repoPath,

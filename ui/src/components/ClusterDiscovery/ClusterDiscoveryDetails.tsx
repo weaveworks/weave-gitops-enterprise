@@ -22,6 +22,7 @@ import {
   useSyncFluxObject,
   KubeStatusIndicator,
   createYamlCommand,
+  Metadata,
 } from '@weaveworks/weave-gitops';
 import React from 'react';
 import { useRouteMatch } from 'react-router-dom';
@@ -183,6 +184,7 @@ function ClusterDiscoveryDetails({
                   ['Suspended', acd?.suspended ? 'True' : 'False'],
                 ]}
               />
+              <Metadata metadata={acd.metadata} labels={acd.labels} />
               <TableWrapper>
                 <RequestStateHandler
                   loading={isLoading}
@@ -223,7 +225,6 @@ function ClusterDiscoveryDetails({
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <YamlView
               yaml={acd?.yaml}
-              type="GitOpsSet"
               header={createYamlCommand(acd?.type, acd?.name, acd?.namespace)}
             />
           </RouterTab>

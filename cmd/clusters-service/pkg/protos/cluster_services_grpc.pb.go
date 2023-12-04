@@ -92,11 +92,11 @@ type ClustersServiceClient interface {
 	//
 	// Provide the name and namespace of a `GitOpsCluster` to retrieve its kubeconfig
 	GetKubeconfig(ctx context.Context, in *GetKubeconfigRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
-	// Get the Weave Gitops Enterprise version
+	// Get the Weave GitOps Enterprise version
 	//
 	// Returns the version of the Weave GitOps Enterprise server.
 	GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error)
-	// Get the Weave Gitops Enterprise configuration
+	// Get the Weave GitOps Enterprise configuration
 	//
 	// Returns information about the current configuration of the Weave GitOps Enterprise.
 	GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error)
@@ -527,11 +527,11 @@ type ClustersServiceServer interface {
 	//
 	// Provide the name and namespace of a `GitOpsCluster` to retrieve its kubeconfig
 	GetKubeconfig(context.Context, *GetKubeconfigRequest) (*httpbody.HttpBody, error)
-	// Get the Weave Gitops Enterprise version
+	// Get the Weave GitOps Enterprise version
 	//
 	// Returns the version of the Weave GitOps Enterprise server.
 	GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error)
-	// Get the Weave Gitops Enterprise configuration
+	// Get the Weave GitOps Enterprise configuration
 	//
 	// Returns information about the current configuration of the Weave GitOps Enterprise.
 	GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error)

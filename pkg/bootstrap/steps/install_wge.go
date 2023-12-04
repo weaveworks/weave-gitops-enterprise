@@ -14,9 +14,6 @@ import (
 )
 
 const (
-	externalDNSWarningMsg = `please make sure to have the external DNS service installed in your cluster, or you have a domain that points to your cluster.`
-	clusterDomainMsg      = "please enter your cluster domain"
-
 	wgeInstallMsg = "installing v%s ... It may take a few minutes."
 )
 
@@ -39,24 +36,12 @@ const (
 	gitopssetsHealthBindAddress       = ":8081"
 )
 
-var getUserDomain = StepInput{
-	Name:         inUserDomain,
-	Type:         stringInput,
-	Msg:          clusterDomainMsg,
-	DefaultValue: "",
-	Enabled:      isUserDomainEnabled,
-}
-
-// NewInstallWGEStep step to install Weave Gitops Enterprise
-func NewInstallWGEStep(config Config) BootstrapStep {
+// NewInstallWGEStep step to install Weave GitOps Enterprise
+func NewInstallWGEStep() BootstrapStep {
 	inputs := []StepInput{}
 
-	if config.UserDomain == "" {
-		inputs = append(inputs, getUserDomain)
-	}
-
 	return BootstrapStep{
-		Name:  "install Weave Gitops Enterprise",
+		Name:  "Install Weave GitOps Enterprise",
 		Input: inputs,
 		Step:  installWge,
 	}
@@ -64,30 +49,9 @@ func NewInstallWGEStep(config Config) BootstrapStep {
 
 // InstallWge installs weave gitops enterprise chart.
 func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
-	var ingressValues map[string]interface{}
-	switch c.DomainType {
-	case domainTypeLocalhost:
-		c.UserDomain = domainTypeLocalhost
-	case domainTypeExternalDNS:
-		if c.UserDomain == "" {
-			for _, param := range input {
-				if param.Name == inUserDomain {
-					userDomain, ok := param.Value.(string)
-					if !ok {
-						return []StepOutput{}, fmt.Errorf("unexpected error occurred. UserDomain not found")
-					}
-					c.UserDomain = userDomain
-				}
-			}
-			ingressValues = constructIngressValues(c.UserDomain)
-		}
-	default:
-		return []StepOutput{}, fmt.Errorf("unsupported domain type:%s", c.DomainType)
-	}
-
 	c.Logger.Actionf(wgeInstallMsg, c.WGEVersion)
 
-	wgehelmRepo, err := constructWgeHelmRepository()
+	wgeHelmRepository, err := constructWgeHelmRepository()
 	if err != nil {
 		return []StepOutput{}, err
 	}
@@ -107,7 +71,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 		},
 	}
 
-	clusterController := clusterController{
+	clusterControllerValues := clusterController{
 		Enabled:          true,
 		FullNameOverride: clusterControllerFullOverrideName,
 		ControllerManager: clusterControllerManager{
@@ -119,17 +83,18 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 			},
 		}}
 
-	values := valuesFile{
-		Ingress: ingressValues,
+	wgeValues := valuesFile{
+		Service: defaultServiceValues(),
+		Ingress: defaultIngressValues(),
 		TLS: map[string]interface{}{
 			"enabled": false,
 		},
 		GitOpsSets:        gitOpsSetsValues,
 		EnablePipelines:   true,
-		ClusterController: clusterController,
+		ClusterController: clusterControllerValues,
 	}
 
-	wgeHelmRelease, err := constructWGEhelmRelease(values, c.WGEVersion)
+	wgeHelmRelease, err := constructWGEhelmRelease(wgeValues, c.WGEVersion)
 	if err != nil {
 		return []StepOutput{}, err
 	}
@@ -137,7 +102,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 
 	helmrepoFile := fileContent{
 		Name:      wgeHelmrepoFileName,
-		Content:   wgehelmRepo,
+		Content:   wgeHelmRepository,
 		CommitMsg: wgeHelmRepoCommitMsg,
 	}
 	helmreleaseFile := fileContent{
@@ -180,16 +145,45 @@ func constructWgeHelmRepository() (string, error) {
 	return utils.CreateHelmRepositoryYamlString(wgeHelmRepo)
 }
 
-func constructIngressValues(userDomain string) map[string]interface{} {
-	ingressValues := map[string]interface{}{
-		"annotations": map[string]string{
-			"external-dns.alpha.kubernetes.io/hostname": userDomain,
+func defaultServiceValues() map[string]interface{} {
+	serviceValues := map[string]interface{}{
+		"type": "ClusterIP",
+		"port": map[string]interface{}{
+			"https": 8000,
 		},
-		"className": "public-nginx",
-		"enabled":   true,
+		"targetPort": map[string]interface{}{
+			"https": 8000,
+		},
+		"nodePorts": map[string]interface{}{
+			"http":  "",
+			"https": "",
+			"tcp":   map[string]interface{}{},
+			"udp":   map[string]interface{}{},
+		},
+		"clusterIP":                "",
+		"externalIPs":              []string{},
+		"loadBalancerIP":           "",
+		"loadBalancerSourceRanges": []string{},
+		"externalTrafficPolicy":    "",
+		"healthCheckNodePort":      0,
+		"annotations":              map[string]string{},
+	}
+
+	return serviceValues
+
+}
+func defaultIngressValues() map[string]interface{} {
+	ingressValues := map[string]interface{}{
+		"enabled":   false,
+		"className": "",
+		"service": map[string]interface{}{
+			"name": "clusters-service",
+			"port": 8000,
+		},
+		"annotations": map[string]string{},
 		"hosts": []map[string]interface{}{
 			{
-				"host": userDomain,
+				"host": "",
 				"paths": []map[string]string{
 					{
 						"path":     "/",
@@ -198,6 +192,7 @@ func constructIngressValues(userDomain string) map[string]interface{} {
 				},
 			},
 		},
+		"tls": []map[string]string{},
 	}
 
 	return ingressValues
@@ -239,12 +234,4 @@ func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string
 	}
 
 	return utils.CreateHelmReleaseYamlString(wgeHelmRelease)
-}
-
-func isUserDomainEnabled(input []StepInput, c *Config) bool {
-	if c.DomainType == domainTypeExternalDNS {
-		c.Logger.L().Info(externalDNSWarningMsg)
-		return true
-	}
-	return false
 }

@@ -86,7 +86,6 @@ function CanaryDetailsSection({
           <CanaryDetailsWrapper>
             <YamlView
               yaml={canary.yaml || ''}
-              type="Canary"
               header={createYamlCommand(
                 'Canary',
                 canary.name,

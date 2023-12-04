@@ -190,7 +190,7 @@ service ClustersService {
     };
   }
 
-  // Get the Weave Gitops Enterprise version
+  // Get the Weave GitOps Enterprise version
   //
   // Returns the version of the Weave GitOps Enterprise server.
   rpc GetEnterpriseVersion(GetEnterpriseVersionRequest) returns (GetEnterpriseVersionResponse) {
@@ -200,7 +200,7 @@ service ClustersService {
     };
   }
 
-  // Get the Weave Gitops Enterprise configuration
+  // Get the Weave GitOps Enterprise configuration
   //
   // Returns information about the current configuration of the Weave GitOps Enterprise.
   rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {

@@ -85,7 +85,12 @@ function Explorer({
     }
     // Focus the input so you can click open and start typing
     if (filterDrawerOpen) {
-      inputRef.current.focus();
+      // Delay the focus so that the drawer animation makes sense.
+      // Without the delay, the animation will stutter
+      // due to something in material-ui expanding the width.
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 500);
     } else {
       inputRef.current.blur();
     }

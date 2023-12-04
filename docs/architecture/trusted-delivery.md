@@ -1,5 +1,5 @@
 # Trusted Delivery 
-This document outlines an architecture documentation for Weave Gitops Trusted Delivery domain.
+This document outlines an architecture documentation for Weave GitOps Trusted Delivery domain.
 
 ## Motivation
 
@@ -31,7 +31,7 @@ And the following flows:
 1. A platform engineer via gitops flow, to provision the policy runtime and library via policy profile.
 2. A platform engineer via gitops flow, add custom policies or policy config.
 3. Policy runtime to enforce policies and send policy events to external system like ELK.
-4. Platform engineer to view policy violations via Weave Gitops UI. 
+4. Platform engineer to view policy violations via Weave GitOps UI. 
 
 ```mermaid
 C4Component

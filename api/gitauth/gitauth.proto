@@ -1,6 +1,6 @@
 /**
  * This file holds the protobuf definitions
- * for the Weave Gitops Enterprise Git Provider Authentication API.
+ * for the Weave GitOps Enterprise Git Provider Authentication API.
  */
 syntax = "proto3";
 
@@ -13,10 +13,10 @@ option go_package = "github.com/weaveworks/weave-gitops-enterprise/gitauth/api";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
-      title: "Weave Gitops Enterprise GitAuth API",
+      title: "Weave GitOps Enterprise GitAuth API",
       version: "0.1";
       description:
-          "Weave Gitops Enterprise GitAuth API handles authentication"
+          "Weave GitOps Enterprise GitAuth API handles authentication"
           " via Github and Gitlab";
     };
     consumes: "gitauth/json";

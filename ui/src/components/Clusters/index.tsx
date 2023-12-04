@@ -22,6 +22,7 @@ import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { EnabledComponent } from '../../api/query/query.pb';
+import Azure from '../../assets/img/Azure.svg';
 import Docker from '../../assets/img/docker.svg';
 import EKS from '../../assets/img/EKS.svg';
 import GKE from '../../assets/img/GKE.svg';
@@ -72,7 +73,8 @@ export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
   cluster,
 }) => {
   const clusterKind =
-    cluster.labels?.['weave.works/cluster-kind'] ||
+    cluster.annotations?.['weave.works/cluster-kind'] ||
+    cluster.labels?.['clusters.weave.works/origin-type'] ||
     cluster.capiCluster?.infrastructureRef?.kind;
   return (
     <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
@@ -113,9 +115,10 @@ const getClusterTypeIcon = (clusterType?: string) => {
     return EKS;
   } else if (
     clusterType === 'AzureCluster' ||
-    clusterType === 'AzureManagedCluster'
+    clusterType === 'AzureManagedCluster'||
+    clusterType === 'aks'
   ) {
-    return Kubernetes;
+    return Azure;
   } else if (clusterType === 'GCPCluster') {
     return GKE;
   } else if (clusterType === 'VSphereCluster') {
