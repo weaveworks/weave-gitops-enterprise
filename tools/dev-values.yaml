@@ -68,7 +68,7 @@ enableNewPipelines: true
 
 # Enable ingress running under a path
 # Note:
-# Run ./tools/kind-with-ingress.sh # create a kind cluster with ingress
+# Run INSTALL_NGINX_INGRESS=1 DELETE_GITOPS_DEV_REPO=1 ./tools/reboot.sh and tilt up
 # Open http://localhost:30080/weave-gitops-enterprise # access the weave-gitops-enterprise app
 ingress:
   enabled: true
