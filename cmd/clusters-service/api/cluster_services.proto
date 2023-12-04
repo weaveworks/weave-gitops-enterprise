@@ -960,7 +960,7 @@ message GetConfigRequest {}
 message GetConfigResponse {
   // _DEPRECATED: This is no longer used and will be removed in the future._
   // The default git repository URL for the management cluster.
-  string repository_url = 1 [deprecated = true];
+  string repository_url = 1;
   // The given name of the management cluster which is used for some multi-cluster operations.
   string management_cluster_name = 2;
   // JSON encoded string of UI configuration.
