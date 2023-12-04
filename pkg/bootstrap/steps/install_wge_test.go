@@ -157,27 +157,9 @@ func TestInstallWge_Execute(t *testing.T) {
 			}
 
 			assert.NoError(t, err)
-			// assert helm repository
-			if diff := cmp.Diff(tt.wantOutput[0], gotOutputs[0]); diff != "" {
-				t.Fatalf("unexpected helm repository:\n%s", diff)
+			if diff := cmp.Diff(tt.wantOutput, gotOutputs); diff != "" {
+				t.Fatalf("unexpected wge outputs:\n%s", diff)
 			}
-			// assert helm release
-			if diff := cmp.Diff(tt.wantOutput[1], gotOutputs[1]); diff != "" {
-				t.Fatalf("unexpected helm release:\n%s", diff)
-			}
-
-			//if diff := cmp.Diff(tt.wantOutput[1], gotOutputs[1], cmpopts.IgnoreFields(fileContent{}, "Content")); diff != "" {
-			//	t.Fatalf("unexpected helm release:\n%s", diff)
-			//}
-
-			//var release v2beta1.HelmRelease
-			//helmReleaseString := gotOutputs[1].Value.(fileContent).Content
-			//err = k8syaml.Unmarshal([]byte(helmReleaseString), &release)
-			//assert.NoError(t, err)
-			//assert.Equal(t, "weave-gitops-enterprise", release.Name)
-			//values := release.GetValues()
-			//assert.NotNil(t, values["service"])
-			//assert.NotNil(t, values["ingress"])
 		})
 	}
 }
