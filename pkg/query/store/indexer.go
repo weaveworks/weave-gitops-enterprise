@@ -81,6 +81,10 @@ func addFieldMappings(index *mapping.IndexMappingImpl, fields []string) {
 	nameFieldMapping.Analyzer = "keyword"
 	objMapping.AddFieldMappingsAt("name", nameFieldMapping)
 
+	// do not index unstructured as for of the main index to get more realistic score
+	unstructuredMapping := bleve.NewDocumentDisabledMapping()
+	objMapping.AddSubDocumentMapping("unstructured", unstructuredMapping)
+
 	for _, field := range commonFields {
 		// This mapping allows us to do query-string queries on the field.
 		// For example, we can do `cluster:foo` to get all objects in the `foo` cluster.
