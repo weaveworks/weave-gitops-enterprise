@@ -13,6 +13,7 @@ import {
   SignIn,
   theme,
   ThemeTypes,
+  withBasePath,
 } from '@weaveworks/weave-gitops';
 import React, { ReactNode } from 'react';
 import {
@@ -130,6 +131,7 @@ export const queryOptions: QueryClientConfig = {
     },
   },
   queryCache: new QueryCache({
+    // FIXME: Do we need this? Should be captured by the global interceptors
     onError: error => {
       const err = error as Error;
       const { pathname, search } = window.location;
@@ -138,7 +140,7 @@ export const queryOptions: QueryClientConfig = {
         ? `/sign_in?redirect=${redirectUrl}`
         : `/sign_in?redirect=/`;
       if (err.code === 401 && !window.location.href.includes('/sign_in')) {
-        window.location.href = url;
+        window.location.href = withBasePath(url);
       }
     },
   }),
