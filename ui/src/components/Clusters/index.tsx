@@ -75,10 +75,18 @@ export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
     cluster.labels?.['weave.works/cluster-kind'] ||
     cluster.capiCluster?.infrastructureRef?.kind;
 
-  const isACD = cluster;
+  const isACD = cluster.labels?.['app.kubernetes.io/managed-by'] === 'cluster-reflector-controller' ? true : false;
   return (
     <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
-      <Badge badgeContent="ACD" color="primary" invisible={false}>
+      <Badge
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        badgeContent="ACD"
+        color="primary"
+        invisible={!isACD}
+      >
         <IconSpan>
           <img
             src={getClusterTypeIcon(clusterKind)}
