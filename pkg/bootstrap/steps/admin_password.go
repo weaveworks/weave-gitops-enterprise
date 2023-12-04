@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
+	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -46,7 +46,7 @@ type ClusterUserAuthConfig struct {
 }
 
 // NewClusterUserAuthConfig creates new configuration out of the user input and discovered state
-func NewClusterUserAuthConfig(password string, client k8s_client.Client) (ClusterUserAuthConfig, error) {
+func NewClusterUserAuthConfig(password string, client k8sclient.Client) (ClusterUserAuthConfig, error) {
 	if password != "" && len(password) < 6 {
 		return ClusterUserAuthConfig{}, fmt.Errorf("password minimum characters should be >= 6")
 	}
@@ -142,7 +142,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 // isExistingAdminSecret checks for admin secret on management cluster
 // returns true if admin secret is already on the cluster
 // returns false if no admin secret on the cluster
-func isExistingAdminSecret(client k8s_client.Client) bool {
+func isExistingAdminSecret(client k8sclient.Client) bool {
 	_, err := utils.GetSecret(client, adminSecretName, WGEDefaultNamespace)
 	return err == nil
 }

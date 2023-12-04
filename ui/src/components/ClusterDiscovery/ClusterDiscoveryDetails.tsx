@@ -225,7 +225,6 @@ function ClusterDiscoveryDetails({
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <YamlView
               yaml={acd?.yaml}
-              type="GitOpsSet"
               header={createYamlCommand(acd?.type, acd?.name, acd?.namespace)}
             />
           </RouterTab>
