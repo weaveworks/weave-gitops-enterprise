@@ -12,17 +12,16 @@ const (
 	policyAgentController = "policy-agent"
 	tfController          = "tf-controller"
 	capiController        = "capi"
-	allControllers        = "all of above"
 )
 
 // NewInstallExtraComponents start installing extra Components
 func NewInstallExtraComponents(config Config) BootstrapStep {
 	inputs := []StepInput{}
 	controllersValues := []string{
+		"",
 		policyAgentController,
 		tfController,
 		capiController,
-		allControllers,
 	}
 
 	installExtraComponentsStep := StepInput{
@@ -73,24 +72,8 @@ func installExtraComponents(input []StepInput, c *Config) ([]StepOutput, error) 
 			if err != nil {
 				return []StepOutput{}, fmt.Errorf("can't install capi controller: %v", err)
 			}
-		case allControllers:
-			agentStep := NewInstallPolicyAgentStep(*c)
-			_, err := agentStep.Execute(c)
-			if err != nil {
-				return []StepOutput{}, fmt.Errorf("can't install policy agent: %v", err)
-			}
-			tfControllerStep := NewInstallTFControllerStep(*c)
-			_, err = tfControllerStep.Execute(c)
-			if err != nil {
-				return []StepOutput{}, fmt.Errorf("can't install tf controller: %v", err)
-			}
-			capiStep := NewInstallCapiControllerStep(*c)
-			_, err = capiStep.Execute(c)
-			if err != nil {
-				return []StepOutput{}, fmt.Errorf("can't install capi controller: %v", err)
-			}
 		default:
-			c.Logger.Successf("skipping installing controllers, selected: %s", controller)
+			c.Logger.Warningf("unsupported or empty controller, selected: %s", controller)
 			return []StepOutput{}, nil
 		}
 	}

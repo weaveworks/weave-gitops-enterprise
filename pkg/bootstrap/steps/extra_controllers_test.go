@@ -24,10 +24,10 @@ func TestNewInstallExtraComponents(t *testing.T) {
 						Type: multiSelectionChoice,
 						Msg:  extraComponentsMsg,
 						Values: []string{
+							"",
 							policyAgentController,
 							tfController,
 							capiController,
-							allControllers,
 						},
 						DefaultValue: "",
 					},
