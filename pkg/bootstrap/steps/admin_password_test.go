@@ -78,7 +78,7 @@ func TestNewAskAdminCredsSecretStep(t *testing.T) {
 				Password:         "password123",
 			},
 			want:    BootstrapStep{},
-			wantErr: "admin login credentials already exist on the cluster. To reset admin credentials please remove secret 'cluster-user-auth' in namespace 'flux-system'.",
+			wantErr: "admin login credentials already exist on the cluster. To reset admin credentials please remove secret 'cluster-user-auth' in namespace 'flux-system'",
 		},
 	}
 	for _, tt := range tests {

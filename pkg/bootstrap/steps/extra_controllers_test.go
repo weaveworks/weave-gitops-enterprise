@@ -65,12 +65,9 @@ func TestNewInstallExtraComponents(t *testing.T) {
 }
 
 func TestInstallExtraControllers(t *testing.T) {
-	// note: can't test controllers as it requires pushing to git
-	// will test the functionality with the default controller only here
 	tests := []struct {
 		name      string
 		stepInput []StepInput
-		err       bool
 	}{
 		{
 			name: "test skip installing controllers with defaults (\"\")",
@@ -82,18 +79,40 @@ func TestInstallExtraControllers(t *testing.T) {
 					Value: "",
 				},
 			},
-			err: false,
+		},
+		{
+			name: "test install controllers with policy agent ",
+			stepInput: []StepInput{
+				{
+					Name:  inExtraComponents,
+					Value: "policy-agent",
+				},
+			},
+		},
+		{
+			name: "test install controllers with policy agent and capi",
+			stepInput: []StepInput{
+				{
+					Name:  inExtraComponents,
+					Value: policyAgentController,
+				},
+				{
+					Name:  inExtraComponents,
+					Value: capiController,
+				},
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := makeTestConfig(t, Config{})
-			_, err := installExtraComponents(tt.stepInput, &config)
+			wgeObject, err := createWGEHelmReleaseFakeObject("1.0.0")
+			if err != nil {
+				t.Fatalf("error create wge object: %v", err)
+			}
+			config := makeTestConfig(t, Config{}, &wgeObject)
+			_, err = installExtraComponents(tt.stepInput, &config)
 			assert.NoError(t, err, "unexpected error")
 			if err != nil {
-				if tt.err {
-					return
-				}
 				t.Fatalf("unexpected error: %v", err)
 			}
 		})
