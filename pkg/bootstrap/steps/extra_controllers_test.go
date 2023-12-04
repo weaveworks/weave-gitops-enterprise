@@ -67,6 +67,7 @@ func TestNewInstallExtraComponents(t *testing.T) {
 func TestInstallExtraControllers(t *testing.T) {
 	tests := []struct {
 		name      string
+		config    Config
 		stepInput []StepInput
 	}{
 		{
@@ -81,7 +82,14 @@ func TestInstallExtraControllers(t *testing.T) {
 			},
 		},
 		{
-			name: "test install controllers with policy agent ",
+			name: "test skip installing controllers as default from silent mode",
+			config: Config{
+				Silent: true,
+			},
+		},
+		{
+			name:   "test install controllers with policy agent ",
+			config: Config{},
 			stepInput: []StepInput{
 				{
 					Name:  inExtraComponents,
@@ -90,7 +98,8 @@ func TestInstallExtraControllers(t *testing.T) {
 			},
 		},
 		{
-			name: "test install controllers with policy agent and capi",
+			name:   "test install controllers with policy agent and capi",
+			config: Config{},
 			stepInput: []StepInput{
 				{
 					Name:  inExtraComponents,
@@ -109,7 +118,7 @@ func TestInstallExtraControllers(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error create wge object: %v", err)
 			}
-			config := makeTestConfig(t, Config{}, &wgeObject)
+			config := makeTestConfig(t, tt.config, &wgeObject)
 			_, err = installExtraComponents(tt.stepInput, &config)
 			assert.NoError(t, err, "unexpected error")
 			if err != nil {
