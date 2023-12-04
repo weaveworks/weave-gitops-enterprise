@@ -34,7 +34,7 @@ gitops bootstrap --password=hell0!
 gitops bootstrap --client-id <client-id> --client-secret <client-secret> --discovery-url <discovery-url>
 
 # Start WGE installation with OIDC and flux bootstrap with https
-gitops bootstrap --version=<version> --password=<admin-password> --discovery-url=<oidc-discovery-url> --client-id=<oidc-client-id> --git-username=<git-username-https> -gitPassword=<gitPassword>--branch=<git-branch> --repo-path=<path-in-repo-for-management-cluster> --repo-url=https://<repo-url> --client-secret=<oidc-secret> -s
+gitops bootstrap --version=<version> --password=<admin-password> --discovery-url=<oidc-discovery-url> --client-id=<oidc-client-id> --git-username=<git-username-https> --gitPassword=<gitPassword> --bootstrap-flux --branch=<git-branch> --repo-path=<path-in-repo-for-management-cluster> --repo-url=https://<repo-url> --client-secret=<oidc-secret> -s
 
 # Start WGE installation with OIDC and flux bootstrap with ssh
 gitops bootstrap --version=<version> --password=<admin-password> --discovery-url=<oidc-discovery-url> --client-id=<oidc-client-id> --private-key-path=<private-key-path> --private-key-password=<private-key-password> --branch=<git-branch> --repo-path=<path-in-repo-for-management-cluster> --repo-url=ssh://<repo-url> --client-secret=<oidc-secret> -s
@@ -69,6 +69,9 @@ type bootstrapFlags struct {
 	// modes flags
 	silent bool
 
+	// flux flag
+	bootstrapFlux bool
+
 	// extra controllers
 	extraComponents []string
 }
@@ -87,6 +90,7 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "version of Weave GitOps Enterprise (should be from the latest 3 versions)")
 	cmd.Flags().StringSliceVar(&flags.extraComponents, "components-extra", nil, "extra components to be installed from (policy-agent, tf-controller, capi)")
 	cmd.PersistentFlags().BoolVarP(&flags.silent, "silent", "s", false, "chose the defaults with current provided information without asking any questions")
+	cmd.PersistentFlags().BoolVarP(&flags.bootstrapFlux, "bootstrap-flux", "", false, "chose whether you want to install flux in the generic way in case no flux installation detected")
 	cmd.PersistentFlags().StringVarP(&flags.gitUsername, "git-username", "", "", "git username used in https authentication type")
 	cmd.PersistentFlags().StringVarP(&flags.gitPassword, "git-password", "", "", "git password/token used in https authentication type")
 	cmd.PersistentFlags().StringVarP(&flags.branch, "branch", "b", "", "git branch for your flux repository (example: main)")
@@ -122,6 +126,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			).
 			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, true).
 			WithSilentFlag(flags.silent).
+			WithBootstrapFluxFlag(flags.bootstrapFlux).
 			WithExtraComponents(flags.extraComponents).
 			Build()
 

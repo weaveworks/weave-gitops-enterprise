@@ -77,6 +77,7 @@ type ConfigBuilder struct {
 	clientID                string
 	clientSecret            string
 	PromptedForDiscoveryURL bool
+	bootstrapFlux           bool
 	extraComponents         []string
 }
 
@@ -138,6 +139,11 @@ func (c *ConfigBuilder) WithSilentFlag(silent bool) *ConfigBuilder {
 	return c
 }
 
+func (c *ConfigBuilder) WithBootstrapFluxFlag(bootstrapFlux bool) *ConfigBuilder {
+	c.bootstrapFlux = bootstrapFlux
+	return c
+}
+
 func (c *ConfigBuilder) WithExtraComponents(extraComponents []string) *ConfigBuilder {
 	c.extraComponents = extraComponents
 	return c
@@ -184,6 +190,7 @@ type Config struct {
 	RedirectURL             string
 	PromptedForDiscoveryURL bool
 
+	BootstrapFlux   bool
 	ExtraComponents []string
 }
 
@@ -240,6 +247,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		ClientSecret:            cb.clientSecret,
 		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
 		ExtraComponents:         cb.extraComponents,
+		BootstrapFlux:           cb.bootstrapFlux,
 	}, nil
 
 }

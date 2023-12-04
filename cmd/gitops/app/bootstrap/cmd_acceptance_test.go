@@ -149,6 +149,7 @@ func TestBootstrapCmd(t *testing.T) {
 				repoHTTPSURLFlag,
 				oidcClientSecretFlag, "-s",
 				"--components-extra=\"policy-agent,capi,tf-controller\"",
+				"--bootstrap-flux",
 			},
 			setup: func(t *testing.T) {
 				createEntitlements(t, testLog)

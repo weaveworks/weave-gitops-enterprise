@@ -94,7 +94,6 @@ func TestInstallCapi(t *testing.T) {
 			testConfig := Config{
 				Silent:     true,
 				WGEVersion: "1.0.0",
-				DomainType: domainTypeLocalhost,
 			}
 			wgeObject, err := createWGEHelmReleaseFakeObject("1.0.0")
 			if err != nil {

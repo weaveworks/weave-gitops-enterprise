@@ -12,7 +12,7 @@ var (
 		Type:         confirmInput,
 		Msg:          bootstrapFluxMsg,
 		Enabled:      canAskForFluxBootstrap,
-		DefaultValue: confirmYes,
+		DefaultValue: confirmNo,
 	}
 )
 
@@ -31,12 +31,16 @@ func askBootstrapFlux(input []StepInput, c *Config) ([]StepOutput, error) {
 	if !canAskForFluxBootstrap(input, c) {
 		return []StepOutput{}, nil
 	}
+	if c.BootstrapFlux && c.Silent {
+		c.Logger.Generatef("bootstrapping flux in the generic way")
+		return []StepOutput{}, nil
+	}
 	for _, param := range input {
 		if param.Name == inBootstrapFlux {
 			fluxBootstrapRes, ok := param.Value.(string)
 			if ok {
 				if fluxBootstrapRes != "y" {
-					return []StepOutput{}, fmt.Errorf("flux bootstrapped error: %s", fluxFatalErrorMsg)
+					return []StepOutput{}, fmt.Errorf("flux error: %s", fluxFatalErrorMsg)
 				}
 
 			}
