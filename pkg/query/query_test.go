@@ -759,9 +759,9 @@ func TestQueryOrdering_Realistic(t *testing.T) {
 
 		expected := []string{
 			"flux-system",
+			"kube-prometheus-stack",
 			"monitoring-config",
 			"flux-system",
-			"kube-prometheus-stack",
 		}
 
 		actual := []string{}

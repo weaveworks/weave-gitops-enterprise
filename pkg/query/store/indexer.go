@@ -241,10 +241,8 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 	}
 
 	// We order by score here so that we can get the most relevant results first.
-	orders = append(orders, &search.SortField{
-		Field: "_score",
-		Desc:  true,
-		Type:  search.SortFieldAuto,
+	orders = append(orders, &search.SortScore{
+		Desc: true,
 	})
 
 	req.SortByCustom(orders)
