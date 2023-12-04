@@ -256,10 +256,8 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 		return nil, fmt.Errorf("failed to search for objects: %w", err)
 	}
 
-	log := i.log
 	// Strip the `_unstructured` suffix from the ID so we can get the object from the store.
 	for i, hit := range searchResults.Hits {
-		log.Info("hit", "id", hit.ID, "score", hit.Score)
 		if strings.Contains(hit.ID, unstructuredSuffix) {
 			hit.ID = strings.Replace(hit.ID, "_unstructured", "", 1)
 		}
