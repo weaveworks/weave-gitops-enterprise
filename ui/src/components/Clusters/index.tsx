@@ -53,7 +53,6 @@ import OpenedPullRequest from './OpenedPullRequest';
 
 
 
-
 const ClusterRowCheckbox = ({
   name,
   namespace,
