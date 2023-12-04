@@ -1,4 +1,4 @@
-import { Badge, Checkbox } from '@material-ui/core';
+import { Checkbox } from '@material-ui/core';
 import {
   Button,
   DataTable,
@@ -19,17 +19,8 @@ import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { EnabledComponent } from '../../api/query/query.pb';
-import Docker from '../../assets/img/docker.svg';
-import EKS from '../../assets/img/EKS.svg';
-import GKE from '../../assets/img/GKE.svg';
-import Kubernetes from '../../assets/img/Kubernetes.svg';
-import LiquidMetal from '../../assets/img/LiquidMetal.svg';
-import Openshift from '../../assets/img/Openshift.svg';
-import Rancher from '../../assets/img/Rancher.svg';
-import Vsphere from '../../assets/img/Vsphere.svg';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
 import { useListConfigContext } from '../../contexts/ListConfig';
@@ -38,7 +29,6 @@ import useNotifications, {
 } from '../../contexts/Notifications';
 import useClusters from '../../hooks/clusters';
 import { useIsEnabledForComponent } from '../../hooks/query';
-import AppRoutes from '../../routes';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
 import { computeMessage } from '../../utils/conditions';
@@ -59,44 +49,9 @@ import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import OpenedPullRequest from './OpenedPullRequest';
+import { ClusterIcon } from './ClusterIcon';
 
-const IconSpan = styled.span`
-  display: flex;
-  img {
-    height: 32px;
-    width: 32px;
-  }
-`;
 
-export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
-  cluster,
-}) => {
-  const clusterKind =
-    cluster.labels?.['weave.works/cluster-kind'] ||
-    cluster.capiCluster?.infrastructureRef?.kind;
-
-  const isACD = cluster.labels?.['app.kubernetes.io/managed-by'] === 'cluster-reflector-controller' ? true : false;
-  return (
-    <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
-      <Badge
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        badgeContent="ACD"
-        color="primary"
-        invisible={!isACD}
-      >
-        <IconSpan>
-          <img
-            src={getClusterTypeIcon(clusterKind)}
-            alt={clusterKind || 'kubernetes'}
-          />
-        </IconSpan>
-      </Badge>
-    </Tooltip>
-  );
-};
 
 const ClusterRowCheckbox = ({
   name,
@@ -115,32 +70,6 @@ const ClusterRowCheckbox = ({
   />
 );
 
-const getClusterTypeIcon = (clusterType?: string) => {
-  if (clusterType === 'DockerCluster') {
-    return Docker;
-  } else if (
-    clusterType === 'AWSCluster' ||
-    clusterType === 'AWSManagedCluster'
-  ) {
-    return EKS;
-  } else if (
-    clusterType === 'AzureCluster' ||
-    clusterType === 'AzureManagedCluster'
-  ) {
-    return Kubernetes;
-  } else if (clusterType === 'GCPCluster') {
-    return GKE;
-  } else if (clusterType === 'VSphereCluster') {
-    return Vsphere;
-  } else if (clusterType === 'MicrovmCluster') {
-    return LiquidMetal;
-  } else if (clusterType === 'Rancher') {
-    return Rancher;
-  } else if (clusterType === 'Openshift') {
-    return Openshift;
-  }
-  return Kubernetes;
-};
 
 interface FormData {
   repo: GitRepository | null;
