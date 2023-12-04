@@ -45,11 +45,12 @@ import {
   useGetInitialGitRepo,
 } from '../Templates/Form/utils';
 import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
+import { ClusterIcon } from './ClusterIcon';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import OpenedPullRequest from './OpenedPullRequest';
-import { ClusterIcon } from './ClusterIcon';
+
 
 
 
