@@ -134,7 +134,7 @@ func Command(client *adapters.HTTPClient) *cobra.Command {
 	rootCmd.AddCommand(delete.Command(options, client))
 	rootCmd.AddCommand(upgrade.Cmd)
 	rootCmd.AddCommand(docs.Cmd)
-	rootCmd.AddCommand(check.GetCommand())
+	rootCmd.AddCommand(check.GetCommand(options))
 	rootCmd.AddCommand(set.SetCommand(options))
 	rootCmd.AddCommand(generate.Command())
 	rootCmd.AddCommand(bootstrap.Command(options))
