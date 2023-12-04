@@ -45,8 +45,9 @@ extraEnvVars:
     value: "false"
   - name: BITBUCKET_SERVER_HOSTNAME
     value: "bitbucket.yiannis.net"
-  - name: ROUTE_PREFIX
-    value: /weave-gitops-enterprise
+  # un-comment when running under weave-gitops-enterprise under a subpath e.g /weave-gitops-enterprise
+  # - name: ROUTE_PREFIX
+  #   value: /weave-gitops-enterprise
 
 extraEnvVarsSecret: ""
 
