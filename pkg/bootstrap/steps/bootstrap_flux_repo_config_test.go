@@ -129,7 +129,7 @@ func TestCreateGitRepositoryConfig(t *testing.T) {
 			assert.Equal(t, tt.config.RepoURL, config.RepoURL, "wrong repo url")
 			assert.Equal(t, tt.config.RepoPath, config.RepoPath, "wrong repo path")
 			assert.Equal(t, tt.config.Branch, config.Branch, "wrong repo branch")
-			assert.Equal(t, tt.config.GitScheme, config.GitScheme, "wrong git scheme")
+			assert.Equal(t, tt.config.GitRepository.Scheme, config.GitRepository.Scheme, "wrong git scheme")
 		})
 	}
 }
