@@ -28,11 +28,8 @@ const (
 const (
 	inPassword           = "password"
 	inWGEVersion         = "wgeVersion"
-	inUserDomain         = "userDomain"
 	inPrivateKeyPath     = "privateKeyPath"
 	inPrivateKeyPassword = "privateKeyPassword"
-	inExistingCreds      = "existingCreds"
-	inDomainType         = "domainType"
 	inDiscoveryURL       = "discoveryURL"
 	inClientID           = "clientID"
 	inClientSecret       = "clientSecret"
@@ -62,8 +59,6 @@ type ConfigBuilder struct {
 	kubeconfig              string
 	password                string
 	wgeVersion              string
-	domainType              string
-	domain                  string
 	privateKeyPath          string
 	privateKeyPassword      string
 	silent                  bool
@@ -104,18 +99,6 @@ func (c *ConfigBuilder) WithVersion(version string) *ConfigBuilder {
 	return c
 }
 
-func (c *ConfigBuilder) WithDomainType(domainType string) *ConfigBuilder {
-	c.domainType = domainType
-	return c
-
-}
-
-func (c *ConfigBuilder) WithDomain(domain string) *ConfigBuilder {
-	c.domain = domain
-	return c
-
-}
-
 func (c *ConfigBuilder) WithGitAuthentication(privateKeyPath, privateKeyPassword, gitUsername, gitToken string) *ConfigBuilder {
 	c.privateKeyPath = privateKeyPath
 	c.privateKeyPassword = privateKeyPassword
@@ -154,13 +137,15 @@ func (c *ConfigBuilder) WithSilentFlag(silent bool) *ConfigBuilder {
 // configuration values as well as other required structs like clients
 type Config struct {
 	KubernetesClient k8s_client.Client
-	Logger           logger.Logger
+	// TODO move me to a better package
+	GitClient utils.GitClient
+	// TODO move me to a better package
+	FluxClient utils.FluxClient
+
+	Logger logger.Logger
 
 	WGEVersion      string // user want this version in the cluster
 	ClusterUserAuth ClusterUserAuthConfig
-
-	DomainType string
-	UserDomain string
 
 	Silent bool
 
@@ -173,14 +158,12 @@ type Config struct {
 
 	// GitRepository contains the configuration for the git repo
 	GitRepository GitRepositoryConfig
-	// deprecated use GitRepository.Url instead
+	// Deprecated: use GitRepository.Url instead
 	RepoURL string
-	// deprecated use GitRepository.Branch instead
+	// Deprecated: use GitRepository.Branch instead
 	Branch string
-	// deprecated use GitRepository.Path instead
+	// Deprecated: use GitRepository.Path instead
 	RepoPath string
-	// deprecated use GitRepository.Scheme instead
-	GitScheme string
 
 	AuthType                string
 	InstallOIDC             string
@@ -224,15 +207,14 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
 		KubernetesClient:        kubeHttp.Client,
+		GitClient:               &utils.GoGitClient{},
+		FluxClient:              &utils.CmdFluxClient{},
 		WGEVersion:              cb.wgeVersion,
 		ClusterUserAuth:         clusterUserAuthConfig,
 		GitRepository:           gitRepositoryConfig,
-		GitScheme:               gitRepositoryConfig.Scheme,
 		Branch:                  gitRepositoryConfig.Branch,
 		RepoPath:                gitRepositoryConfig.Path,
 		Logger:                  cb.logger,
-		DomainType:              cb.domainType,
-		UserDomain:              cb.domain,
 		Silent:                  cb.silent,
 		RepoURL:                 cb.repoURL,
 		PrivateKeyPath:          cb.privateKeyPath,
@@ -258,6 +240,7 @@ type fileContent struct {
 // ValuesFile store the wge values
 type valuesFile struct {
 	Config             ValuesWGEConfig        `json:"config,omitempty"`
+	Service            map[string]interface{} `json:"service,omitempty"`
 	Ingress            map[string]interface{} `json:"ingress,omitempty"`
 	TLS                map[string]interface{} `json:"tls,omitempty"`
 	PolicyAgent        map[string]interface{} `json:"policy-agent,omitempty"`
