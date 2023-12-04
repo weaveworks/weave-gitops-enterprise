@@ -1,10 +1,10 @@
+import { withBasePath } from '@weaveworks/weave-gitops';
 import GitUrlParse from 'git-url-parse';
 import { GitOpsSet } from '../api/gitopssets/types.pb';
 import { TerraformObject } from '../api/terraform/types.pb';
 import { CostEstimate } from '../cluster-services/cluster_services.pb';
 import { NotificationData } from '../contexts/Notifications';
 import { Routes } from './nav';
-import { withBasePath } from '@weaveworks/weave-gitops';
 
 export const getGitRepoHTTPSURL = (
   repoUrl?: string,
