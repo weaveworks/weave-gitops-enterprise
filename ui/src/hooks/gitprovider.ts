@@ -1,6 +1,6 @@
-import { useState, useContext, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GitProvider } from '../api/gitauth/gitauth.pb';
-import { GitAuth } from '../contexts/GitAuth';
+import { useEnterpriseClient } from '../contexts/API';
 import { NotificationData } from './../contexts/Notifications';
 
 const providerTokenHeaderName = 'Git-Provider-Token';
@@ -19,7 +19,7 @@ export function useIsAuthenticated(
 ) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>();
   const [loading, setLoading] = useState<boolean>(false);
-  const { gitAuthClient } = useContext(GitAuth);
+  const { gitAuth } = useEnterpriseClient();
 
   const validateToken = useCallback(() => {
     const makeHeaders = () =>
@@ -28,8 +28,8 @@ export function useIsAuthenticated(
       });
     const headers = makeHeaders();
 
-    return gitAuthClient.ValidateProviderToken({ provider }, { headers });
-  }, [gitAuthClient, provider, token]);
+    return gitAuth.ValidateProviderToken({ provider }, { headers });
+  }, [gitAuth, provider, token]);
 
   useEffect(() => {
     if (provider === ('' as GitProvider)) {

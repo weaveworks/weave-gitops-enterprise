@@ -14,9 +14,9 @@ do_kind() {
   tool_check "yq"
 
   if [ -n "$(ls "$(dirname "$0")"/custom/kind-cluster-patch-*.yaml 2> /dev/null)" ] ; then
-      "${TOOLS}"/yq eval-all '. as $item ireduce ({}; . *d $item)' "$(dirname "$0")"/kind-cluster-with-extramounts.yaml "$(dirname "$0")"/custom/kind-cluster-patch-*.yaml > "$(dirname "$0")"/kind-config.yaml
+      "${TOOLS}"/yq eval-all '. as $item ireduce ({}; . *d $item)' "$(dirname "$0")"/kind-cluster-with-extra-port-mappings.yaml "$(dirname "$0")"/custom/kind-cluster-patch-*.yaml > "$(dirname "$0")"/kind-config.yaml
   else
-      cp "$(dirname "$0")"/kind-cluster-with-extramounts.yaml "$(dirname "$0")"/kind-config.yaml
+      cp "$(dirname "$0")"/kind-cluster-with-extra-port-mappings.yaml "$(dirname "$0")"/kind-config.yaml
   fi
 
   ${TOOLS}/kind delete cluster --name "$KIND_CLUSTER_NAME"

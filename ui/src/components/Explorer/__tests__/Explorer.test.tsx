@@ -4,7 +4,7 @@ import {
   render,
   RenderResult,
 } from '@testing-library/react';
-import QueryServiceProvider from '../../../contexts/QueryService';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   defaultContexts,
   MockQueryService,
@@ -50,7 +50,10 @@ describe('Explorer', () => {
 
   beforeEach(() => {
     api = new MockQueryService();
-    wrap = withContext([...defaultContexts(), [QueryServiceProvider, { api }]]);
+    wrap = withContext([
+      ...defaultContexts(),
+      [EnterpriseClientContext.Provider, { value: { query: api } }],
+    ]);
   });
 
   it('renders rows', async () => {

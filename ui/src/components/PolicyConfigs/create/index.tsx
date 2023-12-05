@@ -8,7 +8,7 @@ import {
   ThemeTypes,
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import {
@@ -16,7 +16,7 @@ import {
   CreateAutomationsPullRequestRequest,
   PolicyConfigApplicationMatch,
 } from '../../../cluster-services/cluster_services.pb';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
+import { useEnterpriseClient } from '../../../contexts/API';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import { useGetClustersList } from '../../../contexts/PolicyConfigs';
@@ -243,7 +243,7 @@ const CreatePolicyConfig = () => {
     token,
   );
 
-  const { api } = useContext(EnterpriseClientContext);
+  const { clustersService } = useEnterpriseClient();
 
   const handleCreatePolicyConfig = useCallback(() => {
     const payload: CreateAutomationsPullRequestRequest = {
@@ -258,7 +258,7 @@ const CreatePolicyConfig = () => {
     setLoading(true);
     return validateToken()
       .then(() =>
-        api
+        clustersService
           .CreateAutomationsPullRequest(payload, {
             headers: new Headers({
               'Git-Provider-Token': `token ${getProviderToken(
@@ -299,7 +299,7 @@ const CreatePolicyConfig = () => {
       })
       .finally(() => setLoading(false));
   }, [
-    api,
+    clustersService,
     formData,
     getClusterAutomations,
     history,
