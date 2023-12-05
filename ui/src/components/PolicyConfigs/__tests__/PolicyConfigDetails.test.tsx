@@ -1,6 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import moment from 'moment';
-import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   defaultContexts,
   PolicyConfigsClientMock,
@@ -67,7 +67,7 @@ describe('GetPolicyConfigDetails', () => {
     api = new PolicyConfigsClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientProvider, { api }],
+      [EnterpriseClientContext.Provider, { value: { clustersService: api } }],
     ]);
   });
   it('renders get policyConfig details with Applied Namespaces', async () => {

@@ -40,6 +40,7 @@ type Options struct {
 	CAPIClustersNamespace     string
 	CAPIEnabled               bool
 	EntitlementSecretKey      client.ObjectKey
+	RoutePrefix               string
 	HtmlRootPath              string
 	ClientGetter              kube.ClientGetter
 	AuthMethods               map[auth.AuthMethod]bool
@@ -296,5 +297,11 @@ func WithExplorerCleanerDisabled(disabled bool) Option {
 func WithExplorerEnabledFor(enabledFor []string) Option {
 	return func(o *Options) {
 		o.ExplorerEnabledFor = append(o.ExplorerEnabledFor, enabledFor...)
+	}
+}
+
+func WithRoutePrefix(routePrefix string) Option {
+	return func(o *Options) {
+		o.RoutePrefix = routePrefix
 	}
 }

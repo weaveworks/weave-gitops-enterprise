@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { useContext, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useQuery } from 'react-query';
 import {
   GetConfigResponse,
@@ -12,7 +12,7 @@ import {
   CreateRequestAnnotationV2,
   maybeParseJSON,
 } from '../components/Templates/Form/utils';
-import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
+import { useEnterpriseClient } from '../contexts/API';
 import useNotifications from '../contexts/Notifications';
 import {
   GitopsClusterEnriched,
@@ -168,7 +168,7 @@ const useProfiles = (
 ) => {
   const { setNotifications } = useNotifications();
 
-  const { api } = useContext(EnterpriseClientContext);
+  const { clustersService } = useEnterpriseClient();
 
   const clusterData =
     cluster?.annotations?.['templates.weave.works/create-request'];
@@ -176,7 +176,7 @@ const useProfiles = (
   const onError = (error: Error) => setNotifications(formatError(error));
 
   const getConfigResponse = useQuery<GetConfigResponse, Error>('config', () =>
-    api.GetConfig({}),
+    clustersService.GetConfig({}),
   );
 
   const { isLoading, data } = useQuery<ListChartsForRepositoryResponse, Error>(
@@ -188,7 +188,7 @@ const useProfiles = (
       helmRepo.cluster?.namespace,
     ],
     () =>
-      api.ListChartsForRepository({
+      clustersService.ListChartsForRepository({
         repository: {
           name: helmRepo.name || 'weaveworks-charts',
           namespace: helmRepo.namespace || 'flux-system',

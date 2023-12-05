@@ -71,6 +71,13 @@ follow_capi_user_guide(){
     kubectl create secret generic my-pat --from-literal GITHUB_TOKEN="$GITHUB_TOKEN" --from-literal GITHUB_USER="$GITHUB_USER" --from-literal GITHUB_REPO="$GITHUB_REPO"
 }
 
+install_nginx_ingress(){
+  if [ "$INSTALL_NGINX_INGRESS" == "1" ]; then
+    # install nginx-ingress
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+  fi
+}
+
 push_progressive_delivery_manifests_to_gitops_dev_repo(){
   if [ "$PUSH_PROGRESSIVE_DELIVERY_MANIFESTS_TO_GITOPS_DEV_REPO" == "1" ]; then
     if [ ! -d "$(dirname "$0")/../../progressive-delivery" ]; then
@@ -116,6 +123,7 @@ main() {
     create_local_values_file
     follow_capi_user_guide
     push_progressive_delivery_manifests_to_gitops_dev_repo
+    install_nginx_ingress
     run_custom_scripts
 }
 

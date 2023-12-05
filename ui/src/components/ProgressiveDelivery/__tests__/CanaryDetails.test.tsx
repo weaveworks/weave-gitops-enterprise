@@ -1,5 +1,5 @@
 import { act, render, screen } from '@testing-library/react';
-import { ProgressiveDeliveryProvider } from '../../../contexts/ProgressiveDelivery';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   defaultContexts,
   ProgressiveDeliveryMock,
@@ -15,7 +15,10 @@ describe('CanaryDetails', () => {
     api = new ProgressiveDeliveryMock();
     wrap = withContext([
       ...defaultContexts(),
-      [ProgressiveDeliveryProvider, { api }],
+      [
+        EnterpriseClientContext.Provider,
+        { value: { progressiveDeliveryService: api } },
+      ],
     ]);
     api.IsFlaggerAvailableReturns = { clusters: { 'my-cluster': true } };
   });
