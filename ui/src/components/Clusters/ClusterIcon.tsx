@@ -3,6 +3,7 @@ import { Link, formatURL } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import styled from 'styled-components';
 import Azure from '../../assets/img/Azure.svg';
+import VCluster from '../../assets/img/VCluster.svg';
 import Docker from '../../assets/img/docker.svg';
 import EKS from '../../assets/img/EKS.svg';
 import GKE from '../../assets/img/GKE.svg';
@@ -46,6 +47,8 @@ const getClusterTypeIcon = (clusterType?: string) => {
     return Rancher;
   } else if (clusterType === 'Openshift') {
     return Openshift;
+  }else if (clusterType === 'VCluster') {
+    return VCluster;
   }
   return Kubernetes;
 };
