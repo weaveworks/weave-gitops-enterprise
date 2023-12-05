@@ -1,5 +1,5 @@
 import { Badge, Tooltip } from '@material-ui/core';
-import { Link } from '@weaveworks/weave-gitops';
+import { Link, formatURL } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import styled from 'styled-components';
 import Azure from '../../assets/img/Azure.svg';
@@ -12,6 +12,7 @@ import Openshift from '../../assets/img/Openshift.svg';
 import Rancher from '../../assets/img/Rancher.svg';
 import Vsphere from '../../assets/img/Vsphere.svg';
 import { GitopsClusterEnriched } from '../../types/custom';
+import { Routes } from '../../utils/nav';
 
 const IconSpan = styled.span`
   display: flex;
@@ -54,27 +55,35 @@ export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
 }) => {
   const clusterKind =
     cluster.annotations?.['weave.works/cluster-kind'] ||
-    cluster.labels?.['clusters.weave.works/origin-type'] ||
-    cluster.capiCluster?.infrastructureRef?.kind;
+    cluster.capiCluster?.infrastructureRef?.kind ||
+    cluster.labels?.['clusters.weave.works/origin-type'];
 
   const isACD =
     cluster.labels?.['app.kubernetes.io/managed-by'] ===
-    'cluster-reflector-controller'
-      ? true
-      : false;
+    'cluster-reflector-controller';
+
+  const getACDLink = () => {
+    const url = formatURL(Routes.ClusterDiscoveryDetails, {
+      name: cluster?.labels?.['clusters.weave.works/origin-name'],
+      namespace: cluster?.labels?.['clusters.weave.works/origin-namespace'],
+      clusterName: 'management',
+    });
+    return url;
+  };
+
   return (
     <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
       {isACD ? (
-        <Badge
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-          badgeContent="ACD"
-          color="primary"
+        <Link
+          to={getACDLink()}
         >
-          <Link
-            to={`/cluster-discovery/object/details?clusterName=management&name=${cluster?.labels?.['clusters.weave.works/origin-name']}&namespace=${cluster?.labels?.['clusters.weave.works/origin-namespace']}`}
+          <Badge
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            badgeContent="ACD"
+            color="primary"
           >
             <IconSpan>
               <img
@@ -82,8 +91,8 @@ export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
                 alt={clusterKind || 'kubernetes'}
               />
             </IconSpan>
-          </Link>
-        </Badge>
+          </Badge>
+        </Link>
       ) : (
         <IconSpan>
           <img
