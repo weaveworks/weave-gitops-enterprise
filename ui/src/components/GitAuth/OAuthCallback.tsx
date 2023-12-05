@@ -13,7 +13,7 @@ import {
   AuthorizeGitlabResponse,
   GitProvider,
 } from '../../api/gitauth/gitauth.pb';
-import { GitAuth } from '../../contexts/GitAuth';
+import { useEnterpriseClient } from '../../contexts/API';
 import useNotifications from '../../contexts/Notifications';
 import {
   azureDevOpsOAuthRedirectURI,
@@ -52,7 +52,7 @@ function OAuthCallback({
   const [res, loading, error, req] = useRequestState<AuthorizeGitlabResponse>();
   const linkResolver = useLinkResolver();
   const { setNotifications } = useNotifications();
-  const { gitAuthClient } = React.useContext(GitAuth);
+  const { gitAuth } = useEnterpriseClient();
   const params = qs.parse(history.location.search);
 
   React.useEffect(() => {
@@ -60,7 +60,7 @@ function OAuthCallback({
       const redirectUri = gitlabOAuthRedirectURI();
 
       req(
-        gitAuthClient.AuthorizeGitlab({
+        gitAuth.AuthorizeGitlab({
           redirectUri,
           code,
         }),
@@ -69,7 +69,7 @@ function OAuthCallback({
 
     if (provider === GitProvider.BitBucketServer) {
       req(
-        gitAuthClient.AuthorizeBitbucketServer({
+        gitAuth.AuthorizeBitbucketServer({
           code,
           state,
           redirectUri: bitbucketServerOAuthRedirectURI(),
@@ -79,7 +79,7 @@ function OAuthCallback({
 
     if (provider === GitProvider.AzureDevOps) {
       req(
-        gitAuthClient.AuthorizeAzureDevOps({
+        gitAuth.AuthorizeAzureDevOps({
           code,
           state,
           redirectUri: azureDevOpsOAuthRedirectURI(),
@@ -87,7 +87,7 @@ function OAuthCallback({
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code, gitAuthClient, provider]);
+  }, [code, gitAuth, provider]);
 
   React.useEffect(() => {
     if (!res) {

@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router-dom';
 import Pipelines from '..';
-import { PipelinesProvider } from '../../../contexts/Pipelines';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   defaultContexts,
   PipelinesClientMock,
@@ -80,7 +80,10 @@ describe('ListPipelines', () => {
 
   beforeEach(() => {
     api = new PipelinesClientMock();
-    wrap = withContext([...defaultContexts(), [PipelinesProvider, { api }]]);
+    wrap = withContext([
+      ...defaultContexts(),
+      [EnterpriseClientContext.Provider, { value: { pipelines: api } }],
+    ]);
   });
   it('renders a list of pipelines', async () => {
     const filterTable = new TestFilterableTable('pipelines-list', fireEvent);
@@ -151,7 +154,10 @@ describe('Auth redirect', () => {
   let api: PipelinesClientMock;
   beforeEach(() => {
     api = new PipelinesClientMock();
-    wrap = withContext([...defaultContexts(), [PipelinesProvider, { api }]]);
+    wrap = withContext([
+      ...defaultContexts(),
+      [EnterpriseClientContext.Provider, { value: { pipelines: api } }],
+    ]);
     jest.spyOn(console, 'error').mockImplementationOnce(() => {
       return;
     });

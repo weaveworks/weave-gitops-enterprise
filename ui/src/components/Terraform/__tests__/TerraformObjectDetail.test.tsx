@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import * as yaml from 'yaml';
 import { ToggleSuspendTerraformObjectsResponse } from '../../../api/terraform/terraform.pb';
-import { TerraformProvider } from '../../../contexts/Terraform';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   TerraformClientMock,
   defaultContexts,
@@ -39,7 +39,10 @@ describe('TerraformObjectDetail', () => {
   jest.spyOn(yaml, 'parse').mockImplementation(() => '');
   beforeEach(() => {
     api = new TerraformClientMock();
-    wrap = withContext([...defaultContexts(), [TerraformProvider, { api }]]);
+    wrap = wrap = withContext([
+      ...defaultContexts(),
+      [EnterpriseClientContext.Provider, { value: { terraform: api } }],
+    ]);
   });
 
   it('syncs a terraform object', async () => {

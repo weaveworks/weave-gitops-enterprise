@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import moment from 'moment';
 import { WorkspaceRoleBindingSubject } from '../../../cluster-services/cluster_services.pb';
-import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   defaultContexts,
   TestFilterableTable,
@@ -13,6 +13,7 @@ import { PoliciesTab } from '../WorkspaceDetails/Tabs/Policies';
 import { RoleBindingsTab } from '../WorkspaceDetails/Tabs/RoleBindings';
 import { RolesTab } from '../WorkspaceDetails/Tabs/Roles';
 import { ServiceAccountsTab } from '../WorkspaceDetails/Tabs/ServiceAccounts';
+
 const MockWorkspaceResponse = {
   workspace: {
     name: 'dev-team',
@@ -137,7 +138,7 @@ describe('WorkspaceDetails', () => {
     api = new WorkspaceClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientProvider, { api }],
+      [EnterpriseClientContext.Provider, { value: { clustersService: api } }],
     ]);
   });
 

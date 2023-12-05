@@ -1,9 +1,9 @@
 import { GetVersionResponse } from '@weaveworks/progressive-delivery';
-import { useContext, useEffect, useState } from 'react';
+import { withBasePath } from '@weaveworks/weave-gitops';
+import { useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
-import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
-import { GitAuth } from '../contexts/GitAuth';
+import { useEnterpriseClient } from '../contexts/API';
 import { useRequest } from '../contexts/Request';
 
 export function useListVersion() {
@@ -12,7 +12,7 @@ export function useListVersion() {
     { data: GetVersionResponse; entitlement: string | null },
     Error
   >('version', () =>
-    requestWithEntitlementHeader('GET', '/v1/enterprise/version'),
+    requestWithEntitlementHeader('GET', withBasePath('/v1/enterprise/version')),
   );
 }
 export interface ListConfigResponse extends GetConfigResponse {
@@ -21,21 +21,21 @@ export interface ListConfigResponse extends GetConfigResponse {
 }
 
 export function useListConfig() {
-  const { api } = useContext(EnterpriseClientContext);
+  const { clustersService } = useEnterpriseClient();
   const [provider, setProvider] = useState<string>('');
   const queryResponse = useQuery<GetConfigResponse, Error>('config', () =>
-    api.GetConfig({}),
+    clustersService.GetConfig({}),
   );
-  const { gitAuthClient } = useContext(GitAuth);
+  const { gitAuth } = useEnterpriseClient();
 
   const repositoryURL = queryResponse?.data?.repositoryUrl || '';
   const uiConfig = JSON.parse(queryResponse?.data?.uiConfig || '{}');
   useEffect(() => {
     repositoryURL &&
-      gitAuthClient.ParseRepoURL({ url: repositoryURL }).then(res => {
+      gitAuth.ParseRepoURL({ url: repositoryURL }).then(res => {
         setProvider(res.provider || '');
       });
-  }, [repositoryURL, gitAuthClient]);
+  }, [repositoryURL, gitAuth]);
 
   return {
     ...queryResponse,

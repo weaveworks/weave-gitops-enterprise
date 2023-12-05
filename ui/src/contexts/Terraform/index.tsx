@@ -6,31 +6,15 @@ import {
   GetTerraformObjectPlanResponse,
   GetTerraformObjectResponse,
   ListTerraformObjectsResponse,
-  Terraform,
 } from '../../api/terraform/terraform.pb';
 import { ObjectRef } from '../../api/terraform/types.pb';
 import { formatError } from '../../utils/formatters';
+import { useEnterpriseClient } from '../API';
 import useNotifications from './../../contexts/Notifications';
 
-const TerraformContext = React.createContext<typeof Terraform>(
-  {} as typeof Terraform,
-);
-
-interface Props {
-  api: typeof Terraform;
-  children?: any;
-}
-
-export function TerraformProvider({ api, children }: Props) {
-  return (
-    <TerraformContext.Provider value={api}>
-      {children}
-    </TerraformContext.Provider>
-  );
-}
-
 function useTerraform() {
-  return React.useContext(TerraformContext);
+  const { terraform } = useEnterpriseClient();
+  return terraform;
 }
 
 const TERRAFORM_KEY = 'terraform';
