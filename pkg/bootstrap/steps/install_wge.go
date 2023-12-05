@@ -39,6 +39,7 @@ const (
 )
 
 var Components = []string{"cluster-controller-manager",
+	"gitopssets-controller-manager",
 	"weave-gitops-enterprise-mccp-cluster-bootstrap-controller",
 	"weave-gitops-enterprise-mccp-cluster-service"}
 
@@ -47,9 +48,10 @@ func NewInstallWGEStep() BootstrapStep {
 	inputs := []StepInput{}
 
 	return BootstrapStep{
-		Name:  "Install Weave GitOps Enterprise",
-		Input: inputs,
-		Step:  installWge,
+		Name:   "Install Weave GitOps Enterprise",
+		Input:  inputs,
+		Step:   installWge,
+		Verify: verifyComponents,
 	}
 }
 
@@ -115,16 +117,6 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 		Name:      wgeHelmReleaseFileName,
 		Content:   wgeHelmRelease,
 		CommitMsg: wgeHelmReleaseCommitMsg,
-	}
-
-	if !c.SkipComponentCheck {
-		// Wait for the components to be healthy
-
-		c.Logger.Waitingf("waiting for components to be healthy")
-		err = reportComponentsHealth(c, Components, WGEDefaultNamespace, 5*time.Minute)
-		if err != nil {
-			return []StepOutput{}, err
-		}
 	}
 
 	return []StepOutput{
@@ -250,6 +242,18 @@ func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string
 	}
 
 	return utils.CreateHelmReleaseYamlString(wgeHelmRelease)
+}
+
+//verifycomponents func(input []StepInput, c *Config) error
+// which use reportComponentsHealth func
+
+func verifyComponents(input []StepInput, c *Config) error {
+	c.Logger.Waitingf("waiting for components to be healthy")
+	err := reportComponentsHealth(c, Components, WGEDefaultNamespace, 5*time.Minute)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func reportComponentsHealth(c *Config, componentNames []string, namespace string, timeout time.Duration) error {

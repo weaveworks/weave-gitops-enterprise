@@ -13,10 +13,11 @@ import (
 // It is abstracted to have a generic way to handle them, so we could achieve easier
 // extensibility, consistency and maintainability.
 type BootstrapStep struct {
-	Name  string
-	Input []StepInput
-	Step  func(input []StepInput, c *Config) ([]StepOutput, error)
-	Stdin io.ReadCloser
+	Name   string
+	Input  []StepInput
+	Step   func(input []StepInput, c *Config) ([]StepOutput, error)
+	Verify func(input []StepInput, c *Config) error
+	Stdin  io.ReadCloser
 }
 
 // StepInput represents an input a step requires to execute it. for example user needs to introduce a string or a password.
@@ -76,6 +77,14 @@ func (s BootstrapStep) Execute(c *Config) ([]StepOutput, error) {
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("cannot process output '%s': %v", s.Name, err)
 	}
+
+	//verify the result of the step if the function is defined in the step
+	if s.Verify != nil {
+		if err := s.Verify(inputValues, c); err != nil {
+			return []StepOutput{}, fmt.Errorf("cannot verify '%s': %v", s.Name, err)
+		}
+	}
+
 	return outputs, nil
 }
 
