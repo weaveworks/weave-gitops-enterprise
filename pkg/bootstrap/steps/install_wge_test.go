@@ -122,7 +122,6 @@ func TestInstallWge_Execute(t *testing.T) {
 					Path:   "/",
 					Scheme: "https",
 				},
-				SkipComponentCheck: true,
 			}, fluxSystemGitRepository(), fluxSystemKustomization()),
 			wantOutput: []StepOutput{
 				{
@@ -149,6 +148,8 @@ func TestInstallWge_Execute(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			step := NewInstallWGEStep()
+			// skip verify step
+			step.Verify = nil
 			gotOutputs, err := step.Execute(&tt.config)
 			if tt.wantErr != "" {
 				if msg := err.Error(); msg != tt.wantErr {
