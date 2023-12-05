@@ -1,4 +1,3 @@
-
 import { MuiThemeProvider } from '@material-ui/core';
 import { act, render, RenderResult, screen } from '@testing-library/react';
 import {
@@ -12,8 +11,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import Applications from '../';
-import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
-import { GitAuthProvider } from '../../../contexts/GitAuth';
+import { EnterpriseClientProvider } from '../../../contexts/API';
 import NotificationsProvider from '../../../contexts/Notifications/Provider';
 import RequestContextProvider from '../../../contexts/Request';
 import { muiTheme } from '../../../muiTheme';
@@ -50,11 +48,11 @@ describe('Applications index test', () => {
       [
         EnterpriseClientProvider,
         {
-          api: new EnterpriseClientMock(),
+          enterprise: new EnterpriseClientMock(),
         },
       ],
       [CoreClientContextProvider, { api }],
-      [GitAuthProvider, { api: appsApi }],
+      [EnterpriseClientProvider, { gitAuth: appsApi }],
       [MemoryRouter],
       [NotificationsProvider],
     ]);

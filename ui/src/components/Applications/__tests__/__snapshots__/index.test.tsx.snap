@@ -1445,9 +1445,6 @@ exports[`Applications index test snapshots success 1`] = `
                     class="MuiTouchRipple-root"
                   />
                 </button>
-                <div>
-                  Git Repos not found
-                </div>
               </div>
               <div
                 class="c23"

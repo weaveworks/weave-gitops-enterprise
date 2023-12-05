@@ -9,7 +9,8 @@ import {
 import * as React from 'react';
 import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
-import { GitAuth, useParseRepoUrl } from '../../contexts/GitAuth';
+import { useEnterpriseClient } from '../../contexts/API';
+import { useParseRepoUrl } from '../../contexts/GitAuth';
 import { Select, SelectProps } from '../../utils/form';
 import { getGitRepos } from '../Clusters';
 import { getRepositoryUrl } from '../Templates/Form/utils';
@@ -51,7 +52,7 @@ export function RepoInputWithAuth({
   const { data, isLoading } = useListSources('', '', { retry: false });
   const gitRepos = getGitRepos(data?.result);
 
-  const { gitAuthClient } = React.useContext(GitAuth);
+  const { gitAuth } = useEnterpriseClient();
 
   const [valueForSelect, setValueForSelect] = React.useState<string>('');
 
@@ -62,7 +63,7 @@ export function RepoInputWithAuth({
     setValueForSelect(value);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gitAuthClient, value]);
+  }, [gitAuth, value]);
 
   React.useEffect(() => {
     if (!res) {

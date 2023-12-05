@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import moment from 'moment';
 import SecretsList from '..';
-import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   defaultContexts,
   SecretsClientMock,
@@ -76,7 +76,7 @@ describe('ListSecrets', () => {
     api = new SecretsClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientProvider, { api }],
+      [EnterpriseClientContext.Provider, { value: { clustersService: api } }],
     ]);
     api.ListSecretsReturns = ListExternalSecretsResponse;
   });
@@ -121,7 +121,6 @@ describe('ListSecrets', () => {
     );
     filterTable.testSorthTableByColumn('Name', sortRowsBySecretName);
 
-
     const reverseSortRowsBySecretName = mappedSecrets(
       secrests.sort((a, b) =>
         b.externalSecretName.localeCompare(a.externalSecretName),
@@ -129,7 +128,6 @@ describe('ListSecrets', () => {
     );
     filterTable.testSorthTableByColumn('Name', reverseSortRowsBySecretName);
 
-    
     const sortRowsByAge = mappedSecrets(
       secrests.sort((a, b) => {
         const t1 = new Date(a.timestamp).getTime();
