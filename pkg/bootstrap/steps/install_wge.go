@@ -11,6 +11,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/cli-utils/pkg/object"
 )
 
 const (
@@ -248,4 +250,29 @@ func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string
 	}
 
 	return utils.CreateHelmReleaseYamlString(wgeHelmRelease)
+}
+
+func reportComponentsHealth(c *Config, componentNames []string, namespace string, timeout time.Duration) error {
+	// Initialize the status checker
+	checker, err := utils.NewStatusChecker(c.KubernetesClient, 5*time.Second, timeout, c.Logger)
+	if err != nil {
+		return err
+	}
+
+	// Construct a list of resources to check
+	var identifiers []object.ObjMetadata
+	for _, name := range componentNames {
+		identifiers = append(identifiers, object.ObjMetadata{
+			Namespace: namespace,
+			Name:      name,
+			GroupKind: schema.GroupKind{Group: "apps", Kind: "Deployment"},
+		})
+	}
+
+	// Perform the health check
+	if err := checker.Assess(identifiers...); err != nil {
+		return err
+	}
+
+	return nil
 }
