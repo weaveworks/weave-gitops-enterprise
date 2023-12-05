@@ -63,10 +63,8 @@ func TestStatusCheckerIt(t *testing.T) {
 					Namespace: "flux-system",
 					GroupKind: schema.GroupKind{Group: "apps", Kind: "Deployment"},
 				},
-				// Add more resources as needed
 			},
 		},
-		// ... other test cases ...
 	}
 
 	for _, tc := range testCases {

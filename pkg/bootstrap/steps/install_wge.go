@@ -155,7 +155,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 	if !c.SkipComponentCheck {
 		// Wait for the components to be healthy
 
-		c.Logger.Actionf("waiting for components to be healthy")
+		c.Logger.Waitingf("waiting for components to be healthy")
 		err = reportComponentsHealth(c, Components, WGEDefaultNamespace, 5*time.Minute)
 		if err != nil {
 			return []StepOutput{}, err
