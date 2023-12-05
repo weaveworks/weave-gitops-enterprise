@@ -122,7 +122,6 @@ func TestBootstrapCmd(t *testing.T) {
 				"--version=0.35.0",
 				privateKeyFlag, privateKeyPasswordFlag,
 				"--password=admin123",
-				"--domain-type=localhost",
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
 				"--client-id=weave-gitops-enterprise",
 				oidcClientSecretFlag,
@@ -144,7 +143,6 @@ func TestBootstrapCmd(t *testing.T) {
 				"--version=0.35.0",
 				privateKeyFlag, privateKeyPasswordFlag,
 				"--password=admin123",
-				"--domain-type=localhost", "--domain=localhost",
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
 				"--client-id=weave-gitops-enterprise",
 				gitUsernameFlag, gitPasswordFlag, gitBranchFlag, gitRepoPathFlag,
@@ -191,7 +189,7 @@ func TestBootstrapCmd(t *testing.T) {
 }
 
 func bootstrapFluxSsh(g *WithT, kubeconfigFlag string) {
-	var runner runner.CLIRunner
+	var cliRunner runner.CLIRunner
 
 	repoUrl := os.Getenv("GIT_REPO_URL_SSH")
 	g.Expect(repoUrl).NotTo(BeEmpty())
@@ -206,7 +204,7 @@ func bootstrapFluxSsh(g *WithT, kubeconfigFlag string) {
 	args := []string{"bootstrap", "git", kubeconfigFlag, "-s", fmt.Sprintf("--url=%s", repoUrl), fmt.Sprintf("--password=%s", privateKeyPassword), fmt.Sprintf("--private-key-file=%s", privateKeyFile), "--path=clusters/management"}
 	fmt.Println(args)
 
-	s, err := runner.Run("flux", args...)
+	s, err := cliRunner.Run("flux", args...)
 	fmt.Println(string(s))
 	g.Expect(err).To(BeNil())
 

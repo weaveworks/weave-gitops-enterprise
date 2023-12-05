@@ -70,7 +70,6 @@ export const RolesTab = ({
                       content={
                         <YamlView
                           yaml={manifest}
-                          type={kind}
                           header={createYamlCommand(kind, name, namespace)}
                         />
                       }

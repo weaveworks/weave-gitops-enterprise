@@ -111,7 +111,6 @@ const SecretDetailsTabs = ({
       <RouterTab name="Yaml" path={`${path}/yaml`}>
         <YamlView
           yaml={secretObj.yaml}
-          type="ExternalSecret"
           header={createYamlCommand(
             'ExternalSecret',
             externalSecretName,
