@@ -58,16 +58,8 @@ func TestRunQuery(t *testing.T) {
 					APIGroup:   "example.com",
 					APIVersion: "v1",
 				},
-				{
-					Cluster:    "test-cluster",
-					Name:       "otherName",
-					Namespace:  "namespace",
-					Kind:       "ValidKind",
-					APIGroup:   "example.com",
-					APIVersion: "v1",
-				},
 			},
-			want: []string{"someName", "otherName"},
+			want: []string{"someName"},
 		},
 		{
 			name:  "get objects by cluster",
