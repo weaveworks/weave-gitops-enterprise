@@ -21,6 +21,15 @@ const (
 
 // NewInstallTFControllerStep creates the terraform installation step
 func NewInstallTFControllerStep(config Config) BootstrapStep {
+	if slices.Contains(config.ComponentsExtra.Existing, tfController) {
+		config.Logger.Warningf("controller: %s is already installed", tfController)
+		return BootstrapStep{
+			Name:  "existing tf controller installation",
+			Input: []StepInput{},
+			Step:  doNothingStep,
+		}
+	}
+
 	return BootstrapStep{
 		Name: "install Terraform Controller",
 		Step: installTerraform,
@@ -29,10 +38,6 @@ func NewInstallTFControllerStep(config Config) BootstrapStep {
 
 // installTerraform start installing terraform controller helm release
 func installTerraform(input []StepInput, c *Config) ([]StepOutput, error) {
-	if slices.Contains(c.ComponentsExtra.Existing, tfController) {
-		c.Logger.Warningf("terraform controller is already installed!")
-		return []StepOutput{}, nil
-	}
 	c.Logger.Actionf(tfInstallInfoMsg)
 
 	bodyBytes, err := doBasicAuthGetRequest(tfControllerUrl, "", "")

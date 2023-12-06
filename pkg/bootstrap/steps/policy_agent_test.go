@@ -49,7 +49,8 @@ func TestInstallPolicyAgent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			config := makeTestConfig(t, tt.config)
-			out, err := installPolicyAgent(tt.input, &config)
+			step := NewInstallPolicyAgentStep(config)
+			out, err := step.Execute(&config)
 			if err != nil {
 				if tt.err {
 					return

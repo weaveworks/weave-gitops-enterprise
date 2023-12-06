@@ -106,3 +106,7 @@ func installExtraComponents(input []StepInput, c *Config) ([]StepOutput, error) 
 
 	return []StepOutput{}, nil
 }
+
+func doNothingStep(input []StepInput, c *Config) ([]StepOutput, error) {
+	return []StepOutput{}, nil
+}

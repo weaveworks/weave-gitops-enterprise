@@ -114,8 +114,8 @@ func TestInstallTerraform(t *testing.T) {
 			}
 
 			config := makeTestConfig(t, tt.config, &wgeObject)
-
-			out, err := installTerraform(tt.input, &config)
+			step := NewInstallTFControllerStep(config)
+			out, err := step.Execute(&config)
 			if err != nil {
 				if tt.err {
 					return
