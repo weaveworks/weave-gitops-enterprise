@@ -19,7 +19,7 @@ const (
 	tfFileName      = "tf-controller.yaml"
 )
 
-// NewInstallTFControllerStep ask for continue installing OIDC
+// NewInstallTFControllerStep creates the terraform installation step
 func NewInstallTFControllerStep(config Config) BootstrapStep {
 	return BootstrapStep{
 		Name: "install Terraform Controller",
