@@ -1,24 +1,22 @@
 import { useContext } from 'react';
 import { useQuery } from 'react-query';
-import {
-  GetConfigResponse,
-} from '../cluster-services/cluster_services.pb';
-import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
-
+import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
+import { useEnterpriseClient } from '../contexts/API';
 import useNotifications from '../contexts/Notifications';
 import { formatError } from '../utils/formatters';
 
 const useConfig = () => {
   const { setNotifications } = useNotifications();
 
-  const { api } = useContext(EnterpriseClientContext);
+  const { clustersService } = useEnterpriseClient();
 
   const onError = (error: Error) => setNotifications(formatError(error));
 
-  return useQuery<GetConfigResponse, Error>('config',
-    () => api.GetConfig({}),
+  return useQuery<GetConfigResponse, Error>(
+    'config',
+    () => clustersService.GetConfig({}),
     {
-        onError,
+      onError,
     },
   );
 };
