@@ -65,7 +65,6 @@ func makeTestConfig(t *testing.T, config Config, objects ...runtime.Object) Conf
 		PromptedForDiscoveryURL: config.PromptedForDiscoveryURL,
 		Silent:                  config.Silent,
 		ComponentsExtra:         config.ComponentsExtra,
-		ExistingComponents:      config.ExistingComponents,
 	}
 }
 

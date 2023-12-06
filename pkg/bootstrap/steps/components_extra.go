@@ -2,6 +2,10 @@ package steps
 
 import (
 	"fmt"
+
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
+	"golang.org/x/exp/slices"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -11,18 +15,43 @@ const (
 const (
 	policyAgentController = "policy-agent"
 	tfController          = "tf-controller"
-	capiController        = "capi"
 )
 
 var ComponentsExtra = []string{
 	"",
 	policyAgentController,
 	tfController,
-	capiController,
 }
 
-// NewInstallExtraComponents start installing extra Components
-func NewInstallExtraComponents(config Config) BootstrapStep {
+// ComponentsExtraConfig contains the configuration for the extra components
+type ComponentsExtraConfig struct {
+	Requested []string
+	Existing  []string
+}
+
+// NewInstallExtraComponentsConfig handles the extra components configurations
+func NewInstallExtraComponentsConfig(components []string, client client.Client) (ComponentsExtraConfig, error) {
+	// validate requested components against pre-defined ComponentsExtra
+	config := ComponentsExtraConfig{
+		Requested: components,
+	}
+	for _, component := range config.Requested {
+		if !slices.Contains(ComponentsExtra, component) {
+			return ComponentsExtraConfig{}, fmt.Errorf("unsupported component selected: %s", component)
+		}
+	}
+	// check existing components
+	for _, component := range ComponentsExtra {
+		version, err := utils.GetHelmReleaseProperty(client, component, WGEDefaultNamespace, utils.HelmVersionProperty)
+		if err == nil && version != "" {
+			config.Existing = append(config.Existing, component)
+		}
+	}
+	return config, nil
+}
+
+// NewInstallExtraComponents contains the extra components installation step
+func NewInstallExtraComponentsStep(config ComponentsExtraConfig, silent bool) BootstrapStep {
 	inputs := []StepInput{}
 
 	installExtraComponentsStep := StepInput{
@@ -33,7 +62,7 @@ func NewInstallExtraComponents(config Config) BootstrapStep {
 		DefaultValue: "",
 	}
 
-	if len(config.ComponentsExtra) < 1 && !config.Silent {
+	if len(config.Requested) < 1 && !silent {
 		inputs = append(inputs, installExtraComponentsStep)
 	}
 
@@ -49,11 +78,11 @@ func installExtraComponents(input []StepInput, c *Config) ([]StepOutput, error) 
 		if param.Name == inComponentsExtra {
 			componentsExtra, ok := param.Value.(string)
 			if ok {
-				c.ComponentsExtra = append(c.ComponentsExtra, componentsExtra)
+				c.ComponentsExtra.Requested = append(c.ComponentsExtra.Requested, componentsExtra)
 			}
 		}
 	}
-	for _, controller := range c.ComponentsExtra {
+	for _, controller := range c.ComponentsExtra.Requested {
 		switch controller {
 		case policyAgentController:
 			agentStep := NewInstallPolicyAgentStep(*c)
@@ -67,15 +96,11 @@ func installExtraComponents(input []StepInput, c *Config) ([]StepOutput, error) 
 			if err != nil {
 				return []StepOutput{}, fmt.Errorf("can't install tf controller: %v", err)
 			}
-		case capiController:
-			capiStep := NewInstallCapiControllerStep(*c)
-			_, err := capiStep.Execute(c)
-			if err != nil {
-				return []StepOutput{}, fmt.Errorf("can't install capi controller: %v", err)
-			}
-		default:
-			c.Logger.Warningf("unsupported or empty controller selected: %s", controller)
+		case "":
+			c.Logger.Successf("selected none extra components")
 			return []StepOutput{}, nil
+		default:
+			return []StepOutput{}, fmt.Errorf("unsupported component selected: %s", controller)
 		}
 	}
 

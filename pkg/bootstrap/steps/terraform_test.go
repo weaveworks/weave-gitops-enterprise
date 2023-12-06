@@ -97,9 +97,11 @@ func TestInstallTerraform(t *testing.T) {
 			name:   "do not install if tf controller exists",
 			output: []StepOutput{},
 			config: Config{
-				ExistingComponents: []string{tfController},
-				Silent:             true,
-				WGEVersion:         "1.0.0",
+				ComponentsExtra: ComponentsExtraConfig{
+					Existing: []string{tfController},
+				},
+				Silent:     true,
+				WGEVersion: "1.0.0",
 			},
 			err: false,
 		},

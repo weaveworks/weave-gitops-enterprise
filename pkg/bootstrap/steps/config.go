@@ -190,9 +190,8 @@ type Config struct {
 	RedirectURL             string
 	PromptedForDiscoveryURL bool
 
-	BootstrapFlux      bool
-	ComponentsExtra    []string
-	ExistingComponents []string
+	BootstrapFlux   bool
+	ComponentsExtra ComponentsExtraConfig
 }
 
 // Builds creates a valid config so boostrap could be executed. It uses values introduced
@@ -224,6 +223,11 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		return Config{}, fmt.Errorf("error creating git repository configuration: %v", err)
 	}
 
+	componentsExtraConfig, err := NewInstallExtraComponentsConfig(cb.componentsExtra, kubeHttp.Client)
+	if err != nil {
+		return Config{}, fmt.Errorf("cannot create components extra configuration: %v", err)
+	}
+
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
 		KubernetesClient:        kubeHttp.Client,
@@ -247,7 +251,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		ClientID:                cb.clientID,
 		ClientSecret:            cb.clientSecret,
 		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
-		ComponentsExtra:         cb.componentsExtra,
+		ComponentsExtra:         componentsExtraConfig,
 		BootstrapFlux:           cb.bootstrapFlux,
 	}, nil
 

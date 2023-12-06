@@ -187,7 +187,10 @@ func TestInstallPolicyAgent(t *testing.T) {
 			},
 			output: []StepOutput{},
 			config: Config{
-				ExistingComponents: []string{policyAgentController},
+				ComponentsExtra: ComponentsExtraConfig{
+					Requested: []string{policyAgentController},
+					Existing:  []string{policyAgentController},
+				},
 			},
 			err: false,
 		},
@@ -247,7 +250,10 @@ func TestNewInstallPolicyAgentStep(t *testing.T) {
 				Input: []StepInput{},
 			},
 			config: Config{
-				ExistingComponents: []string{policyAgentController},
+				ComponentsExtra: ComponentsExtraConfig{
+					Existing:  []string{policyAgentController},
+					Requested: []string{policyAgentController},
+				},
 			},
 		},
 	}

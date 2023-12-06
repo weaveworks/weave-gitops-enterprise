@@ -41,7 +41,7 @@ var enableAdmission = StepInput{
 func NewInstallPolicyAgentStep(config Config) BootstrapStep {
 	config.Logger.Warningf("please note that the Policy Agent requires cert-manager to be installed!")
 	inputs := []StepInput{}
-	if !slices.Contains(config.ExistingComponents, policyAgentController) {
+	if !slices.Contains(config.ComponentsExtra.Existing, policyAgentController) {
 		inputs = append(inputs, enableAdmission)
 	}
 
@@ -55,7 +55,7 @@ func NewInstallPolicyAgentStep(config Config) BootstrapStep {
 // installPolicyAgent start installing policy agent helm chart
 func installPolicyAgent(input []StepInput, c *Config) ([]StepOutput, error) {
 	enableAdmission := false
-	if slices.Contains(c.ExistingComponents, policyAgentController) {
+	if slices.Contains(c.ComponentsExtra.Existing, policyAgentController) {
 		c.Logger.Warningf("policy agent is already installed!")
 		return []StepOutput{}, nil
 	}

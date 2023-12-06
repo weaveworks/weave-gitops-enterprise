@@ -33,10 +33,11 @@ func TestNewInstallExtraComponents(t *testing.T) {
 		{
 			name: "return bootstrap step with empty inputs in case not provided by user",
 			config: Config{
-				ComponentsExtra: []string{
-					policyAgentController,
-					tfController,
-					capiController,
+				ComponentsExtra: ComponentsExtraConfig{
+					Requested: []string{
+						policyAgentController,
+						tfController,
+					},
 				},
 			},
 			want: BootstrapStep{
@@ -49,7 +50,11 @@ func TestNewInstallExtraComponents(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			config := makeTestConfig(t, tt.config)
-			step := NewInstallExtraComponents(config)
+			stepConfig, err := NewInstallExtraComponentsConfig(tt.config.ComponentsExtra.Requested, config.KubernetesClient)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			step := NewInstallExtraComponentsStep(stepConfig, config.Silent)
 
 			assert.Equal(t, tt.want.Name, step.Name)
 			if diff := cmp.Diff(tt.want.Input, step.Input); diff != "" {
@@ -93,7 +98,7 @@ func TestInstallExtraControllers(t *testing.T) {
 			},
 		},
 		{
-			name:   "test install controllers with policy agent and capi",
+			name:   "test install controllers with policy agent and terraform",
 			config: Config{},
 			stepInput: []StepInput{
 				{
@@ -102,7 +107,7 @@ func TestInstallExtraControllers(t *testing.T) {
 				},
 				{
 					Name:  inComponentsExtra,
-					Value: capiController,
+					Value: tfController,
 				},
 			},
 		},
