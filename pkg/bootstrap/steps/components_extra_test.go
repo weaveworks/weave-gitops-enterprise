@@ -46,6 +46,17 @@ func TestNewInstallExtraComponents(t *testing.T) {
 				Step:  installExtraComponents,
 			},
 		},
+		{
+			name: "return empty step in case of silent mode",
+			config: Config{
+				Silent: true,
+			},
+			want: BootstrapStep{
+				Name:  "install extra components",
+				Input: []StepInput{},
+				Step:  installExtraComponents,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
