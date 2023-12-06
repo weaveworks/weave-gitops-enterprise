@@ -19,18 +19,8 @@ import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { EnabledComponent } from '../../api/query/query.pb';
-import Azure from '../../assets/img/Azure.svg';
-import Docker from '../../assets/img/docker.svg';
-import EKS from '../../assets/img/EKS.svg';
-import GKE from '../../assets/img/GKE.svg';
-import Kubernetes from '../../assets/img/Kubernetes.svg';
-import LiquidMetal from '../../assets/img/LiquidMetal.svg';
-import Openshift from '../../assets/img/Openshift.svg';
-import Rancher from '../../assets/img/Rancher.svg';
-import Vsphere from '../../assets/img/Vsphere.svg';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
 import { useListConfigContext } from '../../contexts/ListConfig';
@@ -39,7 +29,6 @@ import useNotifications, {
 } from '../../contexts/Notifications';
 import useClusters from '../../hooks/clusters';
 import { useIsEnabledForComponent } from '../../hooks/query';
-import AppRoutes from '../../routes';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
 import { computeMessage } from '../../utils/conditions';
@@ -56,37 +45,13 @@ import {
   useGetInitialGitRepo,
 } from '../Templates/Form/utils';
 import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
+import { ClusterIcon } from './ClusterIcon';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import OpenedPullRequest from './OpenedPullRequest';
 
-const IconSpan = styled.span`
-  display: flex;
-  img {
-    height: 32px;
-    width: 32px;
-  }
-`;
 
-export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
-  cluster,
-}) => {
-  const clusterKind =
-    cluster.annotations?.['weave.works/cluster-kind'] ||
-    cluster.labels?.['clusters.weave.works/origin-type'] ||
-    cluster.capiCluster?.infrastructureRef?.kind;
-  return (
-    <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
-      <IconSpan>
-        <img
-          src={getClusterTypeIcon(clusterKind)}
-          alt={clusterKind || 'kubernetes'}
-        />
-      </IconSpan>
-    </Tooltip>
-  );
-};
 
 const ClusterRowCheckbox = ({
   name,
@@ -105,33 +70,6 @@ const ClusterRowCheckbox = ({
   />
 );
 
-const getClusterTypeIcon = (clusterType?: string) => {
-  if (clusterType === 'DockerCluster') {
-    return Docker;
-  } else if (
-    clusterType === 'AWSCluster' ||
-    clusterType === 'AWSManagedCluster'
-  ) {
-    return EKS;
-  } else if (
-    clusterType === 'AzureCluster' ||
-    clusterType === 'AzureManagedCluster'||
-    clusterType === 'aks'
-  ) {
-    return Azure;
-  } else if (clusterType === 'GCPCluster') {
-    return GKE;
-  } else if (clusterType === 'VSphereCluster') {
-    return Vsphere;
-  } else if (clusterType === 'MicrovmCluster') {
-    return LiquidMetal;
-  } else if (clusterType === 'Rancher') {
-    return Rancher;
-  } else if (clusterType === 'Openshift') {
-    return Openshift;
-  }
-  return Kubernetes;
-};
 
 interface FormData {
   repo: GitRepository | null;
