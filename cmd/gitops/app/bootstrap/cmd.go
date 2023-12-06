@@ -40,7 +40,7 @@ gitops bootstrap --version=<version> --password=<admin-password> --discovery-url
 gitops bootstrap --version=<version> --password=<admin-password> --discovery-url=<oidc-discovery-url> --client-id=<oidc-client-id> --private-key-path=<private-key-path> --private-key-password=<private-key-password> --branch=<git-branch> --repo-path=<path-in-repo-for-management-cluster> --repo-url=ssh://<repo-url> --client-secret=<oidc-secret> -s
 
 # Start WGE installation with more than one extra controller 
-gitops bootstrap --components-extra="policy-agent,capi,tf-controller"
+gitops bootstrap --components-extra="policy-agent,tf-controller"
 `
 )
 
@@ -88,7 +88,7 @@ func Command(opts *config.Options) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "version of Weave GitOps Enterprise (should be from the latest 3 versions)")
-	cmd.Flags().StringSliceVar(&flags.componentsExtra, "components-extra", nil, "extra components to be installed from (policy-agent, tf-controller, capi)")
+	cmd.Flags().StringSliceVar(&flags.componentsExtra, "components-extra", nil, "extra components to be installed from (policy-agent, tf-controller)")
 	cmd.PersistentFlags().BoolVarP(&flags.silent, "silent", "s", false, "chose the defaults with current provided information without asking any questions")
 	cmd.PersistentFlags().BoolVarP(&flags.bootstrapFlux, "bootstrap-flux", "", false, "chose whether you want to install flux in the generic way in case no flux installation detected")
 	cmd.PersistentFlags().StringVarP(&flags.gitUsername, "git-username", "", "", "git username used in https authentication type")

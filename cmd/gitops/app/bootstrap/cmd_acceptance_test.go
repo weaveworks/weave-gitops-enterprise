@@ -148,7 +148,7 @@ func TestBootstrapCmd(t *testing.T) {
 				gitUsernameFlag, gitPasswordFlag, gitBranchFlag, gitRepoPathFlag,
 				repoHTTPSURLFlag,
 				oidcClientSecretFlag, "-s",
-				"--components-extra=\"policy-agent,capi,tf-controller\"",
+				"--components-extra=\"policy-agent,tf-controller\"",
 				"--bootstrap-flux",
 			},
 			setup: func(t *testing.T) {
