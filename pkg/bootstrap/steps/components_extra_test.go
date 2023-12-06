@@ -75,12 +75,18 @@ func TestNewInstallExtraComponents(t *testing.T) {
 	}
 }
 
-func TestInstallExtraControllers(t *testing.T) {
+func TestInstallExtraComponents(t *testing.T) {
 	tests := []struct {
 		name      string
 		config    Config
 		stepInput []StepInput
 	}{
+		{
+			name: "test skip installing nothing in silent mode",
+			config: Config{
+				Silent: true,
+			},
+		},
 		{
 			name: "test skip installing controllers with defaults (\"\")",
 			stepInput: []StepInput{
