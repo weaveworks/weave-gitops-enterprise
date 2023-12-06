@@ -1,7 +1,6 @@
 package steps
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -73,7 +72,7 @@ func TestInstallTerraform(t *testing.T) {
 					Type: typeFile,
 					Value: fileContent{
 						Name:      tfFileName,
-						Content:   getTerrafromControllerTestFile(),
+						Content:   getControllerHelmReleaseTestFile(tfControllerUrl),
 						CommitMsg: tfCommitMsg,
 					},
 				},
@@ -142,13 +141,4 @@ func TestInstallTerraform(t *testing.T) {
 		})
 	}
 
-}
-
-func getTerrafromControllerTestFile() string {
-	tfHelmFile, err := doBasicAuthGetRequest(tfControllerUrl, "", "")
-	if err != nil {
-		fmt.Printf("error getting Terraform Controller HelmRelease: %v", err)
-		return ""
-	}
-	return string(tfHelmFile)
 }

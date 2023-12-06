@@ -44,7 +44,6 @@ const (
 	inGitPassword        = "gitPassowrd"
 	inBootstrapFlux      = "bootstrapFlux"
 	inComponentsExtra    = "componentsExtra"
-	inEnableAdmission    = "enableAdmission"
 )
 
 // input/output types
