@@ -154,7 +154,7 @@ func defaultInputStep(inputs []StepInput, c *Config, stdin io.ReadCloser) ([]Ste
 				if ok {
 					input.Value = defaultVal
 				} else {
-					input.Value = confirmYes
+					return []StepInput{}, fmt.Errorf("invalid default value: %v", input.DefaultValue)
 				}
 			}
 
