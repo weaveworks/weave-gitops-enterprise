@@ -14,21 +14,22 @@ const (
 	capiController        = "capi"
 )
 
+var ExtraComponents = []string{
+	"",
+	policyAgentController,
+	tfController,
+	capiController,
+}
+
 // NewInstallExtraComponents start installing extra Components
 func NewInstallExtraComponents(config Config) BootstrapStep {
 	inputs := []StepInput{}
-	controllersValues := []string{
-		"",
-		policyAgentController,
-		tfController,
-		capiController,
-	}
 
 	installExtraComponentsStep := StepInput{
 		Name:         inExtraComponents,
 		Type:         multiSelectionChoice,
 		Msg:          extraComponentsMsg,
-		Values:       controllersValues,
+		Values:       ExtraComponents,
 		DefaultValue: "",
 	}
 

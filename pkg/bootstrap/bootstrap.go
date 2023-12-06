@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/steps"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 )
 
 // Bootstrap initiated by the command runs the WGE bootstrap workflow
@@ -16,6 +17,13 @@ func Bootstrap(config steps.Config) error {
 
 	repositoryConfig := steps.NewGitRepositoryConfigStep(config.GitRepository)
 
+	// add existing controllers to skip installing them
+	for _, component := range steps.ExtraComponents {
+		version, err := utils.GetHelmReleaseProperty(config.KubernetesClient, component, steps.WGEDefaultNamespace, utils.HelmVersionProperty)
+		if err == nil && version != "" {
+			config.ExistingComponents = append(config.ExistingComponents, component)
+		}
+	}
 	// TODO have a single workflow source of truth and documented in https://docs.gitops.weave.works/docs/0.33.0/enterprise/getting-started/install-enterprise/
 	var steps = []steps.BootstrapStep{
 		steps.VerifyFluxInstallation,

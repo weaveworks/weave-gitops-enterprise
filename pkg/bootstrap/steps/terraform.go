@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -28,6 +29,10 @@ func NewInstallTFControllerStep(config Config) BootstrapStep {
 
 // installTerraform start installing terraform controller helm release
 func installTerraform(input []StepInput, c *Config) ([]StepOutput, error) {
+	if slices.Contains(c.ExistingComponents, tfController) {
+		c.Logger.Warningf("terraform controller is already installed!")
+		return []StepOutput{}, nil
+	}
 	c.Logger.Actionf(tfInstallInfoMsg)
 
 	bodyBytes, err := doBasicAuthGetRequest(tfControllerUrl, "", "")

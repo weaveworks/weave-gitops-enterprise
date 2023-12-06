@@ -62,6 +62,7 @@ func TestInstallTerraform(t *testing.T) {
 		name   string
 		input  []StepInput
 		output []StepOutput
+		config Config
 		err    bool
 	}{
 		{
@@ -86,22 +87,32 @@ func TestInstallTerraform(t *testing.T) {
 					},
 				},
 			},
+			config: Config{
+				Silent:     true,
+				WGEVersion: "1.0.0",
+			},
+			err: false,
+		},
+		{
+			name:   "do not install if tf controller exists",
+			output: []StepOutput{},
+			config: Config{
+				ExistingComponents: []string{tfController},
+				Silent:             true,
+				WGEVersion:         "1.0.0",
+			},
 			err: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			testConfig := Config{
-				Silent:     true,
-				WGEVersion: "1.0.0",
-			}
 			wgeObject, err := createWGEHelmReleaseFakeObject("1.0.0")
 			if err != nil {
 				t.Fatalf("error create wge object: %v", err)
 			}
 
-			config := makeTestConfig(t, testConfig, &wgeObject)
+			config := makeTestConfig(t, tt.config, &wgeObject)
 
 			out, err := installTerraform(tt.input, &config)
 			if err != nil {

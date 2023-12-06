@@ -106,6 +106,7 @@ func TestInstallPolicyAgent(t *testing.T) {
 		name   string
 		input  []StepInput
 		output []StepOutput
+		config Config
 		err    bool
 	}{
 		{
@@ -138,7 +139,8 @@ func TestInstallPolicyAgent(t *testing.T) {
 					},
 				},
 			},
-			err: false,
+			config: Config{},
+			err:    false,
 		},
 		{
 			name: "install policy agent controller with admission enabled",
@@ -170,15 +172,30 @@ func TestInstallPolicyAgent(t *testing.T) {
 					},
 				},
 			},
+			config: Config{},
+			err:    false,
+		},
+		{
+			name: "do not install policy agent controller if it's already installed",
+			input: []StepInput{
+				{
+					Name:  inEnableAdmission,
+					Type:  confirmInput,
+					Msg:   admissionMsg,
+					Value: confirmYes,
+				},
+			},
+			output: []StepOutput{},
+			config: Config{
+				ExistingComponents: []string{policyAgentController},
+			},
 			err: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			testConfig := Config{}
-
-			config := makeTestConfig(t, testConfig)
+			config := makeTestConfig(t, tt.config)
 			out, err := installPolicyAgent(tt.input, &config)
 			if err != nil {
 				if tt.err {
@@ -186,7 +203,6 @@ func TestInstallPolicyAgent(t *testing.T) {
 				}
 				t.Fatalf("error install policy-agent: %v", err)
 			}
-
 			for i, item := range out {
 				assert.Equal(t, item.Name, tt.output[i].Name, "wrong name")
 				assert.Equal(t, item.Type, tt.output[i].Type, "wrong type")
@@ -209,8 +225,9 @@ func TestInstallPolicyAgent(t *testing.T) {
 
 func TestNewInstallPolicyAgentStep(t *testing.T) {
 	tests := []struct {
-		name string
-		want BootstrapStep
+		name   string
+		config Config
+		want   BootstrapStep
 	}{
 
 		{
@@ -221,11 +238,22 @@ func TestNewInstallPolicyAgentStep(t *testing.T) {
 					enableAdmission,
 				},
 			},
+			config: Config{},
+		},
+		{
+			name: "return bootstrap with no input in case existing installation",
+			want: BootstrapStep{
+				Name:  "install Policy Agent",
+				Input: []StepInput{},
+			},
+			config: Config{
+				ExistingComponents: []string{policyAgentController},
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := makeTestConfig(t, Config{})
+			config := makeTestConfig(t, tt.config)
 			step := NewInstallPolicyAgentStep(config)
 
 			assert.Equal(t, tt.want.Name, step.Name)

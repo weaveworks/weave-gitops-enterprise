@@ -8,6 +8,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
+	"golang.org/x/exp/slices"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -21,7 +22,6 @@ const (
 const (
 	agentChartURL             = "https://weaveworks.github.io/policy-agent/"
 	agentHelmRepoName         = "policy-agent"
-	agentHelmReleaseName      = "policy-agent"
 	agentNamespace            = "policy-system"
 	agentHelmRepoFileName     = "policy-agent-helmrepo.yaml"
 	agentHelmReleaseFileName  = "policy-agent-helmrelease.yaml"
@@ -40,9 +40,14 @@ var enableAdmission = StepInput{
 // NewInstallPolicyAgentStep ask for continue installing OIDC
 func NewInstallPolicyAgentStep(config Config) BootstrapStep {
 	config.Logger.Warningf("please note that the Policy Agent requires cert-manager to be installed!")
+	inputs := []StepInput{}
+	if !slices.Contains(config.ExistingComponents, policyAgentController) {
+		inputs = append(inputs, enableAdmission)
+	}
+
 	return BootstrapStep{
 		Name:  "install Policy Agent",
-		Input: []StepInput{enableAdmission},
+		Input: inputs,
 		Step:  installPolicyAgent,
 	}
 }
@@ -50,6 +55,10 @@ func NewInstallPolicyAgentStep(config Config) BootstrapStep {
 // installPolicyAgent start installing policy agent helm chart
 func installPolicyAgent(input []StepInput, c *Config) ([]StepOutput, error) {
 	enableAdmission := false
+	if slices.Contains(c.ExistingComponents, policyAgentController) {
+		c.Logger.Warningf("policy agent is already installed!")
+		return []StepOutput{}, nil
+	}
 
 	for _, param := range input {
 		if param.Name == inEnableAdmission {
@@ -123,7 +132,7 @@ func installPolicyAgent(input []StepInput, c *Config) ([]StepOutput, error) {
 			APIVersion: helmv2.GroupVersion.Identifier(),
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name:      agentHelmReleaseName,
+			Name:      policyAgentController,
 			Namespace: WGEDefaultNamespace,
 		}, Spec: helmv2.HelmReleaseSpec{
 			Chart: helmv2.HelmChartTemplate{

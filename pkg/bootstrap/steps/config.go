@@ -190,8 +190,9 @@ type Config struct {
 	RedirectURL             string
 	PromptedForDiscoveryURL bool
 
-	BootstrapFlux   bool
-	ExtraComponents []string
+	BootstrapFlux      bool
+	ExtraComponents    []string
+	ExistingComponents []string
 }
 
 // Builds creates a valid config so boostrap could be executed. It uses values introduced

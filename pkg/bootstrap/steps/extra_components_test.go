@@ -20,15 +20,10 @@ func TestNewInstallExtraComponents(t *testing.T) {
 				Name: "install extra components",
 				Input: []StepInput{
 					{
-						Name: inExtraComponents,
-						Type: multiSelectionChoice,
-						Msg:  extraComponentsMsg,
-						Values: []string{
-							"",
-							policyAgentController,
-							tfController,
-							capiController,
-						},
+						Name:         inExtraComponents,
+						Type:         multiSelectionChoice,
+						Msg:          extraComponentsMsg,
+						Values:       ExtraComponents,
 						DefaultValue: "",
 					},
 				},
