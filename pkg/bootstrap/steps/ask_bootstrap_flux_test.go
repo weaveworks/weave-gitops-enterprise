@@ -51,6 +51,17 @@ func TestAskBootstrapFlux(t *testing.T) {
 			err:    false,
 			canAsk: true,
 		},
+		{
+			name:  "check with silent mode and bootstrap flux flag available",
+			input: []StepInput{},
+			config: &Config{
+				FluxInstallated: false,
+				BootstrapFlux:   true,
+				Silent:          true,
+			},
+			err:    false,
+			canAsk: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
