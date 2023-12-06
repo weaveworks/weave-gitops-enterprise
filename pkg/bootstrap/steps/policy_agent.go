@@ -37,7 +37,7 @@ var enableAdmission = StepInput{
 	DefaultValue: confirmNo,
 }
 
-// NewInstallPolicyAgentStep ask for continue installing OIDC
+// NewInstallPolicyAgentStep creates the policy agent installation step
 func NewInstallPolicyAgentStep(config Config) BootstrapStep {
 	config.Logger.Warningf("please note that the Policy Agent requires cert-manager to be installed!")
 	inputs := []StepInput{}
