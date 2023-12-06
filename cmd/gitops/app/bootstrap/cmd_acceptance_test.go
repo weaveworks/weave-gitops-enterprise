@@ -119,7 +119,7 @@ func TestBootstrapCmd(t *testing.T) {
 		{
 			name: "journey flux exists: should bootstrap with valid arguments",
 			flags: []string{kubeconfigFlag,
-				"--version=0.36.0",
+				"--version=0.37.0",
 				privateKeyFlag, privateKeyPasswordFlag,
 				"--password=admin123",
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
@@ -141,14 +141,14 @@ func TestBootstrapCmd(t *testing.T) {
 		{
 			name: "journey flux does not exist: should bootstrap with valid arguments",
 			flags: []string{kubeconfigFlag,
-				"--version=0.36.0",
+				"--version=0.37.0",
 				"--password=admin123",
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
 				"--client-id=weave-gitops-enterprise",
 				gitUsernameFlag, gitPasswordFlag, gitBranchFlag, gitRepoPathFlag,
 				repoHTTPSURLFlag,
 				oidcClientSecretFlag, "-s",
-				"--components-extra=\"policy-agent,tf-controller\"",
+				"--components-extra=policy-agent",
 				"--bootstrap-flux",
 			},
 			setup: func(t *testing.T) {
