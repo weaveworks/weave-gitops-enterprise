@@ -244,10 +244,7 @@ func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string
 	return utils.CreateHelmReleaseYamlString(wgeHelmRelease)
 }
 
-//verifycomponents func(input []StepInput, c *Config) error
-// which use reportComponentsHealth func
-
-func verifyComponents(input []StepInput, c *Config) error {
+func verifyComponents(output []StepOutput, c *Config) error {
 	c.Logger.Waitingf("waiting for components to be healthy")
 	err := reportComponentsHealth(c, Components, WGEDefaultNamespace, 5*time.Minute)
 	if err != nil {

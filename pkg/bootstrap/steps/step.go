@@ -16,7 +16,7 @@ type BootstrapStep struct {
 	Name   string
 	Input  []StepInput
 	Step   func(input []StepInput, c *Config) ([]StepOutput, error)
-	Verify func(input []StepInput, c *Config) error
+	Verify func(output []StepOutput, c *Config) error
 	Stdin  io.ReadCloser
 }
 
@@ -80,7 +80,7 @@ func (s BootstrapStep) Execute(c *Config) ([]StepOutput, error) {
 
 	//verify the result of the step if the function is defined in the step
 	if s.Verify != nil {
-		if err := s.Verify(inputValues, c); err != nil {
+		if err := s.Verify(outputs, c); err != nil {
 			return []StepOutput{}, fmt.Errorf("cannot verify '%s': %v", s.Name, err)
 		}
 	}
