@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	extraComponentsMsg = "do you want to install extra Components from the following on your cluster"
+	componentsExtraMsg = "do you want to install extra Components from the following on your cluster"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 	capiController        = "capi"
 )
 
-var ExtraComponents = []string{
+var ComponentsExtra = []string{
 	"",
 	policyAgentController,
 	tfController,
@@ -26,14 +26,14 @@ func NewInstallExtraComponents(config Config) BootstrapStep {
 	inputs := []StepInput{}
 
 	installExtraComponentsStep := StepInput{
-		Name:         inExtraComponents,
+		Name:         inComponentsExtra,
 		Type:         multiSelectionChoice,
-		Msg:          extraComponentsMsg,
-		Values:       ExtraComponents,
+		Msg:          componentsExtraMsg,
+		Values:       ComponentsExtra,
 		DefaultValue: "",
 	}
 
-	if len(config.ExtraComponents) < 1 && !config.Silent {
+	if len(config.ComponentsExtra) < 1 && !config.Silent {
 		inputs = append(inputs, installExtraComponentsStep)
 	}
 
@@ -46,14 +46,14 @@ func NewInstallExtraComponents(config Config) BootstrapStep {
 
 func installExtraComponents(input []StepInput, c *Config) ([]StepOutput, error) {
 	for _, param := range input {
-		if param.Name == inExtraComponents {
-			extraComponents, ok := param.Value.(string)
+		if param.Name == inComponentsExtra {
+			componentsExtra, ok := param.Value.(string)
 			if ok {
-				c.ExtraComponents = append(c.ExtraComponents, extraComponents)
+				c.ComponentsExtra = append(c.ComponentsExtra, componentsExtra)
 			}
 		}
 	}
-	for _, controller := range c.ExtraComponents {
+	for _, controller := range c.ComponentsExtra {
 		switch controller {
 		case policyAgentController:
 			agentStep := NewInstallPolicyAgentStep(*c)

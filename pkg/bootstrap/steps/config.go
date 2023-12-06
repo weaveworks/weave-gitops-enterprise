@@ -43,7 +43,7 @@ const (
 	inGitUserName        = "username"
 	inGitPassword        = "gitPassowrd"
 	inBootstrapFlux      = "bootstrapFlux"
-	inExtraComponents    = "extraComponents"
+	inComponentsExtra    = "componentsExtra"
 	inEnableAdmission    = "enableAdmission"
 )
 
@@ -78,7 +78,7 @@ type ConfigBuilder struct {
 	clientSecret            string
 	PromptedForDiscoveryURL bool
 	bootstrapFlux           bool
-	extraComponents         []string
+	componentsExtra         []string
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -144,8 +144,8 @@ func (c *ConfigBuilder) WithBootstrapFluxFlag(bootstrapFlux bool) *ConfigBuilder
 	return c
 }
 
-func (c *ConfigBuilder) WithExtraComponents(extraComponents []string) *ConfigBuilder {
-	c.extraComponents = extraComponents
+func (c *ConfigBuilder) WithComponentsExtra(componentsExtra []string) *ConfigBuilder {
+	c.componentsExtra = componentsExtra
 	return c
 }
 
@@ -191,7 +191,7 @@ type Config struct {
 	PromptedForDiscoveryURL bool
 
 	BootstrapFlux      bool
-	ExtraComponents    []string
+	ComponentsExtra    []string
 	ExistingComponents []string
 }
 
@@ -247,7 +247,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		ClientID:                cb.clientID,
 		ClientSecret:            cb.clientSecret,
 		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
-		ExtraComponents:         cb.extraComponents,
+		ComponentsExtra:         cb.componentsExtra,
 		BootstrapFlux:           cb.bootstrapFlux,
 	}, nil
 

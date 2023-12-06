@@ -18,7 +18,7 @@ func Bootstrap(config steps.Config) error {
 	repositoryConfig := steps.NewGitRepositoryConfigStep(config.GitRepository)
 
 	// add existing controllers to skip installing them
-	for _, component := range steps.ExtraComponents {
+	for _, component := range steps.ComponentsExtra {
 		version, err := utils.GetHelmReleaseProperty(config.KubernetesClient, component, steps.WGEDefaultNamespace, utils.HelmVersionProperty)
 		if err == nil && version != "" {
 			config.ExistingComponents = append(config.ExistingComponents, component)

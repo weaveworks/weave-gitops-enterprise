@@ -20,10 +20,10 @@ func TestNewInstallExtraComponents(t *testing.T) {
 				Name: "install extra components",
 				Input: []StepInput{
 					{
-						Name:         inExtraComponents,
+						Name:         inComponentsExtra,
 						Type:         multiSelectionChoice,
-						Msg:          extraComponentsMsg,
-						Values:       ExtraComponents,
+						Msg:          componentsExtraMsg,
+						Values:       ComponentsExtra,
 						DefaultValue: "",
 					},
 				},
@@ -33,7 +33,7 @@ func TestNewInstallExtraComponents(t *testing.T) {
 		{
 			name: "return bootstrap step with empty inputs in case not provided by user",
 			config: Config{
-				ExtraComponents: []string{
+				ComponentsExtra: []string{
 					policyAgentController,
 					tfController,
 					capiController,
@@ -69,9 +69,9 @@ func TestInstallExtraControllers(t *testing.T) {
 			name: "test skip installing controllers with defaults (\"\")",
 			stepInput: []StepInput{
 				{
-					Name:  inExtraComponents,
+					Name:  inComponentsExtra,
 					Type:  multiSelectionChoice,
-					Msg:   extraComponentsMsg,
+					Msg:   componentsExtraMsg,
 					Value: "",
 				},
 			},
@@ -87,7 +87,7 @@ func TestInstallExtraControllers(t *testing.T) {
 			config: Config{},
 			stepInput: []StepInput{
 				{
-					Name:  inExtraComponents,
+					Name:  inComponentsExtra,
 					Value: "policy-agent",
 				},
 			},
@@ -97,11 +97,11 @@ func TestInstallExtraControllers(t *testing.T) {
 			config: Config{},
 			stepInput: []StepInput{
 				{
-					Name:  inExtraComponents,
+					Name:  inComponentsExtra,
 					Value: policyAgentController,
 				},
 				{
-					Name:  inExtraComponents,
+					Name:  inComponentsExtra,
 					Value: capiController,
 				},
 			},
