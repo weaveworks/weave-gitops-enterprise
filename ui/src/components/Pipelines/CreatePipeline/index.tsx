@@ -25,7 +25,8 @@ import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { handleError, scrollToAlertSection } from '../../Secrets/Shared/utils';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import { FormWrapper } from '../../Templates/Form/utils';
-import { FollowSteps } from './FollowSteps';
+import CreateEnvironmentForm from './CreateEnvironmentForm';
+import EnvironmentCard from './EnvironmentCard';
 import ListApplications from './ListApplications';
 import { Pipeline, getPipelineInitialData } from './utils';
 
@@ -44,7 +45,9 @@ const CreateEnvironmentContainer = styled(Flex)`
   .card {
     padding: 20px;
     background: ${props => props.theme.colors.pipelinesBackGray};
-    min-height: 350px;
+    height: 595px;
+    border-radius: 4px;
+    overflow: auto;
   }
 `;
 
@@ -148,7 +151,7 @@ const CreatePipeline = () => {
             }}
           >
             <Flex wide column gap="24">
-              <PipelineContainer wide  column gap="20">
+              <PipelineContainer wide column gap="20">
                 <Flex column gap="4">
                   <Text color="neutral30" size="large">
                     Use this area to set up your pipeline or to make changes.
@@ -157,7 +160,7 @@ const CreatePipeline = () => {
                     When you're done, click the "Apply" button at the bottom.
                   </Text>
                 </Flex>
-                <Flex wide center alignItems="center" between gap="20">
+                <Flex wide center alignItems="start" between gap="20">
                   <InputDebounced
                     required
                     name="pipelineName"
@@ -216,9 +219,12 @@ const CreatePipeline = () => {
                 </Flex>
                 <CreateEnvironmentContainer wide gap="20">
                   <div className="card w-50">
-                    <FollowSteps />
+                    {/* <FollowSteps /> */}
+                    <CreateEnvironmentForm />
                   </div>
-                  <div className="card w-50"></div>
+                  <div className="card w-50">
+                    <EnvironmentCard />
+                  </div>
                 </CreateEnvironmentContainer>
               </Flex>
               <GitOps
