@@ -73,7 +73,7 @@ type bootstrapFlags struct {
 	bootstrapFlux bool
 
 	// extra controllers
-	extraComponents []string
+	componentsExtra []string
 }
 
 var flags bootstrapFlags
@@ -88,7 +88,7 @@ func Command(opts *config.Options) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "version of Weave GitOps Enterprise (should be from the latest 3 versions)")
-	cmd.Flags().StringSliceVar(&flags.extraComponents, "components-extra", nil, "extra components to be installed from (policy-agent, tf-controller, capi)")
+	cmd.Flags().StringSliceVar(&flags.componentsExtra, "components-extra", nil, "extra components to be installed from (policy-agent, tf-controller, capi)")
 	cmd.PersistentFlags().BoolVarP(&flags.silent, "silent", "s", false, "chose the defaults with current provided information without asking any questions")
 	cmd.PersistentFlags().BoolVarP(&flags.bootstrapFlux, "bootstrap-flux", "", false, "chose whether you want to install flux in the generic way in case no flux installation detected")
 	cmd.PersistentFlags().StringVarP(&flags.gitUsername, "git-username", "", "", "git username used in https authentication type")
@@ -127,7 +127,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, true).
 			WithSilentFlag(flags.silent).
 			WithBootstrapFluxFlag(flags.bootstrapFlux).
-			WithExtraComponents(flags.extraComponents).
+			WithComponentsExtra(flags.componentsExtra).
 			Build()
 
 		if err != nil {
