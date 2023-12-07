@@ -73,8 +73,8 @@ function Workloads({
                   <Text> {envStrategy.strategy}</Text>
                 </Flex>
               </Flex>
-              {envStrategy.strategy === 'Pull Request' && (
-                <PromotionContainer column gap="12" wide>
+              <PromotionContainer column gap="12" wide>
+                {envStrategy.strategy === 'Pull Request' && (
                   <Flex column gap="8" wide start>
                     <Flex gap="8" wide start>
                       <Text bold>Branch:</Text>
@@ -85,19 +85,20 @@ function Workloads({
                       <Link to={envStrategy.url}>{envStrategy.url}</Link>
                     </Flex>
                   </Flex>
-                  {promoteVersion && index < environments.length - 1 && (
-                    <PromotePipeline
-                      req={{
-                        name: pipeline.name,
-                        env: env.name,
-                        namespace: pipeline.namespace,
-                        revision: promoteVersion,
-                      }}
-                      promoteVersion={promoteVersion || ''}
-                    />
-                  )}
-                </PromotionContainer>
-              )}
+                )}
+
+                {env.promotion?.manual && index < environments.length - 1 && (
+                  <PromotePipeline
+                    req={{
+                      name: pipeline.name,
+                      env: env.name,
+                      namespace: pipeline.namespace,
+                      revision: promoteVersion,
+                    }}
+                    promoteVersion={promoteVersion || ''}
+                  />
+                )}
+              </PromotionContainer>
             </EnvironmentCard>
             {status.map((target, indx) => (
               <Target key={indx} target={target} background={index} />
