@@ -28,7 +28,8 @@ const getClusterTypeIcon = (clusterType?: string) => {
     return Docker;
   } else if (
     clusterType === 'AWSCluster' ||
-    clusterType === 'AWSManagedCluster'
+    clusterType === 'AWSManagedCluster' ||
+    clusterType === 'eks'
   ) {
     return EKS;
   } else if (
@@ -47,7 +48,7 @@ const getClusterTypeIcon = (clusterType?: string) => {
     return Rancher;
   } else if (clusterType === 'Openshift') {
     return Openshift;
-  }else if (clusterType === 'VCluster') {
+  } else if (clusterType === 'VCluster') {
     return VCluster;
   }
   return Kubernetes;
@@ -77,9 +78,7 @@ export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
   return (
     <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
       {isACD ? (
-        <Link
-          to={getACDLink()}
-        >
+        <Link to={getACDLink()}>
           <Badge
             anchorOrigin={{
               vertical: 'bottom',
