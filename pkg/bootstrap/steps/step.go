@@ -148,7 +148,7 @@ func defaultInputStep(inputs []StepInput, c *Config, stdin io.ReadCloser) ([]Ste
 				c.Logger.Warningf(input.StepInformation)
 			}
 			// if silent mode is enabled, select the default value
-			// if no default value select yes by default
+			// if no default value an error will be returned
 			if c.Silent {
 				defaultVal, ok := input.DefaultValue.(string)
 				if ok {
