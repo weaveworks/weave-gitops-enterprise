@@ -88,9 +88,9 @@ func Command(opts *config.Options) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "version of Weave GitOps Enterprise (should be from the latest 3 versions)")
-	cmd.Flags().StringSliceVar(&flags.componentsExtra, "components-extra", nil, "extra components to be installed from (policy-agent, tf-controller)")
-	cmd.PersistentFlags().BoolVarP(&flags.silent, "silent", "s", false, "chose the defaults with current provided information without asking any questions")
-	cmd.PersistentFlags().BoolVarP(&flags.bootstrapFlux, "bootstrap-flux", "", false, "chose whether you want to install flux in the generic way in case no flux installation detected")
+	cmd.Flags().StringSliceVar(&flags.componentsExtra, "components-extra", nil, "extra components to be installed. Supported components: policy-agent, tf-controller")
+	cmd.PersistentFlags().BoolVarP(&flags.silent, "silent", "s", false, "non-interactive session: it will not ask questions but rather to use default values to complete the introduced flags")
+	cmd.PersistentFlags().BoolVarP(&flags.bootstrapFlux, "bootstrap-flux", "", false, "flags that you want to bootstrap Flux in case is not detected")
 	cmd.PersistentFlags().StringVarP(&flags.gitUsername, "git-username", "", "", "git username used in https authentication type")
 	cmd.PersistentFlags().StringVarP(&flags.gitPassword, "git-password", "", "", "git password/token used in https authentication type")
 	cmd.PersistentFlags().StringVarP(&flags.branch, "branch", "b", "", "git branch for your flux repository (example: main)")
