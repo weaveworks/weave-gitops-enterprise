@@ -6,7 +6,7 @@ func NewInstallOIDCStep(config Config) BootstrapStep {
 		Name:         inOidcInstalled,
 		Type:         confirmInput,
 		Msg:          oidcInstallMsg,
-		DefaultValue: "",
+		DefaultValue: confirmNo,
 		Enabled:      canAskOIDCPrompot,
 	}
 

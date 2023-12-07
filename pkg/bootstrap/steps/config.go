@@ -16,6 +16,8 @@ const (
 
 const (
 	defaultAdminPassword = "password"
+	confirmYes           = "y"
+	confirmNo            = "n"
 )
 
 // git schemes
@@ -41,6 +43,7 @@ const (
 	inGitUserName        = "username"
 	inGitPassword        = "gitPassowrd"
 	inBootstrapFlux      = "bootstrapFlux"
+	inComponentsExtra    = "componentsExtra"
 )
 
 // input/output types
@@ -73,6 +76,8 @@ type ConfigBuilder struct {
 	clientID                string
 	clientSecret            string
 	PromptedForDiscoveryURL bool
+	bootstrapFlux           bool
+	componentsExtra         []string
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -133,6 +138,16 @@ func (c *ConfigBuilder) WithSilentFlag(silent bool) *ConfigBuilder {
 	return c
 }
 
+func (c *ConfigBuilder) WithBootstrapFluxFlag(bootstrapFlux bool) *ConfigBuilder {
+	c.bootstrapFlux = bootstrapFlux
+	return c
+}
+
+func (c *ConfigBuilder) WithComponentsExtra(componentsExtra []string) *ConfigBuilder {
+	c.componentsExtra = componentsExtra
+	return c
+}
+
 // Config is the configuration struct to user for WGE installation. It includes
 // configuration values as well as other required structs like clients
 type Config struct {
@@ -173,6 +188,9 @@ type Config struct {
 	ClientSecret            string
 	RedirectURL             string
 	PromptedForDiscoveryURL bool
+
+	BootstrapFlux   bool
+	ComponentsExtra ComponentsExtraConfig
 }
 
 // Builds creates a valid config so boostrap could be executed. It uses values introduced
@@ -204,6 +222,11 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		return Config{}, fmt.Errorf("error creating git repository configuration: %v", err)
 	}
 
+	componentsExtraConfig, err := NewInstallExtraComponentsConfig(cb.componentsExtra, kubeHttp.Client)
+	if err != nil {
+		return Config{}, fmt.Errorf("cannot create components extra configuration: %v", err)
+	}
+
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
 		KubernetesClient:        kubeHttp.Client,
@@ -227,6 +250,8 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		ClientID:                cb.clientID,
 		ClientSecret:            cb.clientSecret,
 		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
+		ComponentsExtra:         componentsExtraConfig,
+		BootstrapFlux:           cb.bootstrapFlux,
 	}, nil
 
 }
