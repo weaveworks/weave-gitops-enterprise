@@ -39,8 +39,9 @@ const (
 // NewInstallWGEStep step to install Weave GitOps Enterprise
 func NewInstallWGEStep() BootstrapStep {
 	return BootstrapStep{
-		Name: "Install Weave GitOps Enterprise",
-		Step: installWge,
+		Name:  "Install Weave GitOps Enterprise",
+		Input: []StepInput{},
+		Step:  installWge,
 	}
 }
 
