@@ -19,6 +19,8 @@ import (
 	"sigs.k8s.io/cli-utils/pkg/object"
 )
 
+// StatusChecker is a wrapper around the StatusPoller
+// that provides a way to poll the status of a set of resources
 type StatusChecker struct {
 	pollInterval time.Duration
 	timeout      time.Duration
@@ -27,6 +29,7 @@ type StatusChecker struct {
 	logger       logger.Logger
 }
 
+// NewStatusChecker returns a new StatusChecker that will use the provided client to poll the status of the resources
 func NewStatusChecker(client k8s_client.Client, pollInterval time.Duration, timeout time.Duration, log logger.Logger) (*StatusChecker, error) {
 
 	return &StatusChecker{
@@ -38,6 +41,7 @@ func NewStatusChecker(client k8s_client.Client, pollInterval time.Duration, time
 	}, nil
 }
 
+// Assess will poll the status of the provided resources until all resources have reached the desired status
 func (sc *StatusChecker) Assess(identifiers ...object.ObjMetadata) error {
 	ctx, cancel := context.WithTimeout(context.Background(), sc.timeout)
 	defer cancel()
