@@ -61,7 +61,7 @@ function Explorer({
       filters: queryState.filters,
       limit: queryState.limit,
       offset: queryState.offset,
-      orderBy: queryState.orderBy || 'name',
+      orderBy: queryState.orderBy,
       descending: queryState.orderDescending || false,
       category,
     });
