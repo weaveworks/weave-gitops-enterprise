@@ -1,4 +1,4 @@
-import { GitRepository } from '@weaveworks/weave-gitops';
+import { GitRepository, withBasePath } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import {
   ClusterAutomation,
@@ -119,13 +119,14 @@ export function scrollToAlertSection() {
 }
 
 export const handleError = (err: any, setNotifications: any) => {
+  // FIXME: Do we need this? Should be captured by the global interceptors
   if (err.code === 401) {
     const { pathname, search } = window.location;
     const redirectUrl = encodeURIComponent(`${pathname}${search}`);
     const url = redirectUrl
       ? `/sign_in?redirect=${redirectUrl}`
       : `/sign_in?redirect=/`;
-    window.location.href = url;
+    window.location.href = withBasePath(url);
   }
   setNotifications([
     {

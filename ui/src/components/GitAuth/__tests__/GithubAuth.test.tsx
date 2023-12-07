@@ -3,7 +3,7 @@ import {
   GetGithubDeviceCodeResponse,
   GitProvider,
 } from '../../../api/gitauth/gitauth.pb';
-import { GitAuthProvider } from '../../../contexts/GitAuth';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   ApplicationsClientMock,
   defaultContexts,
@@ -37,7 +37,10 @@ describe('Github Authenticate', () => {
     });
 
     api = new ApplicationsClientMock();
-    wrap = withContext([...defaultContexts(), [GitAuthProvider, { api }]]);
+    wrap = withContext([
+      ...defaultContexts(),
+      [EnterpriseClientContext.Provider, { value: { gitAuth: api } }],
+    ]);
   });
 
   it('renders the GithubAuth modal and user code', async () => {

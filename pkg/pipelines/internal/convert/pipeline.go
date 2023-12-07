@@ -33,7 +33,7 @@ func PipelineToProto(p ctrl.Pipeline) *pb.Pipeline {
 			},
 		}
 
-		env.Promotion = makePromotion(e.Promotion)
+		env.Promotion = makePromotion(p.Spec.GetPromotion(e.Name))
 
 		for _, t := range e.Targets {
 			var clusterRef pb.ClusterRef

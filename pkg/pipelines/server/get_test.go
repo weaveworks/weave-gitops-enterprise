@@ -31,6 +31,7 @@ func TestGetPipeline(t *testing.T) {
 
 	pipelineNamespace := pipetesting.NewNamespace(ctx, t, kclient)
 	targetNamespace := pipetesting.NewNamespace(ctx, t, kclient)
+	target2Namespace := pipetesting.NewNamespace(ctx, t, kclient)
 
 	factory := grpctesting.MakeClustersManager(kclient, nil, "management", fmt.Sprintf("%s/cluster-1", pipelineNamespace.Name))
 	serverClient := pipetesting.SetupServer(t, factory, kclient, "management", "", nil)
@@ -38,6 +39,7 @@ func TestGetPipeline(t *testing.T) {
 	hr := createHelmRelease(ctx, t, kclient, "app-1", targetNamespace.Name)
 
 	envName := "env-1"
+	env2Name := "env-2"
 
 	t.Run("cluster ref is not set", func(t *testing.T) {
 		p := newPipeline(randomName(t, "pipe"), pipelineNamespace.Name, targetNamespace.Name, envName, hr)
@@ -58,10 +60,9 @@ func TestGetPipeline(t *testing.T) {
 	t.Run("cluster ref is set", func(t *testing.T) {
 		p := newPipeline(randomName(t, "pipe"), pipelineNamespace.Name, targetNamespace.Name, envName, hr)
 		p.Spec.Environments[0].Targets[0].ClusterRef = &ctrl.CrossNamespaceClusterReference{
-			APIVersion: ctrl.GroupVersion.String(),
-			Kind:       "GitopsCluster",
-			Name:       "cluster-1",
-			Namespace:  pipelineNamespace.Name,
+			Kind:      "GitopsCluster",
+			Name:      "cluster-1",
+			Namespace: pipelineNamespace.Name,
 		}
 		require.NoError(t, kclient.Create(ctx, p))
 
@@ -78,13 +79,12 @@ func TestGetPipeline(t *testing.T) {
 		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("apiVersion: %s", pipelineAPIVersion))
 	})
 
-	t.Run("cluster ref is set to an invalud cluster", func(t *testing.T) {
+	t.Run("cluster ref is set to an invalid cluster", func(t *testing.T) {
 		p := newPipeline(randomName(t, "pipe"), pipelineNamespace.Name, targetNamespace.Name, envName, hr)
 		p.Spec.Environments[0].Targets[0].ClusterRef = &ctrl.CrossNamespaceClusterReference{
-			APIVersion: ctrl.GroupVersion.String(),
-			Kind:       "GitopsCluster",
-			Name:       "let-you-down",
-			Namespace:  pipelineNamespace.Name,
+			Kind:      "GitopsCluster",
+			Name:      "let-you-down",
+			Namespace: pipelineNamespace.Name,
 		}
 		require.NoError(t, kclient.Create(ctx, p))
 
@@ -103,9 +103,8 @@ func TestGetPipeline(t *testing.T) {
 	t.Run("cluster ref without Namespace", func(t *testing.T) {
 		p := newPipeline(randomName(t, "pipe"), pipelineNamespace.Name, targetNamespace.Name, envName, hr)
 		p.Spec.Environments[0].Targets[0].ClusterRef = &ctrl.CrossNamespaceClusterReference{
-			APIVersion: ctrl.GroupVersion.String(),
-			Kind:       "GitopsCluster",
-			Name:       "cluster-1",
+			Kind: "GitopsCluster",
+			Name: "cluster-1",
 		}
 		require.NoError(t, kclient.Create(ctx, p))
 
@@ -128,9 +127,8 @@ func TestGetPipeline(t *testing.T) {
 	t.Run("invalid app ref", func(t *testing.T) {
 		p := newPipeline(randomName(t, "pipe"), pipelineNamespace.Name, targetNamespace.Name, envName, hr)
 		p.Spec.Environments[0].Targets[0].ClusterRef = &ctrl.CrossNamespaceClusterReference{
-			APIVersion: ctrl.GroupVersion.String(),
-			Kind:       "GitopsCluster",
-			Name:       "cluster-1",
+			Kind: "GitopsCluster",
+			Name: "cluster-1",
 		}
 		p.Spec.AppRef.Kind = "helmrelease"
 		require.NoError(t, kclient.Create(ctx, p))
@@ -148,10 +146,104 @@ func TestGetPipeline(t *testing.T) {
 		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("kind: %s", pipelineKind))
 		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("apiVersion: %s", pipelineAPIVersion))
 	})
+
+	t.Run("default promotion applies to all environments", func(t *testing.T) {
+		p := newPipeline(randomName(t, "pipe"), pipelineNamespace.Name, targetNamespace.Name, envName, hr,
+			withEnvironment(env2Name, []ctrl.Target{{Namespace: target2Namespace.Name, ClusterRef: &ctrl.CrossNamespaceClusterReference{
+				Kind:      "GitopsCluster",
+				Name:      "cluster-1",
+				Namespace: pipelineNamespace.Name,
+			}}}, nil))
+		p.Spec.Environments[0].Targets[0].ClusterRef = &ctrl.CrossNamespaceClusterReference{
+			Kind:      "GitopsCluster",
+			Name:      "cluster-1",
+			Namespace: pipelineNamespace.Name,
+		}
+		p.Spec.Promotion = &ctrl.Promotion{
+			Manual: false,
+			Strategy: ctrl.Strategy{
+				PullRequest: &ctrl.PullRequestPromotion{
+					Type:       ctrl.Github,
+					URL:        "https://github.com/weaveworks/pipelines",
+					BaseBranch: "main",
+				},
+			},
+		}
+		require.NoError(t, kclient.Create(ctx, p))
+
+		res, err := serverClient.GetPipeline(context.Background(), &pb.GetPipelineRequest{
+			Name:      p.Name,
+			Namespace: pipelineNamespace.Name,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, res.Pipeline.Environments[0].Promotion.Manual, p.Spec.Promotion.Manual)
+		assert.NotNil(t, res.Pipeline.Environments[0].Promotion.Strategy.PullRequest)
+		assert.Equal(t, res.Pipeline.Environments[0].Promotion.Strategy.PullRequest.Type, p.Spec.Promotion.Strategy.PullRequest.Type.String())
+		assert.Equal(t, res.Pipeline.Environments[0].Promotion.Strategy.PullRequest.Url, p.Spec.Promotion.Strategy.PullRequest.URL)
+		assert.Equal(t, res.Pipeline.Environments[0].Promotion.Strategy.PullRequest.Branch, p.Spec.Promotion.Strategy.PullRequest.BaseBranch)
+		assert.NotNil(t, res.Pipeline.Environments[1].Promotion.Strategy.PullRequest)
+		assert.Equal(t, res.Pipeline.Environments[1].Promotion.Manual, p.Spec.Promotion.Manual)
+		assert.Equal(t, res.Pipeline.Environments[1].Promotion.Strategy.PullRequest.Type, p.Spec.Promotion.Strategy.PullRequest.Type.String())
+		assert.Equal(t, res.Pipeline.Environments[1].Promotion.Strategy.PullRequest.Url, p.Spec.Promotion.Strategy.PullRequest.URL)
+		assert.Equal(t, res.Pipeline.Environments[1].Promotion.Strategy.PullRequest.Branch, p.Spec.Promotion.Strategy.PullRequest.BaseBranch)
+	})
+
+	t.Run("environment promotion overrides default promotion", func(t *testing.T) {
+		p := newPipeline(randomName(t, "pipe"), pipelineNamespace.Name, targetNamespace.Name, envName, hr,
+			withEnvironment(env2Name, []ctrl.Target{{Namespace: target2Namespace.Name, ClusterRef: &ctrl.CrossNamespaceClusterReference{
+				Kind:      "GitopsCluster",
+				Name:      "cluster-1",
+				Namespace: pipelineNamespace.Name,
+			}}}, &ctrl.Promotion{
+				Manual: true,
+				Strategy: ctrl.Strategy{
+					PullRequest: &ctrl.PullRequestPromotion{
+						Type:       ctrl.Gitlab,
+						URL:        "https://gitlab.com/weaveworks/pipelines",
+						BaseBranch: "master",
+					},
+				},
+			}))
+		p.Spec.Environments[0].Targets[0].ClusterRef = &ctrl.CrossNamespaceClusterReference{
+			APIVersion: ctrl.GroupVersion.String(),
+			Kind:       "GitopsCluster",
+			Name:       "cluster-1",
+			Namespace:  pipelineNamespace.Name,
+		}
+		p.Spec.Promotion = &ctrl.Promotion{
+			Manual: false,
+			Strategy: ctrl.Strategy{
+				PullRequest: &ctrl.PullRequestPromotion{
+					Type:       ctrl.Github,
+					URL:        "https://github.com/weaveworks/pipelines",
+					BaseBranch: "main",
+				},
+			},
+		}
+		require.NoError(t, kclient.Create(ctx, p))
+
+		res, err := serverClient.GetPipeline(context.Background(), &pb.GetPipelineRequest{
+			Name:      p.Name,
+			Namespace: pipelineNamespace.Name,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, res.Pipeline.Environments[0].Promotion.Manual, p.Spec.Promotion.Manual)
+		assert.NotNil(t, res.Pipeline.Environments[0].Promotion.Strategy.PullRequest)
+		assert.Equal(t, res.Pipeline.Environments[0].Promotion.Strategy.PullRequest.Type, p.Spec.Promotion.Strategy.PullRequest.Type.String())
+		assert.Equal(t, res.Pipeline.Environments[0].Promotion.Strategy.PullRequest.Url, p.Spec.Promotion.Strategy.PullRequest.URL)
+		assert.Equal(t, res.Pipeline.Environments[0].Promotion.Strategy.PullRequest.Branch, p.Spec.Promotion.Strategy.PullRequest.BaseBranch)
+		assert.Equal(t, res.Pipeline.Environments[1].Promotion.Manual, p.Spec.Environments[1].Promotion.Manual)
+		assert.NotNil(t, res.Pipeline.Environments[1].Promotion.Strategy.PullRequest)
+		assert.Equal(t, res.Pipeline.Environments[1].Promotion.Strategy.PullRequest.Type, p.Spec.Environments[1].Promotion.Strategy.PullRequest.Type.String())
+		assert.Equal(t, res.Pipeline.Environments[1].Promotion.Strategy.PullRequest.Url, p.Spec.Environments[1].Promotion.Strategy.PullRequest.URL)
+		assert.Equal(t, res.Pipeline.Environments[1].Promotion.Strategy.PullRequest.Branch, p.Spec.Environments[1].Promotion.Strategy.PullRequest.BaseBranch)
+	})
 }
 
-func newPipeline(name string, pNamespace string, tNamespace string, envName string, hr *helm.HelmRelease) *ctrl.Pipeline {
-	return &ctrl.Pipeline{
+func newPipeline(name string, pNamespace string, tNamespace string, envName string, hr *helm.HelmRelease, options ...pipelineOption) *ctrl.Pipeline {
+	p := &ctrl.Pipeline{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
 			Namespace: pNamespace,
@@ -173,6 +265,30 @@ func newPipeline(name string, pNamespace string, tNamespace string, envName stri
 				},
 			},
 		},
+	}
+
+	for _, option := range options {
+		option(p)
+	}
+
+	return p
+}
+
+type pipelineOption func(*ctrl.Pipeline)
+
+func withEnvironment(name string, targets []ctrl.Target, promotion *ctrl.Promotion) func(*ctrl.Pipeline) {
+	return func(p *ctrl.Pipeline) {
+		env := ctrl.Environment{
+			Name: name,
+		}
+
+		env.Targets = append(env.Targets, targets...)
+
+		if promotion != nil {
+			env.Promotion = promotion
+		}
+
+		p.Spec.Environments = append(p.Spec.Environments, env)
 	}
 }
 

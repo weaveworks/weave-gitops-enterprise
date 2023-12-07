@@ -58,16 +58,8 @@ func TestRunQuery(t *testing.T) {
 					APIGroup:   "example.com",
 					APIVersion: "v1",
 				},
-				{
-					Cluster:    "test-cluster",
-					Name:       "otherName",
-					Namespace:  "namespace",
-					Kind:       "ValidKind",
-					APIGroup:   "example.com",
-					APIVersion: "v1",
-				},
 			},
-			want: []string{"someName", "otherName"},
+			want: []string{"someName"},
 		},
 		{
 			name:  "get objects by cluster",
@@ -713,35 +705,68 @@ func TestQueryOrdering_Realistic(t *testing.T) {
 		authorizer: allowAll,
 	}
 
-	qy := &query{
-		orderBy: "name",
-	}
+	t.Run("query by name", func(t *testing.T) {
 
-	got, err := q.RunQuery(ctx, qy, qy)
-	g.Expect(err).NotTo(HaveOccurred())
+		qy := &query{
+			orderBy: "name",
+		}
 
-	expected := []string{
-		"flux-dashboards",
-		"flux-system",
-		"kube-prometheus-stack",
-		"kube-prometheus-stack",
-		"monitoring-config",
-		"podinfo",
-		"podinfo",
-		"podinfo",
-		"podinfo",
-	}
+		got, err := q.RunQuery(ctx, qy, qy)
+		g.Expect(err).NotTo(HaveOccurred())
 
-	actual := []string{}
-	for _, o := range got {
-		actual = append(actual, o.Name)
-	}
+		expected := []string{
+			"flux-dashboards",
+			"flux-system",
+			"flux-system",
+			"kube-prometheus-stack",
+			"kube-prometheus-stack",
+			"monitoring-config",
+			"podinfo",
+			"podinfo",
+			"podinfo",
+			"podinfo",
+		}
 
-	diff := cmp.Diff(expected, actual)
+		actual := []string{}
+		for _, o := range got {
+			actual = append(actual, o.Name)
+		}
 
-	if diff != "" {
-		t.Fatalf("unexpected result (-want +got):\n%s", diff)
-	}
+		diff := cmp.Diff(expected, actual)
+
+		if diff != "" {
+			t.Fatalf("unexpected result (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("query by score if order selected", func(t *testing.T) {
+
+		qy := &query{
+			terms: "flux-system",
+		}
+
+		got, err := q.RunQuery(ctx, qy, qy)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		expected := []string{
+			"flux-system",
+			"flux-system",
+			"monitoring-config",
+			"kube-prometheus-stack",
+		}
+
+		actual := []string{}
+		for _, o := range got {
+			actual = append(actual, o.Name)
+		}
+
+		diff := cmp.Diff(expected, actual)
+
+		if diff != "" {
+			t.Fatalf("unexpected result (-want +got):\n%s", diff)
+		}
+	})
+
 }
 
 type query struct {

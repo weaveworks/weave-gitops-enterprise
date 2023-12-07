@@ -1,6 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import { CanaryMetric } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { ProgressiveDeliveryProvider } from '../../../../contexts/ProgressiveDelivery';
+import { EnterpriseClientContext } from '../../../../contexts/API';
 import {
   defaultContexts,
   findTextByHeading,
@@ -17,7 +17,10 @@ describe('CanaryMetricsTable', () => {
     api = new ProgressiveDeliveryMock();
     wrap = withContext([
       ...defaultContexts(),
-      [ProgressiveDeliveryProvider, { api }],
+      [
+        EnterpriseClientContext.Provider,
+        { value: { progressiveDeliveryService: api } },
+      ],
     ]);
     api.IsFlaggerAvailableReturns = { clusters: { 'my-cluster': true } };
   });

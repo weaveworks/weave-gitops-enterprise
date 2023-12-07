@@ -76,7 +76,7 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 	if principal == nil {
 		return nil, fmt.Errorf("principal not found")
 	}
-	q.debug.Info("query received", "query", query, "principal", principal.ID)
+	q.debug.Info("query received", "filters", query.GetFilters(), "terms", query.GetTerms(), "principal", principal.ID)
 
 	roles, err := q.r.GetRoles(ctx)
 	if err != nil {
