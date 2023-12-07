@@ -88,7 +88,7 @@ func Command(opts *config.Options) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "version of Weave GitOps Enterprise (should be from the latest 3 versions)")
-	cmd.Flags().StringSliceVar(&flags.componentsExtra, "components-extra", nil, "extra components to be installed. Supported components: policy-agent, tf-controller")
+	cmd.Flags().StringSliceVar(&flags.componentsExtra, "components-extra", nil, "extra components to be installed. Supported components: none, policy-agent, tf-controller")
 	cmd.PersistentFlags().BoolVarP(&flags.silent, "silent", "s", false, "non-interactive session: it will not ask questions but rather to use default values to complete the introduced flags")
 	cmd.PersistentFlags().BoolVarP(&flags.bootstrapFlux, "bootstrap-flux", "", false, "flags that you want to bootstrap Flux in case is not detected")
 	cmd.PersistentFlags().StringVarP(&flags.gitUsername, "git-username", "", "", "git username used in https authentication type")

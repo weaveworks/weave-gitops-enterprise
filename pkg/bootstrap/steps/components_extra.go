@@ -13,12 +13,13 @@ const (
 )
 
 const (
+	none                  = "none"
 	policyAgentController = "policy-agent"
 	tfController          = "tf-controller"
 )
 
 var ComponentsExtra = []string{
-	"",
+	none,
 	policyAgentController,
 	tfController,
 }
@@ -59,7 +60,7 @@ func NewInstallExtraComponentsStep(config ComponentsExtraConfig, silent bool) Bo
 		Type:         multiSelectionChoice,
 		Msg:          componentsExtraMsg,
 		Values:       ComponentsExtra,
-		DefaultValue: "",
+		DefaultValue: none,
 	}
 
 	if len(config.Requested) < 1 && !silent {
@@ -84,6 +85,8 @@ func installExtraComponents(input []StepInput, c *Config) ([]StepOutput, error) 
 	}
 	for _, controller := range c.ComponentsExtra.Requested {
 		switch controller {
+		case none:
+			return []StepOutput{}, nil
 		case policyAgentController:
 			agentStep := NewInstallPolicyAgentStep(*c)
 			_, err := agentStep.Execute(c)
@@ -96,9 +99,6 @@ func installExtraComponents(input []StepInput, c *Config) ([]StepOutput, error) 
 			if err != nil {
 				return []StepOutput{}, fmt.Errorf("can't install tf controller: %v", err)
 			}
-		case "":
-			c.Logger.Successf("selected none extra components")
-			return []StepOutput{}, nil
 		default:
 			return []StepOutput{}, fmt.Errorf("unsupported component selected: %s", controller)
 		}
