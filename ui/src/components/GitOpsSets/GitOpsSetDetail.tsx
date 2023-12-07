@@ -234,7 +234,6 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <YamlView
               yaml={gs.yaml}
-              type="GitOpsSet"
               header={createYamlCommand(gs?.type, gs?.name, gs?.namespace)}
             />
           </RouterTab>

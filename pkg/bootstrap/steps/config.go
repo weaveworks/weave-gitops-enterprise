@@ -16,6 +16,8 @@ const (
 
 const (
 	defaultAdminPassword = "password"
+	confirmYes           = "y"
+	confirmNo            = "n"
 )
 
 // git schemes
@@ -28,11 +30,8 @@ const (
 const (
 	inPassword           = "password"
 	inWGEVersion         = "wgeVersion"
-	inUserDomain         = "userDomain"
 	inPrivateKeyPath     = "privateKeyPath"
 	inPrivateKeyPassword = "privateKeyPassword"
-	inExistingCreds      = "existingCreds"
-	inDomainType         = "domainType"
 	inDiscoveryURL       = "discoveryURL"
 	inClientID           = "clientID"
 	inClientSecret       = "clientSecret"
@@ -44,6 +43,7 @@ const (
 	inGitUserName        = "username"
 	inGitPassword        = "gitPassowrd"
 	inBootstrapFlux      = "bootstrapFlux"
+	inComponentsExtra    = "componentsExtra"
 )
 
 // input/output types
@@ -62,8 +62,6 @@ type ConfigBuilder struct {
 	kubeconfig              string
 	password                string
 	wgeVersion              string
-	domainType              string
-	domain                  string
 	privateKeyPath          string
 	privateKeyPassword      string
 	silent                  bool
@@ -78,6 +76,8 @@ type ConfigBuilder struct {
 	clientID                string
 	clientSecret            string
 	PromptedForDiscoveryURL bool
+	bootstrapFlux           bool
+	componentsExtra         []string
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -102,18 +102,6 @@ func (c *ConfigBuilder) WithKubeconfig(kubeconfig string) *ConfigBuilder {
 func (c *ConfigBuilder) WithVersion(version string) *ConfigBuilder {
 	c.wgeVersion = version
 	return c
-}
-
-func (c *ConfigBuilder) WithDomainType(domainType string) *ConfigBuilder {
-	c.domainType = domainType
-	return c
-
-}
-
-func (c *ConfigBuilder) WithDomain(domain string) *ConfigBuilder {
-	c.domain = domain
-	return c
-
 }
 
 func (c *ConfigBuilder) WithGitAuthentication(privateKeyPath, privateKeyPassword, gitUsername, gitToken string) *ConfigBuilder {
@@ -150,17 +138,29 @@ func (c *ConfigBuilder) WithSilentFlag(silent bool) *ConfigBuilder {
 	return c
 }
 
+func (c *ConfigBuilder) WithBootstrapFluxFlag(bootstrapFlux bool) *ConfigBuilder {
+	c.bootstrapFlux = bootstrapFlux
+	return c
+}
+
+func (c *ConfigBuilder) WithComponentsExtra(componentsExtra []string) *ConfigBuilder {
+	c.componentsExtra = componentsExtra
+	return c
+}
+
 // Config is the configuration struct to user for WGE installation. It includes
 // configuration values as well as other required structs like clients
 type Config struct {
 	KubernetesClient k8s_client.Client
-	Logger           logger.Logger
+	// TODO move me to a better package
+	GitClient utils.GitClient
+	// TODO move me to a better package
+	FluxClient utils.FluxClient
+
+	Logger logger.Logger
 
 	WGEVersion      string // user want this version in the cluster
 	ClusterUserAuth ClusterUserAuthConfig
-
-	DomainType string
-	UserDomain string
 
 	Silent bool
 
@@ -173,14 +173,12 @@ type Config struct {
 
 	// GitRepository contains the configuration for the git repo
 	GitRepository GitRepositoryConfig
-	// deprecated use GitRepository.Url instead
+	// Deprecated: use GitRepository.Url instead
 	RepoURL string
-	// deprecated use GitRepository.Branch instead
+	// Deprecated: use GitRepository.Branch instead
 	Branch string
-	// deprecated use GitRepository.Path instead
+	// Deprecated: use GitRepository.Path instead
 	RepoPath string
-	// deprecated use GitRepository.Scheme instead
-	GitScheme string
 
 	AuthType                string
 	InstallOIDC             string
@@ -190,6 +188,9 @@ type Config struct {
 	ClientSecret            string
 	RedirectURL             string
 	PromptedForDiscoveryURL bool
+
+	BootstrapFlux   bool
+	ComponentsExtra ComponentsExtraConfig
 }
 
 // Builds creates a valid config so boostrap could be executed. It uses values introduced
@@ -221,18 +222,22 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		return Config{}, fmt.Errorf("error creating git repository configuration: %v", err)
 	}
 
+	componentsExtraConfig, err := NewInstallExtraComponentsConfig(cb.componentsExtra, kubeHttp.Client)
+	if err != nil {
+		return Config{}, fmt.Errorf("cannot create components extra configuration: %v", err)
+	}
+
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
 		KubernetesClient:        kubeHttp.Client,
+		GitClient:               &utils.GoGitClient{},
+		FluxClient:              &utils.CmdFluxClient{},
 		WGEVersion:              cb.wgeVersion,
 		ClusterUserAuth:         clusterUserAuthConfig,
 		GitRepository:           gitRepositoryConfig,
-		GitScheme:               gitRepositoryConfig.Scheme,
 		Branch:                  gitRepositoryConfig.Branch,
 		RepoPath:                gitRepositoryConfig.Path,
 		Logger:                  cb.logger,
-		DomainType:              cb.domainType,
-		UserDomain:              cb.domain,
 		Silent:                  cb.silent,
 		RepoURL:                 cb.repoURL,
 		PrivateKeyPath:          cb.privateKeyPath,
@@ -245,6 +250,8 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		ClientID:                cb.clientID,
 		ClientSecret:            cb.clientSecret,
 		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
+		ComponentsExtra:         componentsExtraConfig,
+		BootstrapFlux:           cb.bootstrapFlux,
 	}, nil
 
 }
@@ -258,6 +265,7 @@ type fileContent struct {
 // ValuesFile store the wge values
 type valuesFile struct {
 	Config             ValuesWGEConfig        `json:"config,omitempty"`
+	Service            map[string]interface{} `json:"service,omitempty"`
 	Ingress            map[string]interface{} `json:"ingress,omitempty"`
 	TLS                map[string]interface{} `json:"tls,omitempty"`
 	PolicyAgent        map[string]interface{} `json:"policy-agent,omitempty"`

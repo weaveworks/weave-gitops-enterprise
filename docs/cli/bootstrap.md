@@ -274,9 +274,16 @@ func selectWgeVersion(input []StepInput, c *Config) ([]StepOutput, error) {
 
 ```
 
+## Default Behaviours (default value in inputs)
 
+CLI take the decisions that considered safe to user by using the information provided by user in which no mutation could happen on the user's cluster.
 
+The default values in the step input will be used while silent mode is on by providing `-s`, `--silent`
 
+Examples:
+- Using existing credentials this will not replace the user's data and it's safe
+- Not to install extra controllers unless provided otherwise
+- Not to install OIDC unless provided otherwise
 
 ## Error management 
 

@@ -1,3 +1,4 @@
+import { withBasePath } from '@weaveworks/weave-gitops';
 import GitUrlParse from 'git-url-parse';
 import { GitOpsSet } from '../api/gitopssets/types.pb';
 import { TerraformObject } from '../api/terraform/types.pb';
@@ -48,15 +49,19 @@ export const formatError = (error: Error) =>
 // Must be one of the valid URLs that we have already
 // configured on the Gitlab backend for our Oauth app.
 export function gitlabOAuthRedirectURI(): string {
-  return `${window.location.origin}${Routes.GitlabOauthCallback}`;
+  return `${window.location.origin}${withBasePath(Routes.GitlabOauthCallback)}`;
 }
 
 export function bitbucketServerOAuthRedirectURI(): string {
-  return `${window.location.origin}${Routes.BitBucketOauthCallback}`;
+  return `${window.location.origin}${withBasePath(
+    Routes.BitBucketOauthCallback,
+  )}`;
 }
 
 export function azureDevOpsOAuthRedirectURI(): string {
-  return `${window.location.origin}${Routes.AzureDevOpsOauthCallback}`;
+  return `${window.location.origin}${withBasePath(
+    Routes.AzureDevOpsOauthCallback,
+  )}`;
 }
 
 export const getLabels = (

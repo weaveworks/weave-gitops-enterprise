@@ -147,9 +147,15 @@ func defaultInputStep(inputs []StepInput, c *Config, stdin io.ReadCloser) ([]Ste
 			if input.StepInformation != "" {
 				c.Logger.Warningf(input.StepInformation)
 			}
-			// if silent mode is enabled, select yes
+			// if silent mode is enabled, select the default value
+			// if no default value an error will be returned
 			if c.Silent {
-				input.Value = confirmYes
+				defaultVal, ok := input.DefaultValue.(string)
+				if ok {
+					input.Value = defaultVal
+				} else {
+					return []StepInput{}, fmt.Errorf("invalid default value: %v", input.DefaultValue)
+				}
 			}
 
 			// get the value from user otherwise
@@ -208,7 +214,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 				panic("unexpected internal error casting file")
 			}
 			c.Logger.Actionf("cloning flux git repo: %s/%s", WGEDefaultNamespace, WGEDefaultRepoName)
-			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.GitScheme, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
+			pathInRepo, err := c.GitClient.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.GitRepository.Scheme, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
 			if err != nil {
 				return fmt.Errorf("cannot clone repo: %v", err)
 			}
@@ -220,14 +226,14 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 			}()
 			c.Logger.Successf("cloned flux git repo: %s/%s", WGEDefaultRepoName, WGEDefaultRepoName)
 
-			err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg, c.GitScheme, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
+			err = c.GitClient.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg, c.GitRepository.Scheme, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
 			if err != nil {
 				return err
 			}
 			c.Logger.Successf("file committed to repo: %s", file.Name)
 
 			c.Logger.Waitingf("reconciling changes")
-			if err := utils.ReconcileFlux(); err != nil {
+			if err := c.FluxClient.ReconcileFlux(); err != nil {
 				return err
 			}
 			c.Logger.Successf("changes are reconciled successfully!")

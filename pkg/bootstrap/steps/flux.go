@@ -49,8 +49,8 @@ func verifyFluxInstallation(input []StepInput, c *Config) ([]StepOutput, error) 
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("failed to parse flux repository: %v", err)
 	}
-	c.GitScheme = scheme
-	c.Logger.Successf("detected git scheme: %s", c.GitScheme)
+	c.GitRepository.Scheme = scheme
+	c.Logger.Successf("detected git scheme: %s", c.GitRepository.Scheme)
 
 	c.FluxInstallated = true
 

@@ -160,6 +160,9 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
+# -- Additional arguments to pass in to the gitops-server
+additionalArgs: []
+
 envVars:
   - name: WEAVE_GITOPS_FEATURE_TENANCY
     value: "true"

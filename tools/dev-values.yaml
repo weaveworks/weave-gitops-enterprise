@@ -45,6 +45,9 @@ extraEnvVars:
     value: "false"
   - name: BITBUCKET_SERVER_HOSTNAME
     value: "bitbucket.yiannis.net"
+  # un-comment when running under weave-gitops-enterprise under a subpath e.g /weave-gitops-enterprise
+  # - name: ROUTE_PREFIX
+  #   value: /weave-gitops-enterprise
 
 extraEnvVarsSecret: ""
 
@@ -62,3 +65,15 @@ global:
   capiEnabled: true
 
 enableNewPipelines: true
+
+# Enable ingress running under a path
+# Note:
+# Run INSTALL_NGINX_INGRESS=1 DELETE_GITOPS_DEV_REPO=1 ./tools/reboot.sh and tilt up
+# Open http://localhost:30080/weave-gitops-enterprise # access the weave-gitops-enterprise app
+ingress:
+  enabled: true
+  hosts:
+    - host: ""
+      paths:
+        - path: /weave-gitops-enterprise
+          pathType: Prefix

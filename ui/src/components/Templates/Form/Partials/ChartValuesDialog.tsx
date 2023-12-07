@@ -7,7 +7,7 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 import { Alert } from '@material-ui/lab';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
-import { ChangeEvent, FC, useContext, useState } from 'react';
+import { ChangeEvent, FC, useState } from 'react';
 import { useQuery } from 'react-query';
 import {
   ClusterNamespacedName,
@@ -16,12 +16,11 @@ import {
   GetValuesForChartResponse,
   RepositoryRef,
 } from '../../../../cluster-services/cluster_services.pb';
-import { EnterpriseClientContext } from '../../../../contexts/EnterpriseClient';
+import { useEnterpriseClient } from '../../../../contexts/API';
 import { UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_REPO } from '../../../../utils/config';
 import { Loader } from '../../../Loader';
 import { MuiDialogTitle } from '../../../Shared';
-
 
 const useStyles = makeStyles(() => ({
   textarea: {
@@ -51,11 +50,11 @@ const ChartValuesDialog: FC<{
   onDiscard,
 }) => {
   const classes = useStyles();
-  const { api } = useContext(EnterpriseClientContext);
+  const { clustersService } = useEnterpriseClient();
   const [yamlPreview, setYamlPreview] = useState<string>(yaml);
 
   const getConfigResp = useQuery<GetConfigResponse, Error>('config', () =>
-    api.GetConfig({}),
+    clustersService.GetConfig({}),
   );
 
   const {
@@ -65,7 +64,7 @@ const ChartValuesDialog: FC<{
   } = useQuery<GetValuesForChartResponse, Error>(
     `values-job-${profile.name}-${version}`,
     () =>
-      api.GetValuesForChart({
+      clustersService.GetValuesForChart({
         repository: {
           cluster: cluster || {
             name: getConfigResp?.data?.managementClusterName,
@@ -89,7 +88,7 @@ const ChartValuesDialog: FC<{
   >(
     `values-job-${jobData?.jobId}`,
     () =>
-      api.GetChartsJob({
+      clustersService.GetChartsJob({
         jobId: jobData?.jobId,
       }),
     {
