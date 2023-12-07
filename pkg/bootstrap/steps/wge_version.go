@@ -19,10 +19,11 @@ const (
 )
 
 var getVersionInput = StepInput{
-	Name:     inWGEVersion,
-	Type:     multiSelectionChoice,
-	Msg:      versionMsg,
-	Valuesfn: getWgeVersions,
+	Name:         inWGEVersion,
+	Type:         multiSelectionChoice,
+	Msg:          versionMsg,
+	Valuesfn:     getWgeVersions,
+	DefaultValue: "",
 }
 
 func NewSelectWgeVersionStep(config Config) BootstrapStep {

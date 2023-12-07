@@ -45,11 +45,9 @@ var Components = []string{"cluster-controller-manager",
 
 // NewInstallWGEStep step to install Weave GitOps Enterprise
 func NewInstallWGEStep() BootstrapStep {
-	inputs := []StepInput{}
-
 	return BootstrapStep{
 		Name:   "Install Weave GitOps Enterprise",
-		Input:  inputs,
+		Input:  []StepInput{},
 		Step:   installWge,
 		Verify: verifyComponents,
 	}
