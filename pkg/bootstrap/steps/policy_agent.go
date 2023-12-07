@@ -19,10 +19,9 @@ const (
 
 // NewInstallPolicyAgentStep creates the policy agent installation step
 func NewInstallPolicyAgentStep(config Config) BootstrapStep {
-	config.Logger.Warningf("please note that the Policy Agent requires cert-manager to be installed!")
 
 	if slices.Contains(config.ComponentsExtra.Existing, policyAgentController) {
-		config.Logger.Warningf("controller: %s is already installed", policyAgentController)
+		config.Logger.Warningf(" not installing %s: found in the cluster", policyAgentController)
 		return BootstrapStep{
 			Name:  "existing policy agent installation",
 			Input: []StepInput{},
@@ -40,6 +39,7 @@ func NewInstallPolicyAgentStep(config Config) BootstrapStep {
 // installPolicyAgent start installing policy agent helm chart
 func installPolicyAgent(input []StepInput, c *Config) ([]StepOutput, error) {
 	c.Logger.Actionf(policyAgentInstallInfoMsg)
+	c.Logger.Warningf(" please note that the Policy Agent requires cert-manager to be installed!")
 
 	// download agent file
 	bodyBytes, err := doBasicAuthGetRequest(agentControllerURL, "", "")

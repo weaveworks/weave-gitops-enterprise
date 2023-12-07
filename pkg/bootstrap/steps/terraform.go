@@ -22,7 +22,7 @@ const (
 // NewInstallTFControllerStep creates the terraform installation step
 func NewInstallTFControllerStep(config Config) BootstrapStep {
 	if slices.Contains(config.ComponentsExtra.Existing, tfController) {
-		config.Logger.Warningf("controller: %s is already installed", tfController)
+		config.Logger.Warningf(" not installing %s: found in the cluster", tfController)
 		return BootstrapStep{
 			Name:  "existing tf controller installation",
 			Input: []StepInput{},
