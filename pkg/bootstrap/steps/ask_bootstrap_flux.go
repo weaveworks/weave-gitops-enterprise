@@ -7,7 +7,7 @@ const (
 )
 
 var (
-	bootstrapFLuxQuestion = StepInput{
+	bootstrapFluxQuestion = StepInput{
 		Name:         inBootstrapFlux,
 		Type:         confirmInput,
 		Msg:          bootstrapFluxMsg,
@@ -18,10 +18,13 @@ var (
 
 // NewAskBootstrapFluxStep step for asking if user want to install flux using generic method
 func NewAskBootstrapFluxStep(config Config) BootstrapStep {
+	if config.BootstrapFlux {
+		bootstrapFluxQuestion.DefaultValue = confirmYes
+	}
 	return BootstrapStep{
 		Name: "bootstrap flux",
 		Input: []StepInput{
-			bootstrapFLuxQuestion,
+			bootstrapFluxQuestion,
 		},
 		Step: askBootstrapFlux,
 	}
@@ -51,5 +54,5 @@ func askBootstrapFlux(input []StepInput, c *Config) ([]StepOutput, error) {
 
 // canAskForGitConfig if fluxInstallation is false, then can ask for git config
 func canAskForFluxBootstrap(input []StepInput, c *Config) bool {
-	return !c.FluxInstallated && !c.Silent
+	return !c.FluxInstallated
 }

@@ -60,7 +60,7 @@ func TestAskBootstrapFlux(t *testing.T) {
 				Silent:          true,
 			},
 			err:    false,
-			canAsk: false,
+			canAsk: true,
 		},
 	}
 	for _, tt := range tests {
