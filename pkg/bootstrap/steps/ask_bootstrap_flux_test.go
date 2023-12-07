@@ -18,7 +18,7 @@ func TestAskBootstrapFlux(t *testing.T) {
 			name:  "check with flux installed",
 			input: []StepInput{},
 			config: &Config{
-				FluxInstallated: true,
+				FluxInstalled: true,
 			},
 			err:    false,
 			canAsk: false,
@@ -32,7 +32,7 @@ func TestAskBootstrapFlux(t *testing.T) {
 				},
 			},
 			config: &Config{
-				FluxInstallated: false,
+				FluxInstalled: false,
 			},
 			err:    true,
 			canAsk: true,
@@ -46,7 +46,7 @@ func TestAskBootstrapFlux(t *testing.T) {
 				},
 			},
 			config: &Config{
-				FluxInstallated: false,
+				FluxInstalled: false,
 			},
 			err:    false,
 			canAsk: true,
@@ -62,18 +62,33 @@ func TestAskBootstrapFlux(t *testing.T) {
 			err:    false,
 			canAsk: true,
 		},
+		{
+			name: "should error if not installed and export mode as not supported",
+			input: []StepInput{
+				{
+					Name:  inBootstrapFlux,
+					Value: "y",
+				},
+			},
+			config: &Config{
+				FluxInstalled: false,
+				ModesConfig: ModesConfig{
+					Export: true,
+				},
+			},
+			err:    true,
+			canAsk: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := makeTestConfig(t, *tt.config)
-
+			config := MakeTestConfig(t, *tt.config)
 			_, err := askBootstrapFlux(tt.input, &config)
-			if err != nil {
-				if tt.err {
-					return
-				}
-				t.Fatalf("unexpected error occurred: %v", err)
+			if tt.err {
+				assert.Error(t, err, "error expected")
+				return
 			}
+			assert.NoError(t, err, "error not expected")
 			ask := canAskForFluxBootstrap(tt.input, tt.config)
 			assert.Equal(t, tt.canAsk, ask, "mismatch result")
 

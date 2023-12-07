@@ -2,6 +2,7 @@ package steps
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
@@ -65,6 +66,7 @@ type ConfigBuilder struct {
 	privateKeyPath          string
 	privateKeyPassword      string
 	silent                  bool
+	export                  bool
 	gitUsername             string
 	gitToken                string
 	repoURL                 string
@@ -78,6 +80,7 @@ type ConfigBuilder struct {
 	PromptedForDiscoveryURL bool
 	bootstrapFlux           bool
 	componentsExtra         []string
+	writer                  io.Writer
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -133,7 +136,7 @@ func (c *ConfigBuilder) WithOIDCConfig(discoveryURL string, clientID string, cli
 	return c
 }
 
-func (c *ConfigBuilder) WithSilentFlag(silent bool) *ConfigBuilder {
+func (c *ConfigBuilder) WithSilent(silent bool) *ConfigBuilder {
 	c.silent = silent
 	return c
 }
@@ -148,6 +151,16 @@ func (c *ConfigBuilder) WithComponentsExtra(componentsExtra []string) *ConfigBui
 	return c
 }
 
+func (c *ConfigBuilder) WithExport(export bool) *ConfigBuilder {
+	c.export = export
+	return c
+}
+
+func (c *ConfigBuilder) WithWriter(writer io.Writer) *ConfigBuilder {
+	c.writer = writer
+	return c
+}
+
 // Config is the configuration struct to user for WGE installation. It includes
 // configuration values as well as other required structs like clients
 type Config struct {
@@ -159,12 +172,14 @@ type Config struct {
 
 	Logger logger.Logger
 
+	// Writer holds the output to write to
+	Output io.Writer
+
 	WGEVersion      string // user want this version in the cluster
 	ClusterUserAuth ClusterUserAuthConfig
+	ModesConfig     ModesConfig
 
-	Silent bool
-
-	FluxInstallated    bool
+	FluxInstalled      bool
 	PrivateKeyPath     string
 	PrivateKeyPassword string
 
@@ -197,6 +212,7 @@ type Config struct {
 // and checks the requirements for the environments.
 func (cb *ConfigBuilder) Build() (Config, error) {
 	l := cb.logger
+
 	l.Actionf("creating client to cluster")
 	kubeHttp, err := utils.GetKubernetesHttp(cb.kubeconfig)
 	if err != nil {
@@ -229,16 +245,20 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
-		KubernetesClient:        kubeHttp.Client,
-		GitClient:               &utils.GoGitClient{},
-		FluxClient:              &utils.CmdFluxClient{},
-		WGEVersion:              cb.wgeVersion,
-		ClusterUserAuth:         clusterUserAuthConfig,
-		GitRepository:           gitRepositoryConfig,
-		Branch:                  gitRepositoryConfig.Branch,
-		RepoPath:                gitRepositoryConfig.Path,
-		Logger:                  cb.logger,
-		Silent:                  cb.silent,
+		KubernetesClient: kubeHttp.Client,
+		GitClient:        &utils.GoGitClient{},
+		FluxClient:       &utils.CmdFluxClient{},
+		Output:           cb.writer,
+		WGEVersion:       cb.wgeVersion,
+		ClusterUserAuth:  clusterUserAuthConfig,
+		GitRepository:    gitRepositoryConfig,
+		Branch:           gitRepositoryConfig.Branch,
+		RepoPath:         gitRepositoryConfig.Path,
+		Logger:           cb.logger,
+		ModesConfig: ModesConfig{
+			Silent: cb.silent,
+			Export: cb.export,
+		},
 		RepoURL:                 cb.repoURL,
 		PrivateKeyPath:          cb.privateKeyPath,
 		PrivateKeyPassword:      cb.privateKeyPassword,

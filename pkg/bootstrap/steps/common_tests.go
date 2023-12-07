@@ -37,20 +37,21 @@ func (f fakeFluxClient) ReconcileHelmRelease(hrName string) error {
 	return nil
 }
 
-func makeTestConfig(t *testing.T, config Config, objects ...runtime.Object) Config {
+func MakeTestConfig(t *testing.T, config Config, objects ...runtime.Object) Config {
 	fakeClient := utils.CreateFakeClient(t, objects...)
-
 	cliLogger := utils.CreateLogger()
 
 	return Config{
 		KubernetesClient:        fakeClient,
 		GitClient:               fakeGitClient{},
 		FluxClient:              fakeFluxClient{},
+		Output:                  config.Output,
 		Logger:                  cliLogger,
 		WGEVersion:              config.WGEVersion,
+		ModesConfig:             config.ModesConfig,
 		ClusterUserAuth:         config.ClusterUserAuth,
 		GitRepository:           config.GitRepository,
-		FluxInstallated:         config.FluxInstallated,
+		FluxInstalled:           config.FluxInstalled,
 		PrivateKeyPath:          config.PrivateKeyPath,
 		PrivateKeyPassword:      config.PrivateKeyPassword,
 		GitUsername:             config.GitUsername,

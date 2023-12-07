@@ -8,11 +8,24 @@ const (
 )
 
 var (
-	CheckUIDomainStep = BootstrapStep{
+	checkUIDomainStep = BootstrapStep{
 		Name: "preparing dashboard domain",
 		Step: checkUIDomain,
 	}
+	checkUIDomainStepNotRequired = BootstrapStep{
+		Name: "checkUIDomainStepNotRequired",
+		Step: doNothingStep,
+	}
 )
+
+// NewCheckUIDomainStep creates step to verify WGE after bootstrapping.
+// It also returns whether is required to execute for example in the case of export mode that will not be.
+func NewCheckUIDomainStep(config ModesConfig) (step BootstrapStep, err error) {
+	if config.Export {
+		return checkUIDomainStepNotRequired, nil
+	}
+	return checkUIDomainStep, nil
+}
 
 // checkUIDomain display the message to be for external dns or localhost.
 func checkUIDomain(input []StepInput, c *Config) ([]StepOutput, error) {

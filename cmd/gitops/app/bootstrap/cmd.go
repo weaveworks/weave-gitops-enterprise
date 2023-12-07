@@ -21,25 +21,25 @@ const (
 - Authentication: check or setup cluster user authentication to access the dashboard.
 `
 	cmdExamples = `
-# Start WGE installation from the current kubeconfig
+# Run Weave GitOps Enterprise bootstrapping in interactive session creating resources to the cluster and the Git repo.
 gitops bootstrap
 
-# Start WGE installation from a specific kubeconfig
+# Run Weave GitOps Enterprise bootstrapping in non-interactive session. It uses values from flags and default values. It fails in case cannot complete the journey without asking the user. 
+gitops bootstrap --silent
+
+# Run Weave GitOps Enterprise bootstrapping in interactive session writing resources to stdout 
+gitops bootstrap --export  > bootstrap-weave-gitops-enterprise.yaml
+
+# Run Weave GitOps Enterprise bootstrapping from a specific Kubeconfig
 gitops bootstrap --kubeconfig <your-kubeconfig-location>
 
-# Start WGE installation with given admin 'password'
-gitops bootstrap --password=hell0!
+# Run Weave GitOps Enterprise bootstrapping with OIDC and Flux bootstrap with https
+gitops bootstrap --silent --version=<version> --password=<admin-password> --discovery-url=<oidc-discovery-url> --client-id=<oidc-client-id> --client-secret=<oidc-secret> --git-username=<git-username-https> -gitPassword=<gitPassword>--branch=<git-branch> --repo-path=<path-in-repo-for-management-cluster> --repo-url=https://<repo-url> 
 
-# Start WGE installation using OIDC
-gitops bootstrap --client-id <client-id> --client-secret <client-secret> --discovery-url <discovery-url>
+# Run Weave GitOps Enterprise bootstrapping with OIDC and flux bootstrap with ssh
+gitops bootstrap --silent --version=<version> --password=<admin-password> --discovery-url=<oidc-discovery-url> --client-id=<oidc-client-id> --client-secret=<oidc-secret> --private-key-path=<private-key-path> --private-key-password=<private-key-password> --branch=<git-branch> --repo-path=<path-in-repo-for-management-cluster> --repo-url=ssh://<repo-url>
 
-# Start WGE installation with OIDC and flux bootstrap with https
-gitops bootstrap --version=<version> --password=<admin-password> --discovery-url=<oidc-discovery-url> --client-id=<oidc-client-id> --git-username=<git-username-https> --gitPassword=<gitPassword> --bootstrap-flux --branch=<git-branch> --repo-path=<path-in-repo-for-management-cluster> --repo-url=https://<repo-url> --client-secret=<oidc-secret> -s
-
-# Start WGE installation with OIDC and flux bootstrap with ssh
-gitops bootstrap --version=<version> --password=<admin-password> --discovery-url=<oidc-discovery-url> --client-id=<oidc-client-id> --private-key-path=<private-key-path> --private-key-password=<private-key-password> --branch=<git-branch> --repo-path=<path-in-repo-for-management-cluster> --repo-url=ssh://<repo-url> --client-secret=<oidc-secret> -s
-
-# Start WGE installation with more than one extra controller 
+# Run Weave GitOps Enterprise bootstrapping with extra components 
 gitops bootstrap --components-extra="policy-agent,tf-controller"
 `
 )
@@ -68,6 +68,7 @@ type bootstrapFlags struct {
 
 	// modes flags
 	silent bool
+	export bool
 
 	// flux flag
 	bootstrapFlux bool
@@ -101,6 +102,7 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&flags.discoveryURL, "discovery-url", "", "", "OIDC discovery URL")
 	cmd.PersistentFlags().StringVarP(&flags.clientID, "client-id", "i", "", "OIDC client ID")
 	cmd.PersistentFlags().StringVarP(&flags.clientSecret, "client-secret", "", "", "OIDC client secret")
+	cmd.PersistentFlags().BoolVar(&flags.export, "export", false, "write to stdout the bootstrapping manifests without creating them in the cluster nor in git. Only works if Flux is bootstrapped.")
 	cmd.AddCommand(AuthCommand(opts))
 
 	return cmd
@@ -125,9 +127,11 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 				flags.gitPassword,
 			).
 			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, true).
-			WithSilentFlag(flags.silent).
 			WithBootstrapFluxFlag(flags.bootstrapFlux).
 			WithComponentsExtra(flags.componentsExtra).
+			WithSilent(flags.silent).
+			WithExport(flags.export).
+			WithWriter(cmd.OutOrStdout()).
 			Build()
 
 		if err != nil {
