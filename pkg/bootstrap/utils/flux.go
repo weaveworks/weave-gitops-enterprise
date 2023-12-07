@@ -49,18 +49,28 @@ func CreateHelmReleaseYamlString(hr helmv2.HelmRelease) (string, error) {
 					Version: hr.Spec.Chart.Spec.Version,
 				},
 			},
-			Install: &helmv2.Install{
-				CRDs:            hr.Spec.Install.CRDs,
-				CreateNamespace: hr.Spec.Install.CreateNamespace,
-			},
-			Upgrade: &helmv2.Upgrade{
-				CRDs: hr.Spec.Upgrade.CRDs,
-			},
 			Interval: v1.Duration{
 				Duration: hr.Spec.Interval.Duration,
 			},
 			Values: hr.Spec.Values,
 		},
+	}
+
+	if hr.Spec.Upgrade != nil {
+		helmRelease.Spec.Upgrade = &helmv2.Upgrade{
+			CRDs: hr.Spec.Upgrade.CRDs,
+		}
+	}
+
+	if hr.Spec.Install != nil {
+		helmRelease.Spec.Install = &helmv2.Install{
+			CRDs:            hr.Spec.Install.CRDs,
+			CreateNamespace: hr.Spec.Install.CreateNamespace,
+		}
+	}
+
+	if hr.Spec.TargetNamespace != "" {
+		helmRelease.Spec.TargetNamespace = hr.Spec.TargetNamespace
 	}
 
 	helmReleaseBytes, err := k8syaml.Marshal(helmRelease)
@@ -87,10 +97,13 @@ func CreateHelmRepositoryYamlString(helmRepo sourcev1.HelmRepository) (string, e
 			Interval: v1.Duration{
 				Duration: helmRepo.Spec.Interval.Duration,
 			},
-			SecretRef: &meta.LocalObjectReference{
-				Name: helmRepo.Spec.SecretRef.Name,
-			},
 		},
+	}
+
+	if helmRepo.Spec.SecretRef != nil {
+		repo.Spec.SecretRef = &meta.LocalObjectReference{
+			Name: helmRepo.Spec.SecretRef.Name,
+		}
 	}
 
 	repoBytes, err := k8syaml.Marshal(repo)

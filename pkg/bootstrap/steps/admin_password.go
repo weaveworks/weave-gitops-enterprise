@@ -13,13 +13,12 @@ import (
 const (
 	adminPasswordMsg                = "dashboard admin password (minimum characters: 6)"
 	secretConfirmationMsg           = "admin login credentials has been created successfully!"
-	adminSecretExistsErrorMsgFormat = "admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s'."
-	useExistingMessageFormat        = "using existing admin login credentials from secret '%s' in namespace '%s'. To reset admin credentials please remove the secret."
+	adminSecretExistsErrorMsgFormat = "admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s'"
+	useExistingMessageFormat        = " using existing admin login credentials from secret '%s' in namespace '%s'. To reset admin credentials please remove the secret"
 )
 
 const (
 	adminSecretName      = "cluster-user-auth"
-	confirmYes           = "y"
 	defaultAdminUsername = "wego-admin"
 )
 
