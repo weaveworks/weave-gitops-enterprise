@@ -1,20 +1,31 @@
 import { Flex, Link, Text } from '@weaveworks/weave-gitops';
-import _ from 'lodash';
 import styled from 'styled-components';
-import { Pipeline, Promotion } from '../../../api/pipelines/types.pb';
+import { Pipeline, Strategy } from '../../../api/pipelines/types.pb';
 import PromotePipeline from './PromotePipeline';
 import PromotionInfo from './PromotionInfo';
 import { EnvironmentCard } from './styles';
 import Target from './Target';
 
-const getStrategy = (promo?: Promotion) => {
-  if (!promo) return '-';
-  if (!promo.manual) return 'Automated';
-
-  const nonNullStrat = _.map(promo.strategy, (value, key) => {
-    if (value !== null) return key;
-  });
-  return _.startCase(nonNullStrat[0] || '-');
+const getEnvStrategy = (strategy?: Strategy) => {
+  if (strategy?.pullRequest) {
+    return {
+      strategy: 'Pull Request',
+      ...strategy?.pullRequest,
+    };
+  }
+  if (strategy?.notification) {
+    return {
+      strategy: 'Notification',
+    };
+  }
+  if (strategy?.secretRef) {
+    return {
+      strategy: 'Secret Ref',
+    };
+  }
+  return {
+    strategy: '-',
+  };
 };
 
 const EnvironmentContainer = styled(Flex)`
@@ -44,11 +55,7 @@ function Workloads({
         const status = targetsStatuses[env.name!].targetsStatuses || [];
         const promoteVersion =
           targetsStatuses[env.name!].waitingStatus?.revision || '';
-        const strategy = env.promotion
-          ? getStrategy(env.promotion)
-          : getStrategy(pipeline.promotion);
-        const { branch = '-', url = '-' } =
-          env.promotion?.strategy?.pullRequest || {};
+        const envStrategy = getEnvStrategy(env.promotion?.strategy);
 
         return (
           <EnvironmentContainer key={index} tall column gap="16">
@@ -63,24 +70,22 @@ function Workloads({
                 </Flex>
                 <Flex gap="8" wide start>
                   <Text bold>Strategy:</Text>
-                  <Text> {strategy}</Text>
+                  <Text> {envStrategy.strategy}</Text>
                 </Flex>
               </Flex>
-              <PromotionContainer column gap="12" wide>
-                {strategy === 'Pull Request' && (
+              {envStrategy.strategy === 'Pull Request' && (
+                <PromotionContainer column gap="12" wide>
                   <Flex column gap="8" wide start>
                     <Flex gap="8" wide start>
                       <Text bold>Branch:</Text>
-                      <Text> {branch}</Text>
+                      <Text> {envStrategy.branch}</Text>
                     </Flex>
                     <Flex gap="8" wide start>
                       <Text bold>URL:</Text>
-                      <Link to={url}>{url}</Link>
+                      <Link to={envStrategy.url}>{envStrategy.url}</Link>
                     </Flex>
                   </Flex>
-                )}
-                {strategy !== 'Automated' &&
-                  index < environments.length - 1 && (
+                  {promoteVersion && index < environments.length - 1 && (
                     <PromotePipeline
                       req={{
                         name: pipeline.name,
@@ -91,7 +96,8 @@ function Workloads({
                       promoteVersion={promoteVersion || ''}
                     />
                   )}
-              </PromotionContainer>
+                </PromotionContainer>
+              )}
             </EnvironmentCard>
             {status.map((target, indx) => (
               <Target key={indx} target={target} background={index} />
