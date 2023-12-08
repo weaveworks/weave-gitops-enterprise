@@ -2,11 +2,11 @@ import { renderHook } from '@testing-library/react-hooks';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Query } from '../../api/query/query.pb';
 import { APIs, EnterpriseClientContext } from '../../contexts/API';
-import { newMockQueryService } from '../../utils/test-utils';
+import { MockQueryService, newMockQueryService } from '../../utils/test-utils';
 import { formatFilters, useQueryService } from '../query';
 
 describe('useQueryService', () => {
-  let mock: ReturnType<typeof newMockQueryService>;
+  let mock: MockQueryService;
   let wrapper: ({ children }: any) => JSX.Element;
 
   beforeEach(() => {

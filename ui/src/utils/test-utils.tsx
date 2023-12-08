@@ -19,14 +19,9 @@ import {
   ListObjectsRequest,
   ListObjectsResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
-import _ from 'lodash';
+import _, { extend } from 'lodash';
 import React from 'react';
-import {
-  Query,
-  QueryCache,
-  QueryClient,
-  QueryClientProvider,
-} from 'react-query';
+import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import {
@@ -83,6 +78,7 @@ import {
   DoQueryResponse,
   ListEnabledComponentsResponse,
   ListEnabledComponentsRequest,
+  Query,
 } from '../api/query/query.pb';
 
 import Compose from '../components/ProvidersCompose';
@@ -446,6 +442,7 @@ export class SecretsClientMock {
   }
 }
 
+export type MockQueryService = ReturnType<typeof newMockQueryService>;
 export function newMockQueryService() {
   return class {
     static DoQueryReturns: DoQueryResponse = {};
