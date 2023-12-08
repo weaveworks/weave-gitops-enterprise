@@ -81,6 +81,8 @@ import {
   ListFacetsResponse,
   DoQueryRequest,
   DoQueryResponse,
+  ListEnabledComponentsResponse,
+  ListEnabledComponentsRequest,
 } from '../api/query/query.pb';
 
 import Compose from '../components/ProvidersCompose';
@@ -444,28 +446,41 @@ export class SecretsClientMock {
   }
 }
 
-export class MockQueryService {
-  DoQueryReturns: DoQueryResponse = {};
-  DebugGetAccessRulesReturns: DebugGetAccessRulesResponse = {};
-  ListFacetsReturns: ListFacetsResponse = {};
+export function newMockQueryService() {
+  return class {
+    static DoQueryReturns: DoQueryResponse = {};
+    static DebugGetAccessRulesReturns: DebugGetAccessRulesResponse = {};
+    static ListFacetsReturns: ListFacetsResponse = {};
+    static ListEnabledComponentsReturns: ListEnabledComponentsResponse = {};
 
-  DoQuery(req: DoQueryRequest, initReq?: any): Promise<DoQueryResponse> {
-    return promisify(this.DoQueryReturns);
-  }
+    static ListEnabledComponents(
+      req: ListEnabledComponentsRequest,
+      initReq?: any,
+    ): Promise<ListEnabledComponentsResponse> {
+      return promisify(this.ListEnabledComponentsReturns);
+    }
 
-  DebugGetAccessRules(
-    req: DebugGetAccessRulesRequest,
-    initReq?: any,
-  ): Promise<DebugGetAccessRulesResponse> {
-    return promisify(this.DebugGetAccessRulesReturns);
-  }
+    static DoQuery(
+      req: DoQueryRequest,
+      initReq?: any,
+    ): Promise<DoQueryResponse> {
+      return promisify(this.DoQueryReturns);
+    }
 
-  ListFacets(
-    req: ListFacetsRequest,
-    initReq?: any,
-  ): Promise<ListFacetsResponse> {
-    return promisify(this.ListFacetsReturns);
-  }
+    static DebugGetAccessRules(
+      req: DebugGetAccessRulesRequest,
+      initReq?: any,
+    ): Promise<DebugGetAccessRulesResponse> {
+      return promisify(this.DebugGetAccessRulesReturns);
+    }
+
+    static ListFacets(
+      req: ListFacetsRequest,
+      initReq?: any,
+    ): Promise<ListFacetsResponse> {
+      return promisify(this.ListFacetsReturns);
+    }
+  };
 }
 
 export function findCellInCol(cell: string, tableSelector: string) {

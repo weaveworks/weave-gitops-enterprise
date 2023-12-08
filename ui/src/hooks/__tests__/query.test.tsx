@@ -1,23 +1,30 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import { EnterpriseClientContext } from '../../contexts/API';
-import { MockQueryService } from '../../utils/test-utils';
+import { Query } from '../../api/query/query.pb';
+import { APIs, EnterpriseClientContext } from '../../contexts/API';
+import { newMockQueryService } from '../../utils/test-utils';
 import { formatFilters, useQueryService } from '../query';
 
 describe('useQueryService', () => {
-  let mock: MockQueryService;
+  let mock: ReturnType<typeof newMockQueryService>;
   let wrapper: ({ children }: any) => JSX.Element;
 
   beforeEach(() => {
-    mock = new MockQueryService();
+    mock = newMockQueryService();
 
-    wrapper = ({ children }: any) => (
-      <QueryClientProvider client={new QueryClient()}>
-        <EnterpriseClientContext.Provider value={{ query: mock }}>
-          {children}
-        </EnterpriseClientContext.Provider>
-      </QueryClientProvider>
-    );
+    wrapper = ({ children }: any) => {
+      const query: Query = mock;
+      return (
+        <QueryClientProvider client={new QueryClient()}>
+          <EnterpriseClientContext.Provider
+            // ignore that we don't provide the other apis
+            value={{ query } as unknown as APIs}
+          >
+            {children}
+          </EnterpriseClientContext.Provider>
+        </QueryClientProvider>
+      );
+    };
   });
   it('does an OR within a filter field', () => {
     mock.DoQueryReturns = {

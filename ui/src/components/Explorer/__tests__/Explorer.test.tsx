@@ -7,7 +7,7 @@ import {
 import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   defaultContexts,
-  MockQueryService,
+  newMockQueryService,
   withContext,
 } from '../../../utils/test-utils';
 import Explorer from '../Explorer';
@@ -46,10 +46,10 @@ describe('addExplorerFields', () => {
 
 describe('Explorer', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
-  let api: MockQueryService;
+  let api: ReturnType<typeof newMockQueryService>;
 
   beforeEach(() => {
-    api = new MockQueryService();
+    api = newMockQueryService();
     wrap = withContext([
       ...defaultContexts(),
       [EnterpriseClientContext.Provider, { value: { query: api } }],
