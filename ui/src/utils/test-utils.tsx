@@ -442,12 +442,17 @@ export class SecretsClientMock {
   }
 }
 
-export type MockQueryService = ReturnType<typeof newMockQueryService>;
+export type MockQueryService = typeof Query & {
+  DoQueryReturns: DoQueryResponse;
+  DebugGetAccessRulesReturns: DebugGetAccessRulesResponse;
+  ListFacetsReturns: ListFacetsResponse;
+  ListEnabledComponentsReturns: ListEnabledComponentsResponse;
+};
 
-// Our Query service is a class with static methods
+// Our Query service is a class with static methods.
 // The mock will be mutated between tests, so to keep the tests
-// consistent we need to create a new instance for each test.
-export function newMockQueryService() {
+// consistent we need to create a new class instance for each test.
+export function newMockQueryService(): MockQueryService {
   return class {
     static DoQueryReturns: DoQueryResponse = {};
     static DebugGetAccessRulesReturns: DebugGetAccessRulesResponse = {};

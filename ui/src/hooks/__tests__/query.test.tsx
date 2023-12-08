@@ -1,6 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import { Query } from '../../api/query/query.pb';
 import { APIs, EnterpriseClientContext } from '../../contexts/API';
 import { MockQueryService, newMockQueryService } from '../../utils/test-utils';
 import { formatFilters, useQueryService } from '../query';
@@ -12,19 +11,16 @@ describe('useQueryService', () => {
   beforeEach(() => {
     mock = newMockQueryService();
 
-    wrapper = ({ children }: any) => {
-      const query: typeof Query = mock;
-      return (
-        <QueryClientProvider client={new QueryClient()}>
-          <EnterpriseClientContext.Provider
-            // ignore that we don't provide the other apis
-            value={{ query } as unknown as APIs}
-          >
-            {children}
-          </EnterpriseClientContext.Provider>
-        </QueryClientProvider>
-      );
-    };
+    wrapper = ({ children }: any) => (
+      <QueryClientProvider client={new QueryClient()}>
+        <EnterpriseClientContext.Provider
+          // We are supplied an incomplete API set here
+          value={{ query: mock } as unknown as APIs}
+        >
+          {children}
+        </EnterpriseClientContext.Provider>
+      </QueryClientProvider>
+    );
   });
   it('does an OR within a filter field', () => {
     mock.DoQueryReturns = {
