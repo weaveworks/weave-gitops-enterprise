@@ -13,7 +13,7 @@ describe('useQueryService', () => {
     mock = newMockQueryService();
 
     wrapper = ({ children }: any) => {
-      const query: Query = mock;
+      const query: typeof Query = mock;
       return (
         <QueryClientProvider client={new QueryClient()}>
           <EnterpriseClientContext.Provider

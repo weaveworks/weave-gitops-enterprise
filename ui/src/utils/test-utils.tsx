@@ -443,6 +443,10 @@ export class SecretsClientMock {
 }
 
 export type MockQueryService = ReturnType<typeof newMockQueryService>;
+
+// Our Query service is a class with static methods
+// The mock will be mutated between tests, so to keep the tests
+// consistent we need to create a new instance for each test.
 export function newMockQueryService() {
   return class {
     static DoQueryReturns: DoQueryResponse = {};
