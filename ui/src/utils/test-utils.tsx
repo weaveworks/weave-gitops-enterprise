@@ -19,7 +19,7 @@ import {
   ListObjectsRequest,
   ListObjectsResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
-import _, { extend } from 'lodash';
+import _ from 'lodash';
 import React from 'react';
 import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -72,20 +72,20 @@ import {
 import {
   DebugGetAccessRulesRequest,
   DebugGetAccessRulesResponse,
-  ListFacetsRequest,
-  ListFacetsResponse,
   DoQueryRequest,
   DoQueryResponse,
-  ListEnabledComponentsResponse,
   ListEnabledComponentsRequest,
+  ListEnabledComponentsResponse,
+  ListFacetsRequest,
+  ListFacetsResponse,
   Query,
 } from '../api/query/query.pb';
 
 import Compose from '../components/ProvidersCompose';
+import { EnterpriseClientProvider } from '../contexts/API';
 import NotificationProvider from '../contexts/Notifications/Provider';
 import RequestContextProvider from '../contexts/Request';
 import { muiTheme } from '../muiTheme';
-import { EnterpriseClientProvider } from '../contexts/API';
 
 export type RequestError = Error & {
   code?: number;
