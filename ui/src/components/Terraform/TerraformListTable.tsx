@@ -21,15 +21,8 @@ type Props = {
 
 export const getLastApplied = (tf: TerraformObject) => {
   const timestamp = _.find(tf?.conditions, { type: 'Apply' })?.timestamp;
-  if (!timestamp) {
-    return '-';
-  }
-
-  try {
-    return new Date(timestamp).toISOString();
-  } catch (e) {
-    return '-';
-  }
+  if (!timestamp) return '-';
+  return new Date(timestamp).toISOString();
 };
 
 function TerraformListTable({ className, rows }: Props) {
