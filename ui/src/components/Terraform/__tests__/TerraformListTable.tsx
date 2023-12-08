@@ -16,7 +16,7 @@ describe('getLastApplied', () => {
     expect(getLastApplied(obj)).toBe('2021-08-11T14:23:39.000Z');
   });
 
-  it('should returning "-" if no timestamp', () => {
+  it('should return "-" if no timestamp', () => {
     const obj2: TerraformObject = {
       conditions: [
         {
@@ -28,12 +28,12 @@ describe('getLastApplied', () => {
     expect(getLastApplied(obj2)).toBe('-');
   });
 
-  it('should returning "-" if no conditions', () => {
+  it('should return "-" if no conditions', () => {
     const obj3: TerraformObject = {};
     expect(getLastApplied(obj3)).toBe('-');
   });
 
-  it('should returning "-" if no conditions with type Apply', () => {
+  it('should return "-" if no conditions with type Apply', () => {
     const obj4: TerraformObject = {
       conditions: [
         {
@@ -46,7 +46,7 @@ describe('getLastApplied', () => {
     expect(getLastApplied(obj4)).toBe('-');
   });
 
-  it('should returning "-" if the timestamp is not valid', () => {
+  it('should return "-" if the timestamp is not valid', () => {
     const obj5: TerraformObject = {
       conditions: [
         {
