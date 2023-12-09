@@ -160,6 +160,9 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
+# -- Additional arguments to pass in to the gitops-server
+additionalArgs: []
+
 envVars:
   - name: WEAVE_GITOPS_FEATURE_TENANCY
     value: "true"
@@ -204,7 +207,10 @@ cluster-controller:
     manager:
       image:
         repository: docker.io/weaveworks/cluster-controller
-        tag: v1.5.2
+        tag: v1.5.5
+
+cluster-reflector-controller:
+  enabled: false
 
 cluster-bootstrap-controller:
   enabled: true
@@ -219,7 +225,7 @@ cluster-bootstrap-controller:
 
 #### Explorer
 explorer:
-  enabled: false
+  enabled: true
   collector:
     # ServiceAccount that explorer will use to watch clusters for resources
     serviceAccount:
@@ -228,7 +234,8 @@ explorer:
   cleaner:
     disabled: false
   enabledFor:
-    - applications
-    - sources
+#    - applications
+#    - sources
     - gitopssets
     - templates
+#    - clusterdiscovery

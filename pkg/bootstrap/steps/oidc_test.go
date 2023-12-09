@@ -179,7 +179,6 @@ func TestCreateOIDCConfig(t *testing.T) {
 			config := Config{
 				Logger:           cliLogger,
 				KubernetesClient: fakeClient,
-				DomainType:       "localhost",
 			}
 
 			out, err := createOIDCConfig(tt.input, &config)

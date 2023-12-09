@@ -16,32 +16,28 @@ import {
   RequestStateHandler,
   RouterTab,
   SubRouterTabs,
+  useGetInventory,
   SyncControls,
   YamlView,
 } from '@weaveworks/weave-gitops';
-import { GroupVersionKind } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import * as React from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 // Importing this solves a problem with the YAML library not being found.
 // @ts-ignore
-import * as YAML from 'yaml/browser/dist/index.js';
-import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
+import { Condition } from '../../api/gitopssets/types.pb';
 import useNotifications from '../../contexts/Notifications';
 import {
   useGetGitOpsSet,
-  useGetReconciledTree,
   useSyncGitOpsSet,
   useToggleSuspendGitOpsSet,
 } from '../../hooks/gitopssets';
 import { RequestError } from '../../types/custom';
-import { getLabels, getMetadata } from '../../utils/formatters';
 import { Routes } from '../../utils/nav';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import ListEvents from '../ListEvents';
 import { TableWrapper } from '../Shared';
-import { getInventory } from '.';
 
 type Props = {
   className?: string;
@@ -117,25 +113,19 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
       .finally(() => setSuspending(false));
   };
 
-  const { data: gitOpsSet, isLoading: gitOpsSetLoading } = useGetGitOpsSet({
+  const { data: gs, isLoading: gitOpsSetLoading } = useGetGitOpsSet({
     name,
     namespace,
     clusterName,
   });
 
-  const gs = gitOpsSet?.gitopsSet;
-
   const {
-    data: objects,
+    data: invData,
     isLoading,
     error,
-  } = useGetReconciledTree(
-    gs?.name || '',
-    gs?.namespace || '',
-    (getInventory(gs) as GroupVersionKind[]) || [],
-    gs?.clusterName || '',
-  );
+  } = useGetInventory('GitOpsSet', name, clusterName, namespace, true);
 
+  const objects = invData?.objects;
   const initialFilterState = {
     ...filterConfig(objects, 'type'),
     ...filterConfig(objects, 'namespace'),
@@ -149,7 +139,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   }
 
   const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
-    source: gs.objectRef || ({} as ObjectRef),
+    source: { clusterName, name, namespace, kind: 'GitOpsSet' },
     name: gs.name || '',
     namespace: gs.namespace || '',
     suspended: gs.suspended || false,
@@ -198,12 +188,12 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
               <InfoList
                 data-testid="info-list"
                 items={[
-                  ['Observed generation', gs?.observedGeneration],
+                  ['Observed generation', gs?.obj?.status?.observedGeneration],
                   ['Cluster', gs?.clusterName],
                   ['Suspended', suspended ? 'True' : 'False'],
                 ]}
               />
-              <Metadata metadata={getMetadata(gs)} labels={getLabels(gs)} />
+              <Metadata metadata={gs.metadata} labels={gs.labels} />
               <TableWrapper>
                 <RequestStateHandler
                   loading={isLoading}
@@ -243,8 +233,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <YamlView
-              yaml={YAML.stringify(JSON.parse(gs?.yaml || ('' as string)))}
-              type="GitOpsSet"
+              yaml={gs.yaml}
               header={createYamlCommand(gs?.type, gs?.name, gs?.namespace)}
             />
           </RouterTab>

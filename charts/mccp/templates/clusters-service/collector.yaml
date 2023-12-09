@@ -35,6 +35,9 @@ rules:
   - apiGroups: ["templates.weave.works"]
     resources: ["gitopstemplates"]
     verbs: ["get", "watch", "list"]
+  - apiGroups: ["clusters.weave.works"]
+    resources: ["automatedclusterdiscoveries"]
+    verbs: ["get", "watch", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

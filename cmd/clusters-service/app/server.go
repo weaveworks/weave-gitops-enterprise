@@ -36,6 +36,7 @@ import (
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	clusterreflectorv1alpha1 "github.com/weaveworks/cluster-reflector-controller/api/v1alpha1"
 	gitopssetsv1alpha1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
@@ -57,7 +58,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	gitauth_server "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
-	gitopssets "github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring"
@@ -127,6 +127,7 @@ type Params struct {
 	HelmRepoName                      string                    `mapstructure:"helm-repo-name"`
 	ProfileCacheLocation              string                    `mapstructure:"profile-cache-location"`
 	HtmlRootPath                      string                    `mapstructure:"html-root-path"`
+	RoutePrefix                       string                    `mapstructure:"route-prefix"`
 	OIDC                              OIDCAuthenticationOptions `mapstructure:",squash"`
 	GitProviderType                   string                    `mapstructure:"git-provider-type"`
 	GitProviderHostname               string                    `mapstructure:"git-provider-hostname"`
@@ -162,7 +163,7 @@ type Params struct {
 	MonitoringBindAddress             string                    `mapstructure:"monitoring-bind-address"`
 	MetricsEnabled                    bool                      `mapstructure:"monitoring-metrics-enabled"`
 	ProfilingEnabled                  bool                      `mapstructure:"monitoring-profiling-enabled"`
-	EnableObjectCleaner               bool                      `mapstructure:"enable-object-cleaner"`
+	ExplorerCleanerDisabled           bool                      `mapstructure:"explorer-cleaner-disabled"`
 	NoAuthUser                        string                    `mapstructure:"insecure-no-authentication-user"`
 	ExplorerEnabledFor                []string                  `mapstructure:"explorer-enabled-for"`
 }
@@ -218,6 +219,7 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
 	cmdFlags.String("helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
 	cmdFlags.String("profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
+	cmdFlags.String("route-prefix", "", "Mount the UI and API endpoint under a path prefix, e.g. /weave-gitops-enterprise")
 	cmdFlags.String("html-root-path", "/html", "Where to serve static assets from")
 	cmdFlags.String("git-provider-type", "", "")
 	cmdFlags.String("git-provider-hostname", "", "")
@@ -530,12 +532,21 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 	}
 
 	healthChecker := health.NewHealthChecker()
-
 	coreCfg, err := core_core.NewCoreConfig(
 		log, rest, clusterName, clustersManager, healthChecker,
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not create core config: %w", err)
+	}
+
+	err = coreCfg.PrimaryKinds.Add("GitOpsSet", gitopssetsv1alpha1.GroupVersion.WithKind("GitOpsSet"))
+	if err != nil {
+		return fmt.Errorf("failed to add GitOpsSet primary kind: %w", err)
+	}
+
+	err = coreCfg.PrimaryKinds.Add("AutomatedClusterDiscovery", clusterreflectorv1alpha1.GroupVersion.WithKind("AutomatedClusterDiscovery"))
+	if err != nil {
+		return fmt.Errorf("could not add AutomatedClusterDiscovery to primary kinds: %w", err)
 	}
 
 	sessionManager := scs.New()
@@ -577,8 +588,9 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		WithPipelineControllerAddress(p.PipelineControllerAddress),
 		WithCollectorServiceAccount(p.CollectorServiceAccountName, p.CollectorServiceAccountNamespace),
 		WithMonitoring(p.MonitoringEnabled, p.MonitoringBindAddress, p.MetricsEnabled, p.ProfilingEnabled, log),
-		WithObjectCleaner(p.EnableObjectCleaner),
+		WithExplorerCleanerDisabled(p.ExplorerCleanerDisabled),
 		WithExplorerEnabledFor(p.ExplorerEnabledFor),
+		WithRoutePrefix(p.RoutePrefix),
 	)
 }
 
@@ -698,7 +710,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			SkipCollection:      false,
 			ObjectKinds:         configuration.SupportedObjectKinds,
 			ServiceAccount:      args.CollectorServiceAccount,
-			EnableObjectCleaner: args.EnableObjectCleaner,
+			EnableObjectCleaner: !args.ExplorerCleanerDisabled,
 			EnabledFor:          args.ExplorerEnabledFor,
 		})
 		if err != nil {
@@ -729,13 +741,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		}
 	}
 
-	if err := gitopssets.Hydrate(ctx, grpcMux, gitopssets.ServerOpts{
-		Logger:         args.Log,
-		ClientsFactory: args.ClustersManager,
-	}); err != nil {
-		return fmt.Errorf("hydrating gitopssets server: %w", err)
-	}
-
 	if err := preview.Hydrate(ctx, grpcMux, preview.ServerOpts{
 		Logger:          args.Log,
 		ProviderCreator: git.NewFactory(args.Log),
@@ -745,7 +750,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	// UI
 	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
-	staticAssets := http.StripPrefix("/", http.FileServer(&spaFileSystem{http.Dir(args.HtmlRootPath)}))
+
+	assetFS := os.DirFS(args.HtmlRootPath)
+	assertFSHandler := http.FileServer(http.FS(assetFS))
+	redirectHandler := core.IndexHTMLHandler(assetFS, args.Log, args.RoutePrefix)
+	assetHandler := core.AssetHandler(assertFSHandler, redirectHandler)
 
 	mux := http.NewServeMux()
 
@@ -857,9 +866,13 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
 
-	staticAssetsWithGz := gziphandler.GzipHandler(staticAssets)
+	staticAssetsWithGz := gziphandler.GzipHandler(assetHandler)
 
 	mux.Handle("/", staticAssetsWithGz)
+
+	if args.RoutePrefix != "" {
+		mux = core.WithRoutePrefix(mux, args.RoutePrefix)
+	}
 
 	handler := http.Handler(mux)
 	handler = args.SessionManager.LoadAndSave(handler)
@@ -1024,18 +1037,6 @@ func defaultOptions() *Options {
 	return &Options{
 		Log: logr.Discard(),
 	}
-}
-
-type spaFileSystem struct {
-	root http.FileSystem
-}
-
-func (fs *spaFileSystem) Open(name string) (http.File, error) {
-	f, err := fs.root.Open(name)
-	if os.IsNotExist(err) {
-		return fs.root.Open("index.html")
-	}
-	return f, err
 }
 
 func makeCostEstimator(ctx context.Context, log logr.Logger, p Params) (estimation.Estimator, error) {

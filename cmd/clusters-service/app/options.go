@@ -40,6 +40,7 @@ type Options struct {
 	CAPIClustersNamespace     string
 	CAPIEnabled               bool
 	EntitlementSecretKey      client.ObjectKey
+	RoutePrefix               string
 	HtmlRootPath              string
 	ClientGetter              kube.ClientGetter
 	AuthMethods               map[auth.AuthMethod]bool
@@ -59,7 +60,7 @@ type Options struct {
 	PipelineControllerAddress string
 	CollectorServiceAccount   collector.ImpersonateServiceAccount
 	MonitoringOptions         monitoring.Options
-	EnableObjectCleaner       bool
+	ExplorerCleanerDisabled   bool
 	ExplorerEnabledFor        []string
 }
 
@@ -285,10 +286,10 @@ func WithMonitoring(enabled bool, address string, metricsEnabled bool, profiling
 	}
 }
 
-// WithObjectCleaner enables the object cleaner
-func WithObjectCleaner(enabled bool) Option {
+// WithExplorerCleanerDisabled configures the object cleaner
+func WithExplorerCleanerDisabled(disabled bool) Option {
 	return func(o *Options) {
-		o.EnableObjectCleaner = enabled
+		o.ExplorerCleanerDisabled = disabled
 	}
 }
 
@@ -296,5 +297,11 @@ func WithObjectCleaner(enabled bool) Option {
 func WithExplorerEnabledFor(enabledFor []string) Option {
 	return func(o *Options) {
 		o.ExplorerEnabledFor = append(o.ExplorerEnabledFor, enabledFor...)
+	}
+}
+
+func WithRoutePrefix(routePrefix string) Option {
+	return func(o *Options) {
+		o.RoutePrefix = routePrefix
 	}
 }

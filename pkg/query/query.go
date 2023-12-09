@@ -7,6 +7,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/logger"
 
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -15,7 +16,7 @@ import (
 // QueryService is an all-in-one service that handles managing a collector, writing to the store, and responding to queries
 type QueryService interface {
 	RunQuery(ctx context.Context, q store.Query, opts store.QueryOption) ([]models.Object, error)
-	ListFacets(ctx context.Context) (store.Facets, error)
+	ListFacets(ctx context.Context, cat configuration.ObjectCategory) (store.Facets, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
 }
 
@@ -75,7 +76,7 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 	if principal == nil {
 		return nil, fmt.Errorf("principal not found")
 	}
-	q.debug.Info("query received", "query", query, "principal", principal.ID)
+	q.debug.Info("query received", "filters", query.GetFilters(), "terms", query.GetTerms(), "principal", principal.ID)
 
 	roles, err := q.r.GetRoles(ctx)
 	if err != nil {
@@ -146,6 +147,6 @@ func (q *qs) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
 	return q.r.GetAccessRules(ctx)
 }
 
-func (q *qs) ListFacets(ctx context.Context) (store.Facets, error) {
-	return q.index.ListFacets(ctx)
+func (q *qs) ListFacets(ctx context.Context, cat configuration.ObjectCategory) (store.Facets, error) {
+	return q.index.ListFacets(ctx, cat)
 }

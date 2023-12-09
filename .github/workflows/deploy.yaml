@@ -165,7 +165,7 @@ jobs:
           TAG=$(git describe --always --match "v*" --abbrev=7 | sed 's/^[^0-9]*//' ) 
           echo "tag=$TAG" >> $GITHUB_OUTPUT
       - name: Run playwright tests workflow
-        uses: convictional/trigger-workflow-and-wait@v1.6.1
+        uses: convictional/trigger-workflow-and-wait@f69fa9eedd3c62a599220f4d5745230e237904be #v1.6.5
         with:
           owner: weaveworks
           repo: playwright-tests
@@ -186,10 +186,9 @@ jobs:
     with:
       runs-on: ubuntu-latest
       junit-results-glob-pattern: "*smoke-tests*.xml"
-      check-name: "Smoke Tests"
-      slack-notification: false
+      slack-notification: true
     secrets:
-      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      SLACK_BOT_TOKEN: ${{ secrets.WEAVEWORKS_SLACK_GENERICBOT_TOKEN }}
 
   notify-failure:
     name: Notify Slack on Failure

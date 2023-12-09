@@ -2,37 +2,21 @@ import {
   GetCanaryResponse,
   ListCanariesResponse,
   ListCanaryObjectsResponse,
-  ProgressiveDeliveryService
 } from '@weaveworks/progressive-delivery';
 import _ from 'lodash';
-import React, { useContext } from 'react';
 import { useQuery } from 'react-query';
 import {
   ListEventsRequest,
-  ListEventsResponse
+  ListEventsResponse,
 } from '../../cluster-services/cluster_services.pb';
 import { formatError } from '../../utils/formatters';
-import { EnterpriseClientContext } from '../EnterpriseClient';
+import { useEnterpriseClient } from '../API';
 import useNotifications from './../../contexts/Notifications';
 
-interface Props {
-  api: typeof ProgressiveDeliveryService;
-  children: any;
-}
-
-export const ProgressiveDeliveryContext = React.createContext<
-  typeof ProgressiveDeliveryService
->(null as any);
-
-export const ProgressiveDeliveryProvider = ({ api, children }: Props) => (
-  <ProgressiveDeliveryContext.Provider value={api}>
-    {children}
-  </ProgressiveDeliveryContext.Provider>
-);
-
-export const useProgressiveDelivery = () =>
-  React.useContext(ProgressiveDeliveryContext);
-
+export const useProgressiveDelivery = () => {
+  const { progressiveDeliveryService } = useEnterpriseClient();
+  return progressiveDeliveryService;
+};
 const PD_QUERY_KEY = 'flagger';
 const FLAGGER_STATUS_KEY = 'status';
 
@@ -104,13 +88,13 @@ export const useListFlaggerObjects = (params: CanaryParams) => {
 const EVENTS_QUERY_KEY = 'events';
 
 export function useListEvents(req: ListEventsRequest) {
-  const { api } = useContext(EnterpriseClientContext);
+  const { clustersService } = useEnterpriseClient();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
 
   return useQuery<ListEventsResponse, Error>(
     [EVENTS_QUERY_KEY, req],
-    () => api.ListEvents(req),
+    () => clustersService.ListEvents(req),
     {
       onError,
       refetchInterval: 5000,

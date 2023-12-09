@@ -118,11 +118,12 @@ message Subject {
 }
 
 message ListFacetsRequest {
-
+    string category = 1;
 }
 
 message ListFacetsResponse {
-    repeated Facet facets = 1;
+    repeated   Facet facets                   = 1;
+    map<string, string> human_readable_labels = 2;
 }
 
 message Facet {
@@ -132,11 +133,12 @@ message Facet {
 
 // EnabledComponent represents a component of the UI that can be enabled or disabled
 enum EnabledComponent {
-    unknown      = 0;
-    applications = 1;
-    sources      = 2;
-    gitopssets   = 3;
-    templates    = 4;
+    unknown          = 0;
+    applications     = 1;
+    sources          = 2;
+    gitopssets       = 3;
+    templates        = 4;
+    clusterdiscovery = 5;
 }
 
 message ListEnabledComponentsRequest {

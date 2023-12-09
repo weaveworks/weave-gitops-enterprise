@@ -167,7 +167,7 @@ func createGitRepository(gp GitProviderEnv, branch string, private bool) error {
 		visibility = gitprovider.RepositoryVisibilityPrivate
 	}
 
-	description := "Weave Gitops enterprise test repository"
+	description := "Weave GitOps enterprise test repository"
 	defaultBranch := branch
 	repoInfo := gitprovider.RepositoryInfo{
 		Description:   &description,

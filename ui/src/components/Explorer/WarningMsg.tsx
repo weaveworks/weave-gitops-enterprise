@@ -1,11 +1,6 @@
-import {
-    Button,
-    Flex,
-    MessageBox,
-    Text
-} from '@weaveworks/weave-gitops';
-import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
-import { LinkTag } from '../../Shared';
+import { Button, Flex, MessageBox, Text } from '@weaveworks/weave-gitops';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { LinkTag } from '../Shared';
 
 const WarningMsg = () => {
   return (
@@ -18,7 +13,7 @@ const WarningMsg = () => {
             </Text>
             <Text size="medium" capitalize>
               the explorer service is disabled and it's required to view the
-              audit logs.
+              Page.
             </Text>
             <Flex wide align center>
               <LinkTag

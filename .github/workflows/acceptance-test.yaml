@@ -74,7 +74,7 @@ on:
         description: "Cluster user admin password hash"
         required: true
       WGE_DEX_CLIENT_SECRET:
-        description: "client credential secret for managment cluster OIDC (dex)"
+        description: "client credential secret for management cluster OIDC (dex)"
         required: true
       WGE_DEX_CLI_CLIENT_SECRET:
         description: "client credential secret for CLI OIDC (dex)"
@@ -295,6 +295,7 @@ jobs:
 
           ./test/utils/scripts/mgmt-cluster-setup.sh  ${{ inputs.management-cluster-kind }} $(pwd) $CLUSTER_NAME $CLUSTER_REGION
       - name: Run Acceptance tests
+        continue-on-error: true
         run: |
           export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
 

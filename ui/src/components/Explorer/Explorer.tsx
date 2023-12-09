@@ -8,7 +8,10 @@ import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Facet } from '../../api/query/query.pb';
 import { useListFacets, useQueryService } from '../../hooks/query';
-import ExplorerTable, { FieldWithIndex } from './ExplorerTable';
+import ExplorerTable, {
+  ExplorerField,
+  defaultExplorerFields,
+} from './ExplorerTable';
 import FilterDrawer from './FilterDrawer';
 import Filters from './Filters';
 import {
@@ -23,11 +26,15 @@ import { QueryStateManager, URLQueryStateManager } from './QueryStateManager';
 
 type Props = {
   className?: string;
-  category?: 'automation' | 'source' | 'gitopsset' | 'template';
+  category?:
+    | 'automation'
+    | 'source'
+    | 'gitopsset'
+    | 'template'
+    | 'clusterdiscovery';
   enableBatchSync?: boolean;
   manager?: QueryStateManager;
-  extraColumns?: FieldWithIndex[];
-  linkToObject?: boolean;
+  fields?: ExplorerField[];
 };
 
 function Explorer({
@@ -35,8 +42,7 @@ function Explorer({
   category,
   enableBatchSync,
   manager,
-  extraColumns,
-  linkToObject,
+  fields,
 }: Props) {
   const history = useHistory();
   if (!manager) {
@@ -44,7 +50,7 @@ function Explorer({
   }
 
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
-  const { data: facetsRes } = useListFacets();
+  const { data: facetsRes } = useListFacets(category);
   const queryState = manager.read();
   const setQueryState = manager.write;
   const inputRef = useRef<HTMLInputElement>(null);
@@ -55,7 +61,7 @@ function Explorer({
       filters: queryState.filters,
       limit: queryState.limit,
       offset: queryState.offset,
-      orderBy: queryState.orderBy || 'name',
+      orderBy: queryState.orderBy,
       descending: queryState.orderDescending || false,
       category,
     });
@@ -79,11 +85,23 @@ function Explorer({
     }
     // Focus the input so you can click open and start typing
     if (filterDrawerOpen) {
-      inputRef.current.focus();
+      // Delay the focus so that the drawer animation makes sense.
+      // Without the delay, the animation will stutter
+      // due to something in material-ui expanding the width.
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 500);
     } else {
       inputRef.current.blur();
     }
   }, [filterDrawerOpen]);
+
+  const tableFields: ExplorerField[] = (fields || defaultExplorerFields).map(
+    field => ({
+      ...field,
+      defaultSort: queryState.orderBy === field.id,
+    }),
+  );
 
   if (isLoading) {
     return (
@@ -119,14 +137,12 @@ function Explorer({
         </Flex>
         <Flex wide>
           <ExplorerTableWithBusyAnimation
+            fields={tableFields}
             busy={isRespondingToQuery}
             queryState={queryState}
             rows={rows}
             onColumnHeaderClick={columnHeaderHandler(queryState, setQueryState)}
             enableBatchSync={enableBatchSync}
-            sortField={queryState.orderBy}
-            extraColumns={extraColumns}
-            linkToObject={linkToObject}
           />
 
           <FilterDrawer
@@ -135,7 +151,10 @@ function Explorer({
           >
             <QueryInput innerRef={inputRef} />
 
-            <Filters facets={filteredFacets || []} />
+            <Filters
+              facets={filteredFacets || []}
+              humanReadableLabels={facetsRes?.humanReadableLabels}
+            />
           </FilterDrawer>
         </Flex>
 
@@ -172,11 +191,17 @@ const categoryKinds = {
   ],
   gitopsset: ['GitOpsSet'],
   template: ['Template'],
+  clusterdiscovery: ['AutomatedClusterDiscovery'],
 };
 
 function filterFacetsForCategory(
   facets?: Facet[],
-  category?: 'automation' | 'source' | 'gitopsset' | 'template',
+  category?:
+    | 'automation'
+    | 'source'
+    | 'gitopsset'
+    | 'template'
+    | 'clusterdiscovery',
 ): Facet[] {
   if (!category) {
     return _.sortBy(facets, 'field') as Facet[];

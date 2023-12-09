@@ -2,6 +2,14 @@
   "name": "weave-gitops-enterprise",
   "version": "0.1.0",
   "private": true,
+  "targets": {
+    "default": {
+      "distDir": "build",
+      "source": "ui/index.html",
+      "sourceMap": false,
+      "publicUrl": "./"
+    }
+  },
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@fortawesome/fontawesome-free": "^5.15.3",
@@ -26,7 +34,7 @@
     "@types/styled-components": "^5.1.9",
     "@types/urijs": "^1.19.19",
     "@weaveworks/progressive-delivery": "0.0.0-rc13",
-    "@weaveworks/weave-gitops": "0.36.0",
+    "@weaveworks/weave-gitops": "npm:@weaveworks/weave-gitops-main@0.37.0-18-g6cbe63a2",
     "babel-jest": "^27.4.2",
     "babel-plugin-named-asset-import": "^0.3.8",
     "babel-preset-react-app": "^10.0.1",
@@ -84,7 +92,7 @@
   },
   "scripts": {
     "start": "parcel serve ui/index.html --port 3000 --dist-dir build --hmr-port 1234",
-    "build": "parcel build ui/index.html --dist-dir build",
+    "build": "parcel build --target default",
     "test": "node ui/scripts/test.js",
     "lint": "eslint ui/src -c .eslintrc.js --max-warnings=0"
   },

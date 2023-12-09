@@ -12,7 +12,7 @@ on:
         type: string
       check-name:
         description: "Check run name"
-        required: true
+        required: false
         type: string
       slack-notification:
         description: "Enable slack push notification for test results"
@@ -28,6 +28,7 @@ env:
 jobs:
   tests:
     runs-on: ${{ inputs.runs-on }}
+
     steps:
       - name: Download test artifacts
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
@@ -35,17 +36,20 @@ jobs:
           path: ${{ env.TEST_RESULTS_PATH }}
       - name: Publish Test Report      
         id: test-report
-        uses: mikepenz/action-junit-report@v3.5.2
+        uses: mikepenz/action-junit-report@0831a82caad2465c31c6dd929978f640cb42556c # v4.0.3
         if: always()
+        continue-on-error: true
         with:
+          fail_on_failure: true
+          annotate_only: true # it wont add a build check so we dont want the build to fail if smokes fail
           report_paths: ${{ env.TEST_RESULTS_PATH }}/**/${{ inputs.junit-results-glob-pattern }}
-          check_name: ${{ inputs.check-name }}
       - name: Notify slack of test results
-        if: ${{ (inputs.slack-notification) && (github.event_name != 'workflow_dispatch') }}
+        uses: archive/github-actions-slack@d9dae40827adf93bddf939db6552d1e392259d7d # v2.7.0
         id: slack
-        uses: slackapi/slack-github-action@v1.23.0
+        if: ${{ steps.test-report.outcome == 'failure' && github.ref == 'refs/heads/main' }}
         with:
-          channel-id: C03FDNVE7RC
-          slack-message: "*${{inputs.check-name}}*\n>Tests :test_tube:\t\t\tPassed :check:\t\t\tSkipped :arrow_right_hook:\t\t\tFailed :x:\n>${{steps.test-report.outputs.total}} runs\t\t\t ${{steps.test-report.outputs.passed}} passed\t\t\t ${{steps.test-report.outputs.skipped}} skipped\t\t\t  ${{steps.test-report.outputs.failed}} failed"
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          slack-bot-user-oauth-access-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          slack-channel: C063ZPPJC5U # tmp-tolerant-failures
+          slack-text: |
+            :sad-parrot: The <https://github.com/weaveworks/weave-gitops-enterprise/commit/${{ github.sha }}|latest commit> from ${{ github.actor }} is failing on main. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Click here> and weep. Then fix the underlying issue and ensure main remains green.
+          slack-optional-icon_url: "https://avatars.githubusercontent.com/u/9976052"

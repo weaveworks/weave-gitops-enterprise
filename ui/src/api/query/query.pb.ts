@@ -12,6 +12,7 @@ export enum EnabledComponent {
   sources = "sources",
   gitopssets = "gitopssets",
   templates = "templates",
+  clusterdiscovery = "clusterdiscovery",
 }
 
 export type DoQueryRequest = {
@@ -66,10 +67,12 @@ export type Subject = {
 }
 
 export type ListFacetsRequest = {
+  category?: string
 }
 
 export type ListFacetsResponse = {
   facets?: Facet[]
+  humanReadableLabels?: {[key: string]: string}
 }
 
 export type Facet = {

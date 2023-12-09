@@ -50,6 +50,11 @@ spec:
             {{- range .Values.clustersService.args }}
             - {{ . }}
             {{- end }}
+            {{- with .Values.additionalArgs }}
+            {{- range . }}
+            - {{ . | quote }}
+            {{- end }}
+            {{- end }}
             {{ if .Values.explorer.cleaner.disabled }}
             - --explorer-cleaner-disabled=true
             {{- end }}
@@ -99,6 +104,10 @@ spec:
             {{- end }}
             {{- if .Values.enableRunUI }}
             - name: WEAVE_GITOPS_FEATURE_RUN_UI
+              value: "true"
+            {{- end }}
+            {{- if (index .Values "cluster-reflector-controller").enabled }}
+            - name: WEAVE_GITOPS_FEATURE_CLUSTER_REFLECTOR_CONTROLLER
               value: "true"
             {{- end }}
             {{- if .Values.enableNewPipelines }}

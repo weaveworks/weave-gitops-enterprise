@@ -8,9 +8,9 @@
   integrity sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==
 
 "@adobe/css-tools@^4.0.1":
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/@adobe/css-tools/-/css-tools-4.3.1.tgz#abfccb8ca78075a2b6187345c26243c1a0842f28"
-  integrity sha512-/62yikz7NLScCGAAST5SHdnjaDJQBDq0M2muyRTpf2VQhw6StBg2ALiu73zSJQ4fMVLA+0uBhBHAle7Wg+2kSg==
+  version "4.3.2"
+  resolved "https://registry.yarnpkg.com/@adobe/css-tools/-/css-tools-4.3.2.tgz#a6abc715fb6884851fca9dad37fc34739a04fd11"
+  integrity sha512-DA5a1C0gD/pLOvhv33YMrbf2FK3oUzwNl9oOJqE4XVjuEtt6XIakRcsd7eLiOSPkp1kTRQGICTA8cKra/vFbjw==
 
 "@ampproject/remapping@^2.1.0":
   version "2.1.2"
@@ -2983,10 +2983,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@0.36.0":
-  version "0.36.0"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.36.0/d2e7aebae1840684ed071db5f6ca0cf96bd4e8c2#d2e7aebae1840684ed071db5f6ca0cf96bd4e8c2"
-  integrity sha512-NEC0k0OUcyhQmgJn6wch1kBgXypJMWzh91z8RMj9hUH6CVgIV026Qwu0XM1qfSloGQCjBmtU5rukQ+BfUMC9rA==
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.37.0-18-g6cbe63a2":
+  version "0.37.0-18-g6cbe63a2"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.37.0-18-g6cbe63a2/027d450a2f3691f4052641783608de2d0155875f#027d450a2f3691f4052641783608de2d0155875f"
+  integrity sha512-1zgbDRC0azKXO9w8a+B/5pkUu+NIgjGjy0Cf9pWyB7knMNayfCwISteb2oo/sd1JvSOAwizWTn2gY9Ddmw5r0A==
   dependencies:
     "@material-ui/core" "^4.12.4"
     "@material-ui/icons" "^4.11.2"

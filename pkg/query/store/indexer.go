@@ -48,7 +48,7 @@ type IndexReader interface {
 	Search(ctx context.Context, query Query, opts QueryOption) (Iterator, error)
 	// ListFacets returns a map of facets and their values.
 	// Facets can be used to build a filtering UI or to see what values are available for a given field.
-	ListFacets(ctx context.Context) (Facets, error)
+	ListFacets(ctx context.Context, category configuration.ObjectCategory) (Facets, error)
 }
 
 var indexFile = "index.db"
@@ -80,6 +80,10 @@ func addFieldMappings(index *mapping.IndexMappingImpl, fields []string) {
 	nameFieldMapping := bleve.NewTextFieldMapping()
 	nameFieldMapping.Analyzer = "keyword"
 	objMapping.AddFieldMappingsAt("name", nameFieldMapping)
+
+	// do not index unstructured as for of the main index to get more realistic score
+	unstructuredMapping := bleve.NewDocumentDisabledMapping()
+	objMapping.AddSubDocumentMapping("unstructured", unstructuredMapping)
 
 	for _, field := range commonFields {
 		// This mapping allows us to do query-string queries on the field.
@@ -184,7 +188,7 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 	defer recordIndexerMetrics(metrics.SearchAction, time.Now(), err)
 
 	// Match all by default.
-	// Conjunction queries will return results that match all of the subqueries.
+	// Conjunction queries will return results that match all the sub-queries.
 	query := bleve.NewConjunctionQuery(bleve.NewMatchAllQuery())
 
 	terms := q.GetTerms()
@@ -238,21 +242,11 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 		if opts.GetOffset() > 0 {
 			req.From = int(opts.GetOffset())
 		}
-	} else {
-		// Sort by name by default
-		sf := &search.SortField{
-			Field: "name",
-			Type:  search.SortFieldAsString,
-			Desc:  true,
-		}
-
-		orders = append(orders, sf)
 	}
 
 	// We order by score here so that we can get the most relevant results first.
-	orders = append(orders, &search.SortField{
-		Field: "_score",
-		Type:  search.SortFieldAuto,
+	orders = append(orders, &search.SortScore{
+		Desc: true,
 	})
 
 	req.SortByCustom(orders)
@@ -303,7 +297,7 @@ func recordIndexerMetrics(action string, start time.Time, err error) {
 	metrics.IndexerSetLatency(action, metrics.SuccessLabel, time.Since(start))
 }
 
-func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
+func (i *bleveIndexer) ListFacets(ctx context.Context, category configuration.ObjectCategory) (fcs Facets, err error) {
 	// metrics
 	metrics.IndexerAddInflightRequests(metrics.ListFacetsAction, 1)
 	defer recordIndexerMetrics(metrics.ListFacetsAction, time.Now(), err)
@@ -311,7 +305,7 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
 	query := bleve.NewMatchAllQuery()
 	req := bleve.NewSearchRequest(query)
 
-	addDefaultFacets(req)
+	addDefaultFacets(req, category)
 
 	searchResults, err := i.idx.Search(req)
 	if err != nil {
@@ -325,6 +319,11 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
 		for _, t := range v.Terms.Terms() {
 			facets[k] = append(facets[k], t.Term)
 		}
+
+		// Remove empty facets
+		if len(facets[k]) == 0 {
+			delete(facets, k)
+		}
 	}
 
 	return facets, nil
@@ -332,7 +331,7 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
 
 // addDefaultFacets adds a set of defaault facets to facets search requests. Default facets are comprised of a set
 // of common fields like cluster and set of objectkind specific fields like labels
-func addDefaultFacets(req *bleve.SearchRequest) {
+func addDefaultFacets(req *bleve.SearchRequest, cat configuration.ObjectCategory) {
 	// adding facets for common fields
 	for _, f := range commonFields {
 		req.AddFacet(f, bleve.NewFacetRequest(f+facetSuffix, 100))
@@ -340,6 +339,9 @@ func addDefaultFacets(req *bleve.SearchRequest) {
 
 	// adding facets for labels
 	for _, objectKind := range configuration.SupportedObjectKinds {
+		if cat != "" && objectKind.Category != cat {
+			continue
+		}
 		for _, label := range objectKind.Labels {
 			labelFacet := fmt.Sprintf("labels.%s", label)
 			req.AddFacet(labelFacet, bleve.NewFacetRequest(labelFacet, 100))

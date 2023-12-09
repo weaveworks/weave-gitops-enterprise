@@ -4,9 +4,9 @@ go 1.20
 
 require (
 	github.com/docker/distribution v2.8.2+incompatible // indirect
-	github.com/go-logr/logr v1.2.4
-	github.com/google/go-cmp v0.5.9
-	github.com/google/uuid v1.3.0
+	github.com/go-logr/logr v1.3.0
+	github.com/google/go-cmp v0.6.0
+	github.com/google/uuid v1.3.1
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/onsi/gomega v1.27.10
 	github.com/pkg/errors v0.9.1 // indirect
@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
-	github.com/weaveworks/weave-gitops v0.36.0
+	github.com/weaveworks/weave-gitops v0.37.1-0.20231204151309-6cbe63a273ff
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -23,7 +23,7 @@ require (
 	k8s.io/apimachinery v0.27.7
 	k8s.io/cli-runtime v0.27.2
 	k8s.io/client-go v1.5.2
-	sigs.k8s.io/controller-runtime v0.15.1
+	sigs.k8s.io/controller-runtime v0.15.2
 )
 
 require (
@@ -63,7 +63,8 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.16.0
 	github.com/tonglil/buflogr v1.0.1
-	github.com/weaveworks/cluster-controller v1.5.2
+	github.com/weaveworks/cluster-controller v1.5.5
+	github.com/weaveworks/cluster-reflector-controller v0.0.9
 	github.com/weaveworks/gitopssets-controller v0.16.4
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/progressive-delivery v0.0.0-20230421131659-61a8aadf8aac
@@ -72,15 +73,15 @@ require (
 	go.mozilla.org/sops/v3 v3.7.3
 	golang.org/x/crypto v0.14.0
 	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb
-	golang.org/x/oauth2 v0.11.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20230807174057-1744710a1577
-	google.golang.org/grpc v1.57.0
+	golang.org/x/oauth2 v0.13.0
+	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d
+	google.golang.org/grpc v1.59.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.31.0
 	helm.sh/helm/v3 v3.11.3
 	k8s.io/apiextensions-apiserver v0.27.4
 	k8s.io/kubernetes v1.26.3
-	sigs.k8s.io/cluster-api v1.5.1
+	sigs.k8s.io/cluster-api v1.5.2
 	sigs.k8s.io/kustomize/kyaml v0.14.1
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -112,7 +113,7 @@ require (
 	github.com/blevesearch/zapx/v13 v13.3.7 // indirect
 	github.com/blevesearch/zapx/v14 v14.3.7 // indirect
 	github.com/blevesearch/zapx/v15 v15.3.9 // indirect
-	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551 // indirect
 	github.com/google/go-github/v52 v52.0.0 // indirect
 	github.com/google/s2a-go v0.1.5 // indirect
@@ -120,10 +121,10 @@ require (
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	go.etcd.io/bbolt v1.3.7 // indirect
-	go.opentelemetry.io/otel/metric v0.37.0 // indirect
+	go.opentelemetry.io/otel/metric v1.20.0 // indirect
 	google.golang.org/api v0.136.0 // indirect
-	google.golang.org/genproto v0.0.0-20230807174057-1744710a1577 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230807174057-1744710a1577 // indirect
+	google.golang.org/genproto v0.0.0-20230822172742-b8732ec3820d // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
 	k8s.io/component-helpers v0.27.2 // indirect
 )
@@ -187,7 +188,7 @@ require (
 	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f // indirect
 	github.com/skeema/knownhosts v1.2.0 // indirect
 	go.mozilla.org/gopgagent v0.0.0-20170926210634-4d7ea76ff71a // indirect
-	golang.org/x/tools v0.12.0 // indirect
+	golang.org/x/tools v0.14.0 // indirect
 	gorm.io/gorm v1.24.0
 )
 
@@ -218,10 +219,10 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/weaveworks/pipeline-controller/api v0.0.0-20230228164807-3af8aa2ecc3d
 	go.opencensus.io v0.24.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.40.0 // indirect
-	go.opentelemetry.io/otel v1.14.0 // indirect
-	go.opentelemetry.io/otel/trace v1.14.0 // indirect
-	golang.org/x/mod v0.12.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.46.0 // indirect
+	go.opentelemetry.io/otel v1.20.0 // indirect
+	go.opentelemetry.io/otel/trace v1.20.0 // indirect
+	golang.org/x/mod v0.13.0 // indirect
 )
 
 require (
@@ -248,7 +249,7 @@ require (
 	github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789
 	github.com/clbanning/mxj/v2 v2.7.0 // indirect
 	github.com/containerd/containerd v1.7.0 // indirect
-	github.com/coreos/go-oidc/v3 v3.1.0 // indirect
+	github.com/coreos/go-oidc/v3 v3.4.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -283,7 +284,7 @@ require (
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
-	github.com/golang/glog v1.1.0 // indirect
+	github.com/golang/glog v1.1.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/btree v1.1.2 // indirect
@@ -359,13 +360,13 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.25.0
 	golang.org/x/net v0.17.0
-	golang.org/x/sync v0.3.0
+	golang.org/x/sync v0.4.0
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0
 	golang.org/x/time v0.3.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
-	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/appengine v1.6.8 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
@@ -399,7 +400,7 @@ replace (
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.1-0.20220411205349-bde1400a84be
 
 	// un-comment for local dev
-	//github.com/weaveworks/weave-gitops => ../weave-gitops
+	// github.com/weaveworks/weave-gitops => ../weave-gitops
 
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 

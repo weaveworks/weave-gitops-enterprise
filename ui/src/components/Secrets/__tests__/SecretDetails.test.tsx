@@ -1,18 +1,17 @@
 import { act, render, screen } from '@testing-library/react';
 import moment from 'moment';
-import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   SecretsClientMock,
   defaultContexts,
   withContext,
 } from '../../../utils/test-utils';
-
 import SecretDetails from '../SecretDetails';
 
 const MockSecretResponse = {
   secretName: 'secret Name',
   externalSecretName: 'external Secret Name',
-  clusterName: 'managment',
+  clusterName: 'management',
   namespace: 'flux-system',
   secretStore: 'secret Store name',
   secretStoreType: 'secret Store Type',
@@ -31,7 +30,7 @@ describe('SecretDetails', () => {
     api = new SecretsClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientProvider, { api }],
+      [EnterpriseClientContext.Provider, { value: { clustersService: api } }],
     ]);
   });
 

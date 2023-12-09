@@ -134,7 +134,7 @@ func bootstrapFlux(c *Config) error {
 	var out []byte
 	var err error
 
-	switch c.GitScheme {
+	switch c.GitRepository.Scheme {
 	case sshScheme:
 		out, err = runner.Run("flux",
 			"bootstrap",
@@ -143,7 +143,7 @@ func bootstrapFlux(c *Config) error {
 			"--branch", c.Branch,
 			"--path", c.RepoPath,
 			"--private-key-file", c.PrivateKeyPath,
-			"--gpg-passphrase", c.PrivateKeyPassword,
+			"--password", c.PrivateKeyPassword,
 			"-s",
 		)
 	case httpsScheme:
@@ -169,11 +169,11 @@ func bootstrapFlux(c *Config) error {
 
 // canAskForSSHGitConfig check when ask for gitconfig when ssh scheme is enabled
 func canAskForSSHGitConfig(input []StepInput, c *Config) bool {
-	return c.GitScheme == sshScheme
+	return c.GitRepository.Scheme == sshScheme
 }
 
 // canAskForHTTPSGitConfig check when ask for gitconfig when https scheme is enabled
 func canAskForHTTPSGitConfig(input []StepInput, c *Config) bool {
-	return c.GitScheme == httpsScheme
+	return c.GitRepository.Scheme == httpsScheme
 
 }

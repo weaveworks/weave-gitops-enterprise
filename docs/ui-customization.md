@@ -5,7 +5,7 @@ We support the following custom GUI elements:
 
 ## Enabling
 
-We make some configuration changes to the `values` in the Weave Gitops Enterprise `HelmRelease`.
+We make some configuration changes to the `values` in the Weave GitOps Enterprise `HelmRelease`.
 
 ```yaml
     logoURL: http://iqt.dev/iqt.svg

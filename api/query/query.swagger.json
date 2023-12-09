@@ -81,6 +81,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Query"
         ]
@@ -241,7 +249,8 @@
         "applications",
         "sources",
         "gitopssets",
-        "templates"
+        "templates",
+        "clusterdiscovery"
       ],
       "default": "unknown",
       "title": "EnabledComponent represents a component of the UI that can be enabled or disabled"
@@ -279,6 +288,12 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1Facet"
+          }
+        },
+        "humanReadableLabels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
           }
         }
       }

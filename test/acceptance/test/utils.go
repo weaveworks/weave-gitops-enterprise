@@ -129,10 +129,10 @@ func installWeaveGitopsControllers() {
 		repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 		initAndCreateEmptyRepo(gitProviderEnv, true)
 		bootstrapAndVerifyFlux(gitProviderEnv, GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
-		logger.Info("No need to install Weave gitops enterprise controllers, managemnt cluster is already configured and setup.")
+		logger.Info("No need to install Weave GitOps enterprise controllers, management cluster is already configured and setup.")
 
 	} else {
-		logger.Info("Installing Weave gitops controllers on to management cluster along with respective configurations and setting such as config repo creation etc.")
+		logger.Info("Installing Weave GitOps controllers on to management cluster along with respective configurations and setting such as config repo creation etc.")
 
 		// Config repo must exist first before installing gitops controller
 		initAndCreateEmptyRepo(gitProviderEnv, true)

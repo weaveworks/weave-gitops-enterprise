@@ -12,23 +12,15 @@ import {
   filterByStatusCallback,
   filterConfig,
   statusSortHelper,
-  useListSources
+  useListSources,
 } from '@weaveworks/weave-gitops';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
-import Docker from '../../assets/img/docker.svg';
-import EKS from '../../assets/img/EKS.svg';
-import GKE from '../../assets/img/GKE.svg';
-import Kubernetes from '../../assets/img/Kubernetes.svg';
-import LiquidMetal from '../../assets/img/LiquidMetal.svg';
-import Openshift from '../../assets/img/Openshift.svg';
-import Rancher from '../../assets/img/Rancher.svg';
-import Vsphere from '../../assets/img/Vsphere.svg';
+import { EnabledComponent } from '../../api/query/query.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
 import { useListConfigContext } from '../../contexts/ListConfig';
@@ -36,10 +28,14 @@ import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
 import useClusters from '../../hooks/clusters';
+import { useIsEnabledForComponent } from '../../hooks/query';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
 import { computeMessage } from '../../utils/conditions';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
+import { Routes } from '../../utils/nav';
+import { QueryState } from '../Explorer/hooks';
+import { linkToExplorer } from '../Explorer/utils';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Tooltip } from '../Shared';
@@ -49,36 +45,13 @@ import {
   useGetInitialGitRepo,
 } from '../Templates/Form/utils';
 import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
+import { ClusterIcon } from './ClusterIcon';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import OpenedPullRequest from './OpenedPullRequest';
 
-const IconSpan = styled.span`
-  display: flex;
-  img {
-    height: 32px;
-    width: 32px;
-  }
-`;
 
-export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
-  cluster,
-}) => {
-  const clusterKind =
-    cluster.labels?.['weave.works/cluster-kind'] ||
-    cluster.capiCluster?.infrastructureRef?.kind;
-  return (
-    <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
-      <IconSpan>
-        <img
-          src={getClusterTypeIcon(clusterKind)}
-          alt={clusterKind || 'kubernetes'}
-        />
-      </IconSpan>
-    </Tooltip>
-  );
-};
 
 const ClusterRowCheckbox = ({
   name,
@@ -97,32 +70,6 @@ const ClusterRowCheckbox = ({
   />
 );
 
-const getClusterTypeIcon = (clusterType?: string) => {
-  if (clusterType === 'DockerCluster') {
-    return Docker;
-  } else if (
-    clusterType === 'AWSCluster' ||
-    clusterType === 'AWSManagedCluster'
-  ) {
-    return EKS;
-  } else if (
-    clusterType === 'AzureCluster' ||
-    clusterType === 'AzureManagedCluster'
-  ) {
-    return Kubernetes;
-  } else if (clusterType === 'GCPCluster') {
-    return GKE;
-  } else if (clusterType === 'VSphereCluster') {
-    return Vsphere;
-  } else if (clusterType === 'MicrovmCluster') {
-    return LiquidMetal;
-  } else if (clusterType === 'Rancher') {
-    return Rancher;
-  } else if (clusterType === 'Openshift') {
-    return Openshift;
-  }
-  return Kubernetes;
-};
 
 interface FormData {
   repo: GitRepository | null;
@@ -159,6 +106,9 @@ const MCCP: FC<{
     setSelectedCluster(null);
   }, [setOpenDeletePR, setSelectedCluster]);
   const { data: sources } = useListSources();
+  const isExplorerEnabled = useIsEnabledForComponent(
+    EnabledComponent.templates,
+  );
 
   const gitRepos = useMemo(
     () => getGitRepos(sources?.result),
@@ -226,12 +176,20 @@ const MCCP: FC<{
   const history = useHistory();
 
   const handleAddCluster = useCallback(() => {
-    const filtersValues = toFilterQueryString([
-      { key: 'templateType', value: 'cluster' },
-      { key: 'templateType', value: '' },
-    ]);
-    history.push(`/templates?filters=${filtersValues}`);
-  }, [history]);
+    if (isExplorerEnabled) {
+      const url = linkToExplorer(Routes.Templates, {
+        filters: [`labels.weave.works/template-type:cluster`],
+      } as QueryState);
+      // Explorer uses a different query param for filters to avoid conflicts with DataTable
+      history.push(url);
+    } else {
+      const filtersValues = toFilterQueryString([
+        { key: 'templateType', value: 'cluster' },
+        { key: 'templateType', value: '' },
+      ]);
+      history.push(`/templates?filters=${filtersValues}`);
+    }
+  }, [history, isExplorerEnabled]);
 
   const initialFilterState = {
     ...filterConfig(clusters, 'status', filterByStatusCallback),
@@ -312,147 +270,147 @@ const MCCP: FC<{
       >
         <NotificationsWrapper>
           <Flex column gap="24">
-          <Flex gap="12">
-            <Button
-              id="create-cluster"
-              startIcon={<Icon type={IconType.AddIcon} size="base" />}
-              onClick={handleAddCluster}
-            >
-              CREATE A CLUSTER
-            </Button>
-            <Button
-              id="connect-cluster"
-              startIcon={<Icon type={IconType.ArrowUpwardIcon} size="base" />}
-              onClick={() => setOpenConnectInfo(true)}
-            >
-              CONNECT A CLUSTER
-            </Button>
-            <Tooltip
-              title={
-                provider === GitProvider.BitBucketServer
-                  ? 'Operation is not supported'
-                  : 'No CAPI cluster selected'
-              }
-              placement="top"
-              disabled={
-                Boolean(selectedCapiCluster) &&
-                provider !== GitProvider.BitBucketServer
-              }
-            >
-              <div>
-                <Button
-                  id="delete-cluster"
-                  startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
-                  onClick={() => {
-                    setNotifications([]);
-                    setOpenDeletePR(true);
-                  }}
-                  disabled={
-                    !selectedCapiCluster ||
-                    provider === GitProvider.BitBucketServer
-                  }
-                >
-                  CREATE A PR TO DELETE CLUSTERS
-                </Button>
-              </div>
-            </Tooltip>
-            {openDeletePR && (
-              <DeleteClusterDialog
-                formData={formData}
-                setFormData={setFormData}
-                selectedCapiCluster={
-                  selectedCapiCluster || ({} as ClusterNamespacedName)
+            <Flex gap="12">
+              <Button
+                id="create-cluster"
+                startIcon={<Icon type={IconType.AddIcon} size="base" />}
+                onClick={handleAddCluster}
+              >
+                CREATE A CLUSTER
+              </Button>
+              <Button
+                id="connect-cluster"
+                startIcon={<Icon type={IconType.ArrowUpwardIcon} size="base" />}
+                onClick={() => setOpenConnectInfo(true)}
+              >
+                CONNECT A CLUSTER
+              </Button>
+              <Tooltip
+                title={
+                  provider === GitProvider.BitBucketServer
+                    ? 'Operation is not supported'
+                    : 'No CAPI cluster selected'
                 }
-                onClose={handleClose}
-                prDefaults={PRdefaults}
-              />
-            )}
-            {openConnectInfo && (
-              <ConnectClusterDialog
-                onFinish={() => setOpenConnectInfo(false)}
-              />
-            )}
-            <OpenedPullRequest />
-          </Flex>
-          <LoadingWrapper loading={isLoading}>
-            <DataTable
-              className="clusters-list"
-              key={clusters.length}
-              filters={initialFilterState}
-              rows={clusters}
-              fields={[
-                {
-                  label: 'Select',
-                  value: ({ name, namespace }: GitopsClusterEnriched) => (
-                    <ClusterRowCheckbox
-                      name={name}
-                      namespace={namespace}
-                      onChange={handleIndividualClick}
-                      checked={Boolean(
-                        selectedCluster?.name === name &&
-                          selectedCluster?.namespace === namespace,
-                      )}
-                    />
-                  ),
-                  maxWidth: 25,
-                },
-                {
-                  label: 'Name',
-                  value: (c: GitopsClusterEnriched) =>
-                    c.controlPlane === true ? (
-                      <span data-cluster-name={c.name}>{c.name}</span>
-                    ) : (
-                      <Link
-                        to={`/cluster?clusterName=${c.name}&namespace=${c.namespace}`}
-                        data-cluster-name={c.name}
-                      >
-                        {c.name}
-                      </Link>
+                placement="top"
+                disabled={
+                  Boolean(selectedCapiCluster) &&
+                  provider !== GitProvider.BitBucketServer
+                }
+              >
+                <div>
+                  <Button
+                    id="delete-cluster"
+                    startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
+                    onClick={() => {
+                      setNotifications([]);
+                      setOpenDeletePR(true);
+                    }}
+                    disabled={
+                      !selectedCapiCluster ||
+                      provider === GitProvider.BitBucketServer
+                    }
+                  >
+                    CREATE A PR TO DELETE CLUSTERS
+                  </Button>
+                </div>
+              </Tooltip>
+              {openDeletePR && (
+                <DeleteClusterDialog
+                  formData={formData}
+                  setFormData={setFormData}
+                  selectedCapiCluster={
+                    selectedCapiCluster || ({} as ClusterNamespacedName)
+                  }
+                  onClose={handleClose}
+                  prDefaults={PRdefaults}
+                />
+              )}
+              {openConnectInfo && (
+                <ConnectClusterDialog
+                  onFinish={() => setOpenConnectInfo(false)}
+                />
+              )}
+              <OpenedPullRequest />
+            </Flex>
+            <LoadingWrapper loading={isLoading}>
+              <DataTable
+                className="clusters-list"
+                key={clusters.length}
+                filters={initialFilterState}
+                rows={clusters}
+                fields={[
+                  {
+                    label: 'Select',
+                    value: ({ name, namespace }: GitopsClusterEnriched) => (
+                      <ClusterRowCheckbox
+                        name={name}
+                        namespace={namespace}
+                        onChange={handleIndividualClick}
+                        checked={Boolean(
+                          selectedCluster?.name === name &&
+                            selectedCluster?.namespace === namespace,
+                        )}
+                      />
                     ),
-                  sortValue: ({ name }) => name,
-                  textSearchable: true,
-                  maxWidth: 275,
-                },
-                {
-                  label: 'Dashboards',
-                  value: (c: GitopsClusterEnriched) => (
-                    <DashboardsList cluster={c} />
-                  ),
-                },
-                {
-                  label: 'Type',
-                  value: (c: GitopsClusterEnriched) => (
-                    <ClusterIcon cluster={c}></ClusterIcon>
-                  ),
-                },
-                {
-                  label: 'Namespace',
-                  value: 'namespace',
-                },
-                {
-                  label: 'Status',
-                  value: (c: GitopsClusterEnriched) =>
-                    c.conditions && c.conditions.length > 0 ? (
-                      <KubeStatusIndicator short conditions={c.conditions} />
-                    ) : null,
-                  sortValue: statusSortHelper,
-                },
-                {
-                  label: 'Message',
-                  value: (c: GitopsClusterEnriched) =>
-                    (c.conditions && c.conditions[0]?.message) || null,
-                  sortValue: ({ conditions }) => computeMessage(conditions),
-                  maxWidth: 600,
-                },
-                {
-                  label: '',
-                  value: (c: GitopsClusterEnriched) => (
-                    <EditButton resource={c} />
-                  ),
-                },
-              ]}
-            />
-          </LoadingWrapper>
+                    maxWidth: 25,
+                  },
+                  {
+                    label: 'Name',
+                    value: (c: GitopsClusterEnriched) =>
+                      c.controlPlane === true ? (
+                        <span data-cluster-name={c.name}>{c.name}</span>
+                      ) : (
+                        <Link
+                          to={`/cluster?clusterName=${c.name}&namespace=${c.namespace}`}
+                          data-cluster-name={c.name}
+                        >
+                          {c.name}
+                        </Link>
+                      ),
+                    sortValue: ({ name }) => name,
+                    textSearchable: true,
+                    maxWidth: 275,
+                  },
+                  {
+                    label: 'Dashboards',
+                    value: (c: GitopsClusterEnriched) => (
+                      <DashboardsList cluster={c} />
+                    ),
+                  },
+                  {
+                    label: 'Type',
+                    value: (c: GitopsClusterEnriched) => (
+                      <ClusterIcon cluster={c}></ClusterIcon>
+                    ),
+                  },
+                  {
+                    label: 'Namespace',
+                    value: 'namespace',
+                  },
+                  {
+                    label: 'Status',
+                    value: (c: GitopsClusterEnriched) =>
+                      c.conditions && c.conditions.length > 0 ? (
+                        <KubeStatusIndicator short conditions={c.conditions} />
+                      ) : null,
+                    sortValue: statusSortHelper,
+                  },
+                  {
+                    label: 'Message',
+                    value: (c: GitopsClusterEnriched) =>
+                      (c.conditions && c.conditions[0]?.message) || null,
+                    sortValue: ({ conditions }) => computeMessage(conditions),
+                    maxWidth: 600,
+                  },
+                  {
+                    label: '',
+                    value: (c: GitopsClusterEnriched) => (
+                      <EditButton resource={c} />
+                    ),
+                  },
+                ]}
+              />
+            </LoadingWrapper>
           </Flex>
         </NotificationsWrapper>
       </CallbackStateContextProvider>

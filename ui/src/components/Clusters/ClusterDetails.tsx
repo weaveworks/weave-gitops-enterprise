@@ -34,8 +34,7 @@ type Props = {
 const ClusterDetails = ({ clusterName, namespace }: Props) => {
   const { path } = useRouteMatch();
   const history = useHistory();
-  const { isLoading, getCluster, getDashboardAnnotations, getKubeconfig } =
-    useClusters();
+  const { isLoading, getCluster, getDashboardAnnotations } = useClusters();
   const [currentCluster, setCurrentCluster] =
     useState<GitopsClusterEnriched | null>(null);
   const isClusterWithSources = useIsClusterWithSources(clusterName);
@@ -119,7 +118,6 @@ const ClusterDetails = ({ clusterName, namespace }: Props) => {
                 <ClusterDashboard
                   currentCluster={currentCluster}
                   getDashboardAnnotations={getDashboardAnnotations}
-                  getKubeconfig={getKubeconfig}
                 />
               </RouterTab>
             </SubRouterTabs>

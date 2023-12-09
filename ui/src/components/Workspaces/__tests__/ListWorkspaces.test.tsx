@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import WorkspacesList from '..';
-import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   defaultContexts,
   WorkspaceClientMock,
@@ -54,7 +54,7 @@ describe('ListWorkspaces', () => {
     api = new WorkspaceClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientProvider, { api }],
+      [EnterpriseClientContext.Provider, { value: { clustersService: api } }],
     ]);
   });
   it('renders list workspaces errors', async () => {

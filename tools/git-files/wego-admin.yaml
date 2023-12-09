@@ -75,3 +75,11 @@ rules:
       - patch
       - update
       - watch
+  - apiGroups:
+      - clusters.weave.works
+    resources:
+      - automatedclusterdiscoveries
+    verbs:
+      - get
+      - list
+      - watch
