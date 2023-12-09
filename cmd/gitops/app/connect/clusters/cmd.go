@@ -25,7 +25,7 @@ func ConnectCommand(opts *config.Options) *cobra.Command {
 		Aliases: []string{"clusters"},
 		Short:   "Connect cluster with remote cluster",
 		Example: `
-# Connect cluster
+# Connect a Gitops cluster by creating a secret with API access details
 gitops connect cluster [PARAMS] <CLUSTER_NAME>
 `,
 		SilenceUsage:  true,
