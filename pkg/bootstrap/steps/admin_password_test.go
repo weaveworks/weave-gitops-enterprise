@@ -155,12 +155,12 @@ func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
 		{
 			name: "should create cluster user interactive",
 			setup: func() (BootstrapStep, Config) {
-				config := MakeTestConfig(t, Config{})
-				step, err := NewAskAdminCredsSecretStep(config.ClusterUserAuth, config.ModesConfig)
 				// Your predefined input strings
 				inputStrings := []string{"password123\n"}
-				// Create a mock reader
-				step.Stdin = &utils.MockReader{Inputs: inputStrings}
+				config := MakeTestConfig(t, Config{
+					InReader: &utils.MockReader{Inputs: inputStrings},
+				})
+				step, err := NewAskAdminCredsSecretStep(config.ClusterUserAuth, config.ModesConfig)
 				assert.NoError(t, err)
 				return step, config
 			},

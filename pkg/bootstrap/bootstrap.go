@@ -57,7 +57,7 @@ func execute(config steps.Config, worfklow []steps.BootstrapStep) error {
 	if config.ModesConfig.Export {
 		config.Logger.Actionf("export manifests")
 		for _, output := range allOutputs {
-			err := output.Export(config.Output)
+			err := output.Export(config.OutWriter)
 			if err != nil {
 				return fmt.Errorf("error exporting output %s: %v", output.Name, err)
 			}

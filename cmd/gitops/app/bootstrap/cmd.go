@@ -131,7 +131,8 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			WithComponentsExtra(flags.componentsExtra).
 			WithSilent(flags.silent).
 			WithExport(flags.export).
-			WithWriter(cmd.OutOrStdout()).
+			WithInReader(cmd.InOrStdin()).
+			WithOutWriter(cmd.OutOrStdout()).
 			Build()
 
 		if err != nil {

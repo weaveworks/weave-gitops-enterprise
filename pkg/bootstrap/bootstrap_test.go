@@ -13,7 +13,7 @@ func Test_executeSteps(t *testing.T) {
 	var buf bytes.Buffer
 
 	config := MakeTestConfig(t, Config{
-		Output: &buf,
+		OutWriter: &buf,
 		ClusterUserAuth: ClusterUserAuthConfig{
 			Password: "password123",
 		},

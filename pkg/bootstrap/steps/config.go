@@ -80,7 +80,8 @@ type ConfigBuilder struct {
 	PromptedForDiscoveryURL bool
 	bootstrapFlux           bool
 	componentsExtra         []string
-	writer                  io.Writer
+	outWriter               io.Writer
+	inReader                io.Reader
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -156,8 +157,13 @@ func (c *ConfigBuilder) WithExport(export bool) *ConfigBuilder {
 	return c
 }
 
-func (c *ConfigBuilder) WithWriter(writer io.Writer) *ConfigBuilder {
-	c.writer = writer
+func (c *ConfigBuilder) WithInReader(inReader io.Reader) *ConfigBuilder {
+	c.inReader = inReader
+	return c
+}
+
+func (c *ConfigBuilder) WithOutWriter(outWriter io.Writer) *ConfigBuilder {
+	c.outWriter = outWriter
 	return c
 }
 
@@ -172,8 +178,11 @@ type Config struct {
 
 	Logger logger.Logger
 
-	// Writer holds the output to write to
-	Output io.Writer
+	// InReader holds the stream to read input from
+	InReader io.Reader
+
+	// OutWriter holds the output to write to
+	OutWriter io.Writer
 
 	WGEVersion      string // user want this version in the cluster
 	ClusterUserAuth ClusterUserAuthConfig
@@ -206,6 +215,10 @@ type Config struct {
 // and checks the requirements for the environments.
 func (cb *ConfigBuilder) Build() (Config, error) {
 	l := cb.logger
+
+	if cb.inReader == nil {
+		return Config{}, fmt.Errorf("input cannot be nil")
+	}
 
 	l.Actionf("creating client to cluster")
 	kubeHttp, err := utils.GetKubernetesHttp(cb.kubeconfig)
@@ -242,7 +255,8 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		KubernetesClient: kubeHttp.Client,
 		GitClient:        &utils.GoGitClient{},
 		FluxClient:       &utils.CmdFluxClient{},
-		Output:           cb.writer,
+		InReader:         cb.inReader,
+		OutWriter:        cb.outWriter,
 		WGEVersion:       cb.wgeVersion,
 		ClusterUserAuth:  clusterUserAuthConfig,
 		GitRepository:    gitRepositoryConfig,
