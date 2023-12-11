@@ -18,11 +18,6 @@ const getEnvStrategy = (strategy?: Strategy) => {
       strategy: 'Notification',
     };
   }
-  if (strategy?.secretRef) {
-    return {
-      strategy: 'Secret Ref',
-    };
-  }
   return {
     strategy: '-',
   };
