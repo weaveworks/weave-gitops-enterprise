@@ -87,7 +87,9 @@ func TestInstallTerraform(t *testing.T) {
 				},
 			},
 			config: Config{
-				Silent:     true,
+				ModesConfig: ModesConfig{
+					Silent: true,
+				},
 				WGEVersion: "1.0.0",
 			},
 			err: false,
@@ -99,7 +101,9 @@ func TestInstallTerraform(t *testing.T) {
 				ComponentsExtra: ComponentsExtraConfig{
 					Existing: []string{tfController},
 				},
-				Silent:     true,
+				ModesConfig: ModesConfig{
+					Silent: true,
+				},
 				WGEVersion: "1.0.0",
 			},
 			err: false,
@@ -113,7 +117,7 @@ func TestInstallTerraform(t *testing.T) {
 				t.Fatalf("error create wge object: %v", err)
 			}
 
-			config := makeTestConfig(t, tt.config, &wgeObject)
+			config := MakeTestConfig(t, tt.config, &wgeObject)
 			step := NewInstallTFControllerStep(config)
 			out, err := step.Execute(&config)
 			if err != nil {

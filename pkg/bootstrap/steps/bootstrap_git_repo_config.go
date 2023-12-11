@@ -100,13 +100,13 @@ func NewGitRepositoryConfigStep(config GitRepositoryConfig) BootstrapStep {
 
 func createGitRepositoryConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 
-	if c.FluxInstallated {
+	if c.FluxInstalled {
 		return []StepOutput{}, nil
 	}
 
 	var repoURL = c.GitRepository.Url
 	var repoBranch = c.GitRepository.Branch
-	var repoPath = c.RepoPath
+	var repoPath = c.GitRepository.Path
 
 	for _, param := range input {
 		if param.Name == inRepoURL {

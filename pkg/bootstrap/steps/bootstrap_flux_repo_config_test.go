@@ -121,14 +121,14 @@ func TestCreateGitRepositoryConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := makeTestConfig(t, Config{})
+			config := MakeTestConfig(t, Config{})
 			_, err := createGitRepositoryConfig(tt.input, &config)
 			if !tt.wantErr(t, err, "createGitRepositoryConfig") {
 				return
 			}
-			assert.Equal(t, tt.config.RepoURL, config.RepoURL, "wrong repo url")
-			assert.Equal(t, tt.config.RepoPath, config.RepoPath, "wrong repo path")
-			assert.Equal(t, tt.config.Branch, config.Branch, "wrong repo branch")
+			assert.Equal(t, tt.config.GitRepository.Url, config.GitRepository.Url, "wrong repo url")
+			assert.Equal(t, tt.config.GitRepository.Path, config.GitRepository.Path, "wrong repo path")
+			assert.Equal(t, tt.config.GitRepository.Branch, config.GitRepository.Branch, "wrong repo branch")
 			assert.Equal(t, tt.config.GitRepository.Scheme, config.GitRepository.Scheme, "wrong git scheme")
 		})
 	}
