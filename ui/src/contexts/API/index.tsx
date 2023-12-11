@@ -10,7 +10,7 @@ import { Pipelines } from '../../api/pipelines/pipelines.pb';
 import { Query } from '../../api/query/query.pb';
 import { GitAuth } from '../../api/gitauth/gitauth.pb';
 
-interface APIs {
+export interface APIs {
   terraform: typeof Terraform;
   clustersService: typeof ClustersService;
   progressiveDeliveryService: typeof ProgressiveDeliveryService;
