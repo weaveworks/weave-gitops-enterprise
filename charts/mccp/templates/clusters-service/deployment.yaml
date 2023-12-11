@@ -114,6 +114,10 @@ spec:
             - name: WEAVE_GITOPS_FEATURE_NEW_PIPELINES
               value: "true"
             {{- end }}
+            {{- if .Values.tls.customCAConfigMap
+            - name: SSL_CERT_FILE
+              value: /usr/local/share/ca-certificates/ca-bundle.crt
+            {{- end }}
             {{- if .Values.envVars }}
             {{- with .Values.envVars }}
               {{- toYaml . | nindent 12 }}
@@ -131,6 +135,10 @@ spec:
             - name: clusters-service-tls-volume
               mountPath: /etc/clusters-service-tls
             {{- end }}
+            {{- if .Values.tls.customCAConfigMap }}
+            - name: custom-ca-bundle
+              mountPath: /usr/local/share/ca-certificates
+            {{- end }}
             {{- if .Values.config.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.config.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
@@ -142,6 +150,12 @@ spec:
       - name: clusters-service-tls-volume
         secret:
           secretName: {{ .Values.tls.secretName }}
+      {{- end }}
+      {{- if .Values.tls.customCAConfigMap }}
+      - name: custom-ca-bundle
+        configMap:
+          name: {{ .Values.tls.customCAConfigMap }}
+          defaultMode: 420
       {{- end }}
       - name: ui-server-volume
         emptyDir: {}

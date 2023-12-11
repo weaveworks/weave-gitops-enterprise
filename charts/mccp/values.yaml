@@ -91,6 +91,10 @@ tls:
   enabled: true
   # if no tls secret is specified then we generate it in-mem in the server
   secretName: ""
+  # Used to customise the HTTP Client used to connect to the OIDC server
+  # This should point to a bundle containing a custom CA in a key called
+  # ca-bundle.crt.
+  customCAConfigMap: test-custom-ca
 
 rbac:
   userRoles:
