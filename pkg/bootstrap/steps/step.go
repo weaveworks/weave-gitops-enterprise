@@ -210,7 +210,7 @@ func defaultInputStep(inputs []StepInput, c *Config, stdin io.ReadCloser) ([]Ste
 			}
 			// if silent mode is enabled, select the default value
 			// if no default value an error will be returned
-			if c.Silent {
+			if c.ModesConfig.Silent {
 				defaultVal, ok := input.DefaultValue.(string)
 				if ok {
 					input.Value = defaultVal
@@ -311,7 +311,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 	return nil
 }
 
-// doNothingStep is an step without logic to be used for not required steps
+// doNothingStep is a step without logic to be used for not required steps
 func doNothingStep(input []StepInput, c *Config) ([]StepOutput, error) {
 	return []StepOutput{}, nil
 }

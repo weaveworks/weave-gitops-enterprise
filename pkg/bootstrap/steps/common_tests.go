@@ -64,7 +64,6 @@ func MakeTestConfig(t *testing.T, config Config, objects ...runtime.Object) Conf
 		ClientSecret:            config.ClientSecret,
 		RedirectURL:             config.RedirectURL,
 		PromptedForDiscoveryURL: config.PromptedForDiscoveryURL,
-		Silent:                  config.Silent,
 		ComponentsExtra:         config.ComponentsExtra,
 	}
 }

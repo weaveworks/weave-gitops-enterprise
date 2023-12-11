@@ -55,9 +55,11 @@ func TestAskBootstrapFlux(t *testing.T) {
 			name:  "check with silent mode and bootstrap flux flag available",
 			input: []StepInput{},
 			config: &Config{
-				FluxInstallated: false,
-				BootstrapFlux:   true,
-				Silent:          true,
+				FluxInstalled: false,
+				BootstrapFlux: true,
+				ModesConfig: ModesConfig{
+					Silent: true,
+				},
 			},
 			err:    false,
 			canAsk: true,

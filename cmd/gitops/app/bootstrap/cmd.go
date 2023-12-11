@@ -102,7 +102,7 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&flags.discoveryURL, "discovery-url", "", "", "OIDC discovery URL")
 	cmd.PersistentFlags().StringVarP(&flags.clientID, "client-id", "i", "", "OIDC client ID")
 	cmd.PersistentFlags().StringVarP(&flags.clientSecret, "client-secret", "", "", "OIDC client secret")
-	cmd.PersistentFlags().BoolVar(&flags.export, "export", false, "write to stdout the bootstrapping manifests without creating them in the cluster nor in git. Only works if Flux is bootstrapped.")
+	cmd.PersistentFlags().BoolVar(&flags.export, "export", false, "write to stdout the bootstrapping manifests without writing in the cluster or Git. It requires Flux to be bootstrapped.")
 	cmd.AddCommand(AuthCommand(opts))
 
 	return cmd

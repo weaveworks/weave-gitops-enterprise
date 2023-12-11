@@ -34,7 +34,7 @@ func askBootstrapFlux(input []StepInput, c *Config) ([]StepOutput, error) {
 	if !canAskForFluxBootstrap(input, c) {
 		return []StepOutput{}, nil
 	}
-	if c.BootstrapFlux && c.Silent {
+	if c.BootstrapFlux && c.ModesConfig.Silent {
 		c.Logger.Actionf("bootstrapping flux in the generic way")
 		return []StepOutput{}, nil
 	}

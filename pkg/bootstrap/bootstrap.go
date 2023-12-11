@@ -21,7 +21,7 @@ func Bootstrap(config steps.Config) error {
 		return fmt.Errorf("cannot create check ui: %v", err)
 	}
 
-	componentesExtra := steps.NewInstallExtraComponentsStep(config.ComponentsExtra, config.Silent)
+	componentsExtra := steps.NewInstallExtraComponentsStep(config.ComponentsExtra, config.ModesConfig.Silent)
 
 	// TODO have a single workflow source of truth and documented in https://docs.gitops.weave.works/docs/0.33.0/enterprise/getting-started/install-enterprise/
 	var workflow = []steps.BootstrapStep{
@@ -35,7 +35,7 @@ func Bootstrap(config steps.Config) error {
 		steps.NewInstallWGEStep(),
 		steps.NewInstallOIDCStep(config),
 		steps.NewOIDCConfigStep(config),
-		componentesExtra,
+		componentsExtra,
 		checkUiDomain,
 	}
 
