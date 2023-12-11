@@ -188,12 +188,6 @@ type Config struct {
 
 	// GitRepository contains the configuration for the git repo
 	GitRepository GitRepositoryConfig
-	// Deprecated: use GitRepository.Url instead
-	RepoURL string
-	// Deprecated: use GitRepository.Branch instead
-	Branch string
-	// Deprecated: use GitRepository.Path instead
-	RepoPath string
 
 	AuthType                string
 	InstallOIDC             string
@@ -252,14 +246,11 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		WGEVersion:       cb.wgeVersion,
 		ClusterUserAuth:  clusterUserAuthConfig,
 		GitRepository:    gitRepositoryConfig,
-		Branch:           gitRepositoryConfig.Branch,
-		RepoPath:         gitRepositoryConfig.Path,
 		Logger:           cb.logger,
 		ModesConfig: ModesConfig{
 			Silent: cb.silent,
 			Export: cb.export,
 		},
-		RepoURL:                 cb.repoURL,
 		PrivateKeyPath:          cb.privateKeyPath,
 		PrivateKeyPassword:      cb.privateKeyPassword,
 		GitUsername:             cb.gitUsername,
