@@ -106,7 +106,7 @@ func createGitRepositoryConfig(input []StepInput, c *Config) ([]StepOutput, erro
 
 	var repoURL = c.GitRepository.Url
 	var repoBranch = c.GitRepository.Branch
-	var repoPath = c.RepoPath
+	var repoPath = c.GitRepository.Path
 
 	for _, param := range input {
 		if param.Name == inRepoURL {
