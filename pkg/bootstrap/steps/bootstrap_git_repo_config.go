@@ -100,7 +100,7 @@ func NewGitRepositoryConfigStep(config GitRepositoryConfig) BootstrapStep {
 
 func createGitRepositoryConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 
-	if c.FluxInstallated {
+	if c.FluxInstalled {
 		return []StepOutput{}, nil
 	}
 

@@ -152,7 +152,7 @@ func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
 		{
 			name: "should create cluster user non-interactive",
 			setup: func() (BootstrapStep, Config) {
-				config := makeTestConfig(t, Config{})
+				config := MakeTestConfig(t, Config{})
 				step, err := NewAskAdminCredsSecretStep(config.ClusterUserAuth, true)
 				assert.NoError(t, err)
 				return step, config
