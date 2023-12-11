@@ -192,6 +192,10 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 	}
 
 	secret := corev1.Secret{
+		TypeMeta: v1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Secret",
+		},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      oidcSecretName,
 			Namespace: WGEDefaultNamespace,

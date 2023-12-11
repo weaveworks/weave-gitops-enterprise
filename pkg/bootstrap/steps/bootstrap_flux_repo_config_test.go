@@ -121,7 +121,7 @@ func TestCreateGitRepositoryConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := makeTestConfig(t, Config{})
+			config := MakeTestConfig(t, Config{})
 			_, err := createGitRepositoryConfig(tt.input, &config)
 			if !tt.wantErr(t, err, "createGitRepositoryConfig") {
 				return
