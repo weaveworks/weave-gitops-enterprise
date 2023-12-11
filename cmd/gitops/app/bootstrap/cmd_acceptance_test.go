@@ -168,6 +168,7 @@ func TestBootstrapCmd(t *testing.T) {
 			flags: []string{kubeconfigFlag,
 				"--version=0.37.0",
 				"--password=admin123",
+				"--components-extra=none",
 			},
 			userInputs: []string{
 				"y\n",                             // do you want to bootstrap flux using the generic way?
@@ -176,6 +177,7 @@ func TestBootstrapCmd(t *testing.T) {
 				fmt.Sprintf("%s\n", gitRepoPath),  // please enter your flux path for your cluster
 				fmt.Sprintf("%s\n", gitUsername),  // please enter your git username
 				fmt.Sprintf("%s\n", gitPassword),  // please enter your git password
+				"N\n",                             // Do you want to setup OIDC to access Weave GitOps Dashboards?
 			},
 			setup: func(t *testing.T) {
 				createEntitlements(t, testLog)
