@@ -60,13 +60,13 @@ func NewClusterUserAuthConfig(password string, client k8sclient.Client) (Cluster
 // NewAskAdminCredsSecretStep asks user about admin password.
 // Admin password are you used for accessing WGE Dashboard for emergency access.
 // Users will be asked to continue with the current creds or overriding existing credentials during bootstrapping.
-func NewAskAdminCredsSecretStep(config ClusterUserAuthConfig, silent bool) (BootstrapStep, error) {
+func NewAskAdminCredsSecretStep(config ClusterUserAuthConfig, modes ModesConfig) (BootstrapStep, error) {
 	inputs := []StepInput{}
 	// UPDATE: this logic should return that `given a specific configuration when we want to aks the user`
 	// these are usually:
 	// interactive session that a) involves updates or b) creates that we require value
 	// non-interactive sessions should always take an action which in case of conflict should be the safest for the user
-	if !silent {
+	if !modes.Silent {
 		if !config.ExistCredentials {
 			if config.Password == "" {
 				inputs = append(inputs, createPasswordInput)
@@ -121,6 +121,10 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 	c.Logger.Actionf("dashboard admin username: %s is configured", defaultAdminUsername)
 
 	secret := corev1.Secret{
+		TypeMeta: v1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Secret",
+		},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      adminSecretName,
 			Namespace: WGEDefaultNamespace,

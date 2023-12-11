@@ -52,7 +52,7 @@ func verifyFluxInstallation(input []StepInput, c *Config) ([]StepOutput, error) 
 	c.GitRepository.Scheme = scheme
 	c.Logger.Successf("detected git scheme: %s", c.GitRepository.Scheme)
 
-	c.FluxInstallated = true
+	c.FluxInstalled = true
 
 	return []StepOutput{}, nil
 }
