@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { QueryClient, QueryClientProvider } from 'react-query';
-import { EnterpriseClientContext } from '../../contexts/API';
-import { MockQueryService } from '../../utils/test-utils';
+import { APIs, EnterpriseClientContext } from '../../contexts/API';
+import { MockQueryService, newMockQueryService } from '../../utils/test-utils';
 import { formatFilters, useQueryService } from '../query';
 
 describe('useQueryService', () => {
@@ -9,11 +9,14 @@ describe('useQueryService', () => {
   let wrapper: ({ children }: any) => JSX.Element;
 
   beforeEach(() => {
-    mock = new MockQueryService();
+    mock = newMockQueryService();
 
     wrapper = ({ children }: any) => (
       <QueryClientProvider client={new QueryClient()}>
-        <EnterpriseClientContext.Provider value={{ query: mock }}>
+        <EnterpriseClientContext.Provider
+          // We are supplied an incomplete API set here
+          value={{ query: mock } as unknown as APIs}
+        >
           {children}
         </EnterpriseClientContext.Provider>
       </QueryClientProvider>

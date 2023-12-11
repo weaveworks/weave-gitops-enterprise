@@ -6,6 +6,7 @@ metadata:
   annotations:
     templates.weave.works/profiles-enabled: "true"
     templates.weave.works/add-common-bases: "true"
+    templates.weave.works/credentials-enabled: "true"
   labels:
     weave.works/template-type: cluster
 spec:
