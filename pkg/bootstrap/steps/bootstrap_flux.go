@@ -14,8 +14,8 @@ const (
 	privateKeyPasswordMsg = "private key password"
 
 	// https authentication
-	gitUserNameMsg = "please enter your git username"
-	gitPasswordMsg = "please enter your git authentication password/token with valid creds"
+	gitUserNameMsg = "please enter your Git username"
+	gitPasswordMsg = "please enter your Git password"
 )
 const (
 	bootstrapFluxStepName = "git credentials"

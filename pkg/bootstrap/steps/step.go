@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	v1 "k8s.io/api/core/v1"
@@ -18,7 +17,6 @@ type BootstrapStep struct {
 	Name  string
 	Input []StepInput
 	Step  func(input []StepInput, c *Config) ([]StepOutput, error)
-	Stdin io.ReadCloser
 }
 
 // StepInput represents an input a step requires to execute it. for example user needs to introduce a string or a password.
@@ -123,7 +121,7 @@ func resourceToString(data []byte) string {
 
 // Execute contains the business logic for executing an step.
 func (s BootstrapStep) Execute(c *Config) ([]StepOutput, error) {
-	inputValues, err := defaultInputStep(s.Input, c, s.Stdin)
+	inputValues, err := defaultInputStep(s.Input, c, c.InReader)
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("cannot process input '%s': %v", s.Name, err)
 	}
@@ -141,7 +139,7 @@ func (s BootstrapStep) Execute(c *Config) ([]StepOutput, error) {
 }
 
 // defaultInputStep default input processing
-func defaultInputStep(inputs []StepInput, c *Config, stdin io.ReadCloser) ([]StepInput, error) {
+func defaultInputStep(inputs []StepInput, c *Config, stdin io.Reader) ([]StepInput, error) {
 	processedInputs := []StepInput{}
 	for _, input := range inputs {
 		// process updates
@@ -221,7 +219,7 @@ func defaultInputStep(inputs []StepInput, c *Config, stdin io.ReadCloser) ([]Ste
 
 			// get the value from user otherwise
 			if input.Value == nil {
-				input.Value = utils.GetConfirmInput(input.Msg, os.Stdin)
+				input.Value = utils.GetConfirmInput(input.Msg, stdin)
 			}
 		case multiSelectionChoice:
 			if input.Enabled != nil && !input.Enabled(inputs, c) {

@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/root"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
+	"github.com/weaveworks/weave-gitops-enterprise/test/utils"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -112,6 +113,7 @@ func TestBootstrapCmd(t *testing.T) {
 	tests := []struct {
 		name             string
 		flags            []string
+		userInputs       []string
 		expectedErrorStr string
 		setup            func(t *testing.T)
 		reset            func(t *testing.T)
@@ -161,6 +163,30 @@ func TestBootstrapCmd(t *testing.T) {
 			},
 			expectedErrorStr: "",
 		},
+		{
+			name: "journey flux does not exist interactive",
+			flags: []string{kubeconfigFlag,
+				"--version=0.37.0",
+				"--password=admin123",
+			},
+			userInputs: []string{
+				"y\n",                             // do you want to bootstrap flux using the generic way?
+				fmt.Sprintf("%s\n", repoURLHTTPS), // please enter your flux git https or ssh repository url
+				fmt.Sprintf("%s\n", gitBranch),    // please enter your flux git repository branch
+				fmt.Sprintf("%s\n", gitRepoPath),  // please enter your flux path for your cluster
+				fmt.Sprintf("%s\n", gitUsername),  // please enter your git username
+				fmt.Sprintf("%s\n", gitPassword),  // please enter your git password
+			},
+			setup: func(t *testing.T) {
+				createEntitlements(t, testLog)
+			},
+			reset: func(t *testing.T) {
+				deleteEntitlements(t, testLog)
+				deleteClusterUser(t, testLog)
+				uninstallFlux(g, kubeconfigFlag)
+			},
+			expectedErrorStr: "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -176,6 +202,11 @@ func TestBootstrapCmd(t *testing.T) {
 			bootstrapCmdArgs := []string{"bootstrap"}
 			bootstrapCmdArgs = append(bootstrapCmdArgs, tt.flags...)
 			cmd.SetArgs(bootstrapCmdArgs)
+
+			if len(tt.userInputs) > 0 {
+				cmd.SetIn(&utils.MockReader{Inputs: tt.userInputs})
+			}
+
 			fmt.Println("bootstrap args: ", bootstrapCmdArgs)
 
 			err := cmd.Execute()
