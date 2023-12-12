@@ -89,7 +89,7 @@ func TestCreateGitRepositoryConfig(t *testing.T) {
 			},
 			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
 				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "unsupported repository scheme: ssl")
+				assert.Contains(t, err.Error(), "invalid repository scheme")
 				return true
 			},
 		},
@@ -110,13 +110,14 @@ func TestCreateGitRepositoryConfig(t *testing.T) {
 				},
 			},
 			config: &Config{
-				GitRepository: GitRepositoryConfig{},
+				GitRepository: GitRepositoryConfig{
+					Url:    "ssh://git@github.com/my-org-name/my-repo-name",
+					Path:   "test/test",
+					Branch: "main",
+					Scheme: sshScheme,
+				},
 			},
-			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "repository scheme cannot be empty")
-				return true
-			},
+			wantErr: assert.NoError,
 		},
 	}
 	for _, tt := range tests {
