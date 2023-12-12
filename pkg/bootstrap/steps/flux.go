@@ -34,7 +34,7 @@ func verifyFluxInstallation(input []StepInput, c *Config) ([]StepOutput, error) 
 	}
 	c.Logger.Successf(fluxExistingInstallMsg)
 
-	c.Logger.Actionf("verifying flux reconcillation")
+	c.Logger.Actionf("verifying flux reconciliation")
 	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("flux bootstrapped error: %v. %s", string(out), fluxFatalErrorMsg)
