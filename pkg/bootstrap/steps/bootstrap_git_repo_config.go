@@ -93,7 +93,7 @@ func normaliseUrl(repoURL string) (normalisedUrl string, scheme string, err erro
 	}
 
 	switch repositoryURL.Scheme {
-	case "ssh":
+	case sshScheme:
 		return repositoryURL.String(), sshScheme, nil
 	case httpsScheme:
 		return repositoryURL.String(), httpsScheme, nil
