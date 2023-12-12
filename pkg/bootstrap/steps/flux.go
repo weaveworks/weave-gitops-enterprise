@@ -34,7 +34,7 @@ func verifyFluxInstallation(input []StepInput, c *Config) ([]StepOutput, error) 
 	}
 	c.Logger.Successf(fluxExistingInstallMsg)
 
-	c.Logger.Actionf("verifying flux reconcillation")
+	c.Logger.Actionf("verifying flux reconciliation")
 	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("flux bootstrapped error: %v. %s", string(out), fluxFatalErrorMsg)
@@ -45,7 +45,7 @@ func verifyFluxInstallation(input []StepInput, c *Config) ([]StepOutput, error) 
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("failed to get flux repository: %v", err)
 	}
-	scheme, err := parseRepoScheme(repo.Spec.URL)
+	_, scheme, err := normaliseUrl(repo.Spec.URL)
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("failed to parse flux repository: %v", err)
 	}

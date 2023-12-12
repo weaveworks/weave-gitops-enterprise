@@ -3,6 +3,7 @@ package steps
 import (
 	"fmt"
 	"net/url"
+	"strings"
 )
 
 const (
@@ -54,25 +55,51 @@ type GitRepositoryConfig struct {
 	Scheme string
 }
 
-// NewGitRepositoryConfig creates new configuration out of the user input and discovered state
+// NewGitRepositoryConfig creates new Git repository configuration from valid input parameters.
 func NewGitRepositoryConfig(url string, branch string, path string) (GitRepositoryConfig, error) {
 	var scheme string
 	var err error
+	var normalisedUrl string
 
 	if url != "" {
-		scheme, err = parseRepoScheme(url)
+		normalisedUrl, scheme, err = normaliseUrl(url)
 		if err != nil {
 			return GitRepositoryConfig{}, fmt.Errorf("error parsing repo scheme: %v", err)
 		}
 	}
 
 	return GitRepositoryConfig{
-		Url:    url,
+		Url:    normalisedUrl,
 		Branch: branch,
 		Path:   path,
 		Scheme: scheme,
 	}, nil
 
+}
+
+// normaliseUrl normalises the given url to meet standard URL syntax. The main motivation to have this function
+// is to support Git server URLs in "shorter scp-like syntax for the SSH protocol" as described in https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols
+// and followed by popular Git server providers like GitHub (git@github.com:weaveworks/weave-gitops.git) and GitLab (i.e. git@gitlab.com:gitlab-org/gitlab-foss.git).
+// Returns the normalisedUrl, as well the scheme and an error if any.
+func normaliseUrl(repoURL string) (normalisedUrl string, scheme string, err error) {
+	// transform in case of ssh like git@github.com:username/repository.git
+	if strings.Contains(repoURL, "@") && !strings.Contains(repoURL, "://") {
+		repoURL = "ssh://" + strings.Replace(repoURL, ":", "/", 1)
+	}
+
+	repositoryURL, err := url.Parse(repoURL)
+	if err != nil {
+		return "", "", fmt.Errorf("error parsing repository URL: %v", err)
+	}
+
+	switch repositoryURL.Scheme {
+	case sshScheme:
+		return repositoryURL.String(), sshScheme, nil
+	case httpsScheme:
+		return repositoryURL.String(), httpsScheme, nil
+	default:
+		return "", "", fmt.Errorf("invalid repository scheme: %s", repositoryURL.Scheme)
+	}
 }
 
 // NewGitRepositoryConfig step to configure the flux git repository
@@ -137,23 +164,4 @@ func createGitRepositoryConfig(input []StepInput, c *Config) ([]StepOutput, erro
 	c.GitRepository = repoConfig
 	c.Logger.Actionf("configured repo: %s", c.GitRepository.Url)
 	return []StepOutput{}, nil
-}
-
-func parseRepoScheme(repoURL string) (string, error) {
-	repositoryURL, err := url.Parse(repoURL)
-	if err != nil {
-		return "", fmt.Errorf("incorrect repository url %s:%v", repoURL, err)
-	}
-	var scheme string
-	switch repositoryURL.Scheme {
-	case "":
-		return "", fmt.Errorf("repository scheme cannot be empty")
-	case sshScheme:
-		scheme = sshScheme
-	case httpsScheme:
-		scheme = httpsScheme
-	default:
-		return "", fmt.Errorf("unsupported repository scheme: %s", repositoryURL.Scheme)
-	}
-	return scheme, nil
 }
