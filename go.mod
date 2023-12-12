@@ -194,7 +194,7 @@ require (
 
 require (
 	github.com/bufbuild/connect-go v0.2.0 // indirect
-	github.com/chzyer/readline v1.5.1 // indirect
+	github.com/chzyer/readline v1.5.1
 	github.com/containerd/typeurl v1.0.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
