@@ -10,6 +10,7 @@ import Kubernetes from '../../assets/img/Kubernetes.svg';
 import LiquidMetal from '../../assets/img/LiquidMetal.svg';
 import Openshift from '../../assets/img/Openshift.svg';
 import Rancher from '../../assets/img/Rancher.svg';
+import VCluster from '../../assets/img/VCluster.svg';
 import Vsphere from '../../assets/img/Vsphere.svg';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { Routes } from '../../utils/nav';
@@ -27,7 +28,8 @@ const getClusterTypeIcon = (clusterType?: string) => {
     return Docker;
   } else if (
     clusterType === 'AWSCluster' ||
-    clusterType === 'AWSManagedCluster'
+    clusterType === 'AWSManagedCluster' ||
+    clusterType === 'eks'
   ) {
     return EKS;
   } else if (
@@ -46,6 +48,8 @@ const getClusterTypeIcon = (clusterType?: string) => {
     return Rancher;
   } else if (clusterType === 'Openshift') {
     return Openshift;
+  } else if (clusterType === 'VCluster') {
+    return VCluster;
   }
   return Kubernetes;
 };
@@ -74,9 +78,7 @@ export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
   return (
     <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
       {isACD ? (
-        <Link
-          to={getACDLink()}
-        >
+        <Link to={getACDLink()}>
           <Badge
             anchorOrigin={{
               vertical: 'bottom',
