@@ -49,7 +49,9 @@ func TestNewInstallExtraComponents(t *testing.T) {
 		{
 			name: "return empty step in case of silent mode",
 			config: Config{
-				Silent: true,
+				ModesConfig: ModesConfig{
+					Silent: true,
+				},
 			},
 			want: BootstrapStep{
 				Name:  "install extra components",
@@ -60,12 +62,12 @@ func TestNewInstallExtraComponents(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := makeTestConfig(t, tt.config)
+			config := MakeTestConfig(t, tt.config)
 			stepConfig, err := NewInstallExtraComponentsConfig(tt.config.ComponentsExtra.Requested, config.KubernetesClient)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
-			step := NewInstallExtraComponentsStep(stepConfig, config.Silent)
+			step := NewInstallExtraComponentsStep(stepConfig, config.ModesConfig.Silent)
 
 			assert.Equal(t, tt.want.Name, step.Name)
 			if diff := cmp.Diff(tt.want.Input, step.Input); diff != "" {
@@ -84,7 +86,9 @@ func TestInstallExtraComponents(t *testing.T) {
 		{
 			name: "test skip installing nothing in silent mode",
 			config: Config{
-				Silent: true,
+				ModesConfig: ModesConfig{
+					Silent: true,
+				},
 			},
 		},
 		{
@@ -101,7 +105,9 @@ func TestInstallExtraComponents(t *testing.T) {
 		{
 			name: "test skip installing controllers as default from silent mode",
 			config: Config{
-				Silent: true,
+				ModesConfig: ModesConfig{
+					Silent: true,
+				},
 			},
 		},
 		{
@@ -135,7 +141,7 @@ func TestInstallExtraComponents(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error create wge object: %v", err)
 			}
-			config := makeTestConfig(t, tt.config, &wgeObject)
+			config := MakeTestConfig(t, tt.config, &wgeObject)
 			_, err = installExtraComponents(tt.stepInput, &config)
 			assert.NoError(t, err, "unexpected error")
 			if err != nil {

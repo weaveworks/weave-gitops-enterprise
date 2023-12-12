@@ -8,6 +8,7 @@ import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   defaultContexts,
   MockQueryService,
+  newMockQueryService,
   withContext,
 } from '../../../utils/test-utils';
 import Explorer from '../Explorer';
@@ -49,7 +50,7 @@ describe('Explorer', () => {
   let api: MockQueryService;
 
   beforeEach(() => {
-    api = new MockQueryService();
+    api = newMockQueryService();
     wrap = withContext([
       ...defaultContexts(),
       [EnterpriseClientContext.Provider, { value: { query: api } }],

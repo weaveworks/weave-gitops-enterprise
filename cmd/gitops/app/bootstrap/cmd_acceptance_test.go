@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/root"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
+	"github.com/weaveworks/weave-gitops-enterprise/test/utils"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -72,46 +73,57 @@ func TestBootstrapCmd(t *testing.T) {
 	g.SetDefaultEventuallyPollingInterval(defaultInterval)
 	testLog := testr.New(t)
 
+	// ssh git repo configuration
 	privateKeyFile := os.Getenv("GIT_PRIVATEKEY_PATH")
 	g.Expect(privateKeyFile).NotTo(BeEmpty())
 
-	repoURLSSH := os.Getenv("GIT_REPO_URL_SSH")
-	g.Expect(repoURLSSH).NotTo(BeEmpty())
-	repoURLHTTPS := os.Getenv("GIT_REPO_URL_HTTPS")
-	g.Expect(repoURLHTTPS).NotTo(BeEmpty())
-	gitUsername := os.Getenv("GIT_USERNAME")
-	g.Expect(gitUsername).NotTo(BeEmpty())
-	gitPassword := os.Getenv("GIT_PASSWORD")
-	g.Expect(gitPassword).NotTo(BeEmpty())
-	gitBranch := os.Getenv("GIT_BRANCH")
-	g.Expect(gitBranch).NotTo(BeEmpty())
-	gitRepoPath := os.Getenv("GIT_REPO_PATH")
-	g.Expect(gitRepoPath).NotTo(BeEmpty())
 	privateKeyPassword := os.Getenv("GIT_PRIVATEKEY_PASSWORD")
 	g.Expect(privateKeyPassword).NotTo(BeEmpty())
-	oidcClientSecret := os.Getenv("OIDC_CLIENT_SECRET")
-	g.Expect(oidcClientSecret).NotTo(BeEmpty())
+
+	repoURLSSH := os.Getenv("GIT_REPO_URL_SSH")
+	g.Expect(repoURLSSH).NotTo(BeEmpty())
+
+	repoURLSSHNoScheme := os.Getenv("GIT_REPO_URL_SSH_NO_SCHEME")
+	g.Expect(repoURLSSHNoScheme).NotTo(BeEmpty())
 
 	privateKeyFlag := fmt.Sprintf("--private-key=%s", privateKeyFile)
 	privateKeyPasswordFlag := fmt.Sprintf("--private-key-password=%s", privateKeyPassword)
+	gitRepoUrlSshNoSchemeFlag := fmt.Sprintf("--repo-url=%s", repoURLSSHNoScheme)
 
-	kubeconfigFlag := fmt.Sprintf("--kubeconfig=%s", kubeconfigPath)
+	// https git repo configuration
+	repoURLHTTPS := os.Getenv("GIT_REPO_URL_HTTPS")
+	g.Expect(repoURLHTTPS).NotTo(BeEmpty())
 
-	repoHTTPSURLFlag := fmt.Sprintf("--repo-url=%s", repoURLHTTPS)
+	gitUsername := os.Getenv("GIT_USERNAME")
+	g.Expect(gitUsername).NotTo(BeEmpty())
 
-	gitUsernameFlag := fmt.Sprintf("--git-username=%s", gitUsername)
-	gitPasswordFlag := fmt.Sprintf("--git-password=%s", gitPassword)
+	gitPassword := os.Getenv("GIT_PASSWORD")
+	g.Expect(gitPassword).NotTo(BeEmpty())
+
+	// git repo configuration
+	gitBranch := os.Getenv("GIT_BRANCH")
+	g.Expect(gitBranch).NotTo(BeEmpty())
+
+	gitRepoPath := os.Getenv("GIT_REPO_PATH")
+	g.Expect(gitRepoPath).NotTo(BeEmpty())
 
 	gitBranchFlag := fmt.Sprintf("--branch=%s", gitBranch)
 	gitRepoPathFlag := fmt.Sprintf("--repo-path=%s", gitRepoPath)
 
+	// oidc configuration
+	oidcClientSecret := os.Getenv("OIDC_CLIENT_SECRET")
+	g.Expect(oidcClientSecret).NotTo(BeEmpty())
+
 	oidcClientSecretFlag := fmt.Sprintf("--client-secret=%s", oidcClientSecret)
+
+	kubeconfigFlag := fmt.Sprintf("--kubeconfig=%s", kubeconfigPath)
 
 	_ = k8sClient.Create(context.Background(), &fluxSystemNamespace)
 
 	tests := []struct {
 		name             string
 		flags            []string
+		userInputs       []string
 		expectedErrorStr string
 		setup            func(t *testing.T)
 		reset            func(t *testing.T)
@@ -145,11 +157,37 @@ func TestBootstrapCmd(t *testing.T) {
 				"--password=admin123",
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
 				"--client-id=weave-gitops-enterprise",
-				gitUsernameFlag, gitPasswordFlag, gitBranchFlag, gitRepoPathFlag,
-				repoHTTPSURLFlag,
+				gitRepoUrlSshNoSchemeFlag, gitBranchFlag, gitRepoPathFlag,
+				privateKeyFlag, privateKeyPasswordFlag,
 				oidcClientSecretFlag, "-s",
 				"--components-extra=policy-agent,tf-controller",
 				"--bootstrap-flux",
+			},
+			setup: func(t *testing.T) {
+				createEntitlements(t, testLog)
+			},
+			reset: func(t *testing.T) {
+				deleteEntitlements(t, testLog)
+				deleteClusterUser(t, testLog)
+				uninstallFlux(g, kubeconfigFlag)
+			},
+			expectedErrorStr: "",
+		},
+		{
+			name: "journey flux does not exist interactive",
+			flags: []string{kubeconfigFlag,
+				"--version=0.37.0",
+				"--password=admin123",
+				"--components-extra=none",
+			},
+			userInputs: []string{
+				"y\n",                             // do you want to bootstrap flux using the generic way?
+				fmt.Sprintf("%s\n", repoURLHTTPS), // please enter your flux git https or ssh repository url
+				fmt.Sprintf("%s\n", gitBranch),    // please enter your flux git repository branch
+				fmt.Sprintf("%s\n", gitRepoPath),  // please enter your flux path for your cluster
+				fmt.Sprintf("%s\n", gitUsername),  // please enter your git username
+				fmt.Sprintf("%s\n", gitPassword),  // please enter your git password
+				"N\n",                             // Do you want to setup OIDC to access Weave GitOps Dashboards?
 			},
 			setup: func(t *testing.T) {
 				createEntitlements(t, testLog)
@@ -176,6 +214,11 @@ func TestBootstrapCmd(t *testing.T) {
 			bootstrapCmdArgs := []string{"bootstrap"}
 			bootstrapCmdArgs = append(bootstrapCmdArgs, tt.flags...)
 			cmd.SetArgs(bootstrapCmdArgs)
+
+			if len(tt.userInputs) > 0 {
+				cmd.SetIn(&utils.MockReader{Inputs: tt.userInputs})
+			}
+
 			fmt.Println("bootstrap args: ", bootstrapCmdArgs)
 
 			err := cmd.Execute()

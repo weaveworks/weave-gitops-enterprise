@@ -17,14 +17,17 @@ func TestNewAskAdminCredsSecretStep(t *testing.T) {
 		name string
 
 		config ClusterUserAuthConfig
+		modes  ModesConfig
 		silent bool
 
 		want    BootstrapStep
 		wantErr string
 	}{
 		{
-			name:   "should create step with create password input if password is not resolved",
-			silent: false,
+			name: "should create step with create password input if password is not resolved",
+			modes: ModesConfig{
+				Silent: false,
+			},
 			config: ClusterUserAuthConfig{
 				ExistCredentials: false,
 			},
@@ -36,8 +39,10 @@ func TestNewAskAdminCredsSecretStep(t *testing.T) {
 			},
 		},
 		{
-			name:   "should create step without inputs if password resolved",
-			silent: false,
+			name: "should create step without inputs if password resolved",
+			modes: ModesConfig{
+				Silent: false,
+			},
 			config: ClusterUserAuthConfig{
 				ExistCredentials: false,
 				Password:         "password123",
@@ -48,8 +53,10 @@ func TestNewAskAdminCredsSecretStep(t *testing.T) {
 			},
 		},
 		{
-			name:   "should create step with update password input if credentials exist",
-			silent: false,
+			name: "should create step with update password input if credentials exist",
+			modes: ModesConfig{
+				Silent: false,
+			},
 			config: ClusterUserAuthConfig{
 				ExistCredentials: true,
 			},
@@ -59,8 +66,10 @@ func TestNewAskAdminCredsSecretStep(t *testing.T) {
 			},
 		},
 		{
-			name:   "should create step without inputs if non interactive",
-			silent: true,
+			name: "should create step without inputs if non interactive",
+			modes: ModesConfig{
+				Silent: true,
+			},
 			config: ClusterUserAuthConfig{
 				ExistCredentials: false,
 				Password:         "password123",
@@ -71,8 +80,10 @@ func TestNewAskAdminCredsSecretStep(t *testing.T) {
 			},
 		},
 		{
-			name:   "should fail if trying to update non interactive as updates are not supported",
-			silent: true,
+			name: "should fail if trying to update non interactive as updates are not supported",
+			modes: ModesConfig{
+				Silent: true,
+			},
 			config: ClusterUserAuthConfig{
 				ExistCredentials: true,
 				Password:         "password123",
@@ -83,7 +94,7 @@ func TestNewAskAdminCredsSecretStep(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewAskAdminCredsSecretStep(tt.config, tt.silent)
+			got, err := NewAskAdminCredsSecretStep(tt.config, tt.modes)
 
 			if tt.wantErr != "" {
 				if msg := err.Error(); msg != tt.wantErr {
@@ -103,21 +114,24 @@ func TestNewAskAdminCredsSecretStep(t *testing.T) {
 
 func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
 	tests := []struct {
-		name       string
-		setup      func() (BootstrapStep, Config)
-		config     Config
-		wantOutput []StepOutput
-		wantErr    string
+		name            string
+		setup           func() (BootstrapStep, Config)
+		config          Config
+		wantOutput      []StepOutput
+		wantErrorString string
 	}{
 		{
 			name: "should create cluster user non-interactive",
 			setup: func() (BootstrapStep, Config) {
-				config := makeTestConfig(t, Config{
+				config := MakeTestConfig(t, Config{
 					ClusterUserAuth: ClusterUserAuthConfig{
 						Password: "password123",
 					},
+					ModesConfig: ModesConfig{
+						Silent: true,
+					},
 				})
-				step, err := NewAskAdminCredsSecretStep(config.ClusterUserAuth, true)
+				step, err := NewAskAdminCredsSecretStep(config.ClusterUserAuth, config.ModesConfig)
 				assert.NoError(t, err)
 				return step, config
 			},
@@ -126,7 +140,14 @@ func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
 					Name: "cluster-user-auth",
 					Type: "secret",
 					Value: v1.Secret{
-						ObjectMeta: metav1.ObjectMeta{Name: "cluster-user-auth", Namespace: "flux-system"},
+						TypeMeta: metav1.TypeMeta{
+							Kind:       "Secret",
+							APIVersion: "v1",
+						},
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "cluster-user-auth",
+							Namespace: "flux-system",
+						},
 					},
 				},
 			},
@@ -134,12 +155,12 @@ func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
 		{
 			name: "should create cluster user interactive",
 			setup: func() (BootstrapStep, Config) {
-				config := makeTestConfig(t, Config{})
-				step, err := NewAskAdminCredsSecretStep(config.ClusterUserAuth, false)
 				// Your predefined input strings
 				inputStrings := []string{"password123\n"}
-				// Create a mock reader
-				step.Stdin = &utils.MockReader{Inputs: inputStrings}
+				config := MakeTestConfig(t, Config{
+					InReader: &utils.MockReader{Inputs: inputStrings},
+				})
+				step, err := NewAskAdminCredsSecretStep(config.ClusterUserAuth, config.ModesConfig)
 				assert.NoError(t, err)
 				return step, config
 			},
@@ -148,13 +169,20 @@ func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
 					Name: "cluster-user-auth",
 					Type: "secret",
 					Value: v1.Secret{
-						ObjectMeta: metav1.ObjectMeta{Name: "cluster-user-auth", Namespace: "flux-system"},
+						TypeMeta: metav1.TypeMeta{
+							Kind:       "Secret",
+							APIVersion: "v1",
+						},
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "cluster-user-auth",
+							Namespace: "flux-system",
+						},
 					},
 				},
 			},
 		},
 		{
-			name: "should generate no outputs if credentials exist",
+			name: "should not support updates non-interactive",
 			setup: func() (BootstrapStep, Config) {
 				// secret exists
 				secret := &v1.Secret{
@@ -165,28 +193,28 @@ func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
 						"password": []byte("test-password"),
 					},
 				}
-				config := makeTestConfig(t, Config{}, secret)
-				authConfig, err := NewClusterUserAuthConfig("", config.KubernetesClient)
-				assert.NoError(t, err)
-				config.ClusterUserAuth = authConfig
-				step, err := NewAskAdminCredsSecretStep(config.ClusterUserAuth, false)
+				config := MakeTestConfig(t, Config{
+					ModesConfig: ModesConfig{
+						Silent: true,
+					},
+				}, secret)
+				// user flags that wants to update the password
+				config.ClusterUserAuth.Password = "new-password"
+				step, err := NewAskAdminCredsSecretStep(config.ClusterUserAuth, config.ModesConfig)
 				assert.NoError(t, err)
 				return step, config
 			},
-			wantOutput: []StepOutput{},
+			wantErrorString: "cannot process output 'user authentication': secrets \"cluster-user-auth\" already exists",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			step, config := tt.setup()
 			gotOutputs, err := step.Execute(&config)
-			if tt.wantErr != "" {
-				if msg := err.Error(); msg != tt.wantErr {
-					t.Fatalf("got error %q, want %q", msg, tt.wantErr)
-				}
+			if tt.wantErrorString != "" {
+				assert.EqualError(t, err, tt.wantErrorString)
 				return
 			}
-
 			assert.NoError(t, err)
 			if diff := cmp.Diff(tt.wantOutput, gotOutputs, cmpopts.IgnoreFields(v1.Secret{}, "Data")); diff != "" {
 				t.Fatalf("expected output:\n%s", diff)
@@ -207,7 +235,7 @@ func TestAskAdminCredsSecretStep_createCredentials(t *testing.T) {
 		{
 			name:   "should error if trying to create credentials with invalid configuration",
 			input:  []StepInput{},
-			config: makeTestConfig(t, Config{}),
+			config: MakeTestConfig(t, Config{}),
 			output: []StepOutput{},
 			err:    true,
 		},
@@ -220,7 +248,7 @@ func TestAskAdminCredsSecretStep_createCredentials(t *testing.T) {
 					Value: "password",
 				},
 			},
-			config: makeTestConfig(t, Config{}),
+			config: MakeTestConfig(t, Config{}),
 			output: []StepOutput{
 				{
 					Name: adminSecretName,
@@ -247,7 +275,7 @@ func TestAskAdminCredsSecretStep_createCredentials(t *testing.T) {
 					Value: "passwordFromInput",
 				},
 			},
-			config: makeTestConfig(t, Config{
+			config: MakeTestConfig(t, Config{
 				ClusterUserAuth: ClusterUserAuthConfig{
 					Password: "passwordFromConfig",
 				},
@@ -278,7 +306,7 @@ func TestAskAdminCredsSecretStep_createCredentials(t *testing.T) {
 					Value: "",
 				},
 			},
-			config: makeTestConfig(t, Config{
+			config: MakeTestConfig(t, Config{
 				ClusterUserAuth: ClusterUserAuthConfig{
 					ExistCredentials: true,
 				},
