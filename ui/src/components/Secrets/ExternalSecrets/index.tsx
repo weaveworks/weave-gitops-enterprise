@@ -37,7 +37,6 @@ const CreateExternalSecret = () => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const [formError, setFormError] = useState<string>('');
-  const [validateForm, setValidateForm] = useState<boolean>(false);
   const [formData, setFormData] = useState<ExternalSecret>(initialFormData);
   const handleFormData = (value: any, key: string) => {
     setFormData(f => ({ ...f, [key]: value }));
@@ -137,10 +136,9 @@ const CreateExternalSecret = () => {
         <NotificationsWrapper>
           <FormWrapperSecret
             noValidate
-            onSubmit={event => {
-              setValidateForm(true);
-              validateFormData(event, handleCreateSecret, setFormError);
-            }}
+            onSubmit={event =>
+              validateFormData(event, handleCreateSecret, setFormError)
+            }
           >
             <InputDebounced
               required
@@ -148,7 +146,7 @@ const CreateExternalSecret = () => {
               label="EXTERNAL SECRET NAME"
               value={formData.secretName}
               handleFormData={val => handleFormData(val, 'secretName')}
-              error={validateForm && !formData.secretName}
+              error={formError === 'secretName' && !formData.secretName}
             />
             <InputDebounced
               required
@@ -156,24 +154,24 @@ const CreateExternalSecret = () => {
               label="TARGET K8s SECRET NAME"
               value={formData.dataSecretKey}
               handleFormData={val => handleFormData(val, 'dataSecretKey')}
-              error={validateForm && !formData.dataSecretKey}
+              error={formError === 'dataSecretKey' && !formData.dataSecretKey}
             />
             <Flex column>
               <ListClusters
                 value={formData.clusterName}
-                validateForm={validateForm}
                 handleFormData={(val: any) => {
                   handleFormData(val, 'clusterName');
                   handleFormData('', 'secretStoreRef');
                 }}
+                error={formError === 'clusterName' && !formData.clusterName}
               />
             </Flex>
             {formData.clusterName && (
               <ListSecretsStore
-                validateForm={validateForm}
                 value={formData.secretStore}
                 handleFormData={(val: any) => handleSecretStoreChange(val)}
                 clusterName={formData.clusterName}
+                error={formError === 'secretStoreRef' && !formData.secretStore}
               />
             )}
             {formData.secretStore && (
@@ -187,7 +185,9 @@ const CreateExternalSecret = () => {
                     return;
                   }}
                   disabled={true}
-                  error={validateForm && !formData.secretStoreType}
+                  error={
+                    formError === 'secretStoreType' && !formData.secretStoreType
+                  }
                 />
                 <InputDebounced
                   required
@@ -199,7 +199,9 @@ const CreateExternalSecret = () => {
                     !!formData.secretNamespace &&
                     formData.defaultSecretNamespace === formData.secretNamespace
                   }
-                  error={validateForm && !formData.secretNamespace}
+                  error={
+                    formError === 'secretNamespace' && !formData.secretNamespace
+                  }
                 />
               </Flex>
             )}
@@ -209,12 +211,12 @@ const CreateExternalSecret = () => {
               label="SECRET PATH"
               value={formData.secretPath}
               handleFormData={val => handleFormData(val, 'secretPath')}
-              error={validateForm && !formData.secretPath}
+              error={formError === 'secretPath' && !formData.secretPath}
             />
             <SecretProperty
               formData={formData}
               setFormData={setFormData}
-              validateForm={validateForm}
+              formError={formError}
             />
             <GitOps
               loading={loading}
