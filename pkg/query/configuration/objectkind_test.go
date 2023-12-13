@@ -85,7 +85,7 @@ func TestObjectKind_Validate(t *testing.T) {
 			NewClientObjectFunc: func() client.Object {
 				return nil
 			},
-			StatusFunc: func(obj client.Object) ObjectStatus {
+			StatusFunc: func(obj client.Object, kind ObjectKind) ObjectStatus {
 				return Success
 			},
 		}

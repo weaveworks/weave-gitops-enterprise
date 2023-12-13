@@ -114,7 +114,7 @@ type defaultNormalizedObject struct {
 }
 
 func (n defaultNormalizedObject) GetStatus() (configuration.ObjectStatus, error) {
-	return n.config.StatusFunc(n.Object), nil
+	return n.config.StatusFunc(n.Object, n.config), nil
 }
 
 func (n defaultNormalizedObject) GetMessage() (string, error) {

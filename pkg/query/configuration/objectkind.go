@@ -50,8 +50,12 @@ type ObjectKind struct {
 	RetentionPolicy RetentionPolicy `json:"-"`
 	// FilterFunc is a function to filter objects of this objectkind. For example to only retain events from a particular source.
 	FilterFunc FilterFunc
-	// StatusFunc is a function to get the status of an object of this objectkind. It allows to customise status resolution by objectkind.
-	StatusFunc func(obj client.Object) ObjectStatus
+	// GetConditionsFunc is a function to get the conditions
+	GetConditionsFunc func(obj client.Object) ([]metav1.Condition, error)
+	// GetSuspendedFunc is a function to calculate whether the given object is suspended
+	GetSuspendedFunc func(obj client.Object) (bool, error)
+	// StatusFunc is a function to calculate the status out of the object status and its configuration given by objectKind
+	StatusFunc func(obj client.Object, objectKind ObjectKind) ObjectStatus
 	// MessageFunc is a function to get the message of an object of this objectkind. It allows to customise message resolution by objectkind.
 	MessageFunc func(obj client.Object) string
 	// Labels defines a list of labels that you are interested to collect and query for the object kind. For example, templates, defines templateType as label.
@@ -117,9 +121,23 @@ var (
 			return &helmv2beta1.HelmRelease{}
 		},
 		AddToSchemeFunc: helmv2beta1.AddToScheme,
-		StatusFunc:      defaultFluxObjectStatusFunc,
-		MessageFunc:     defaultFluxObjectMessageFunc,
-		Category:        CategoryAutomation,
+		GetConditionsFunc: func(obj client.Object) ([]metav1.Condition, error) {
+			hr, ok := obj.(*helmv2beta1.HelmRelease)
+			if !ok {
+				return nil, fmt.Errorf("object is not a HelmRelease")
+			}
+			return hr.GetConditions(), nil
+		},
+		GetSuspendedFunc: func(obj client.Object) (bool, error) {
+			hr, ok := obj.(*helmv2beta1.HelmRelease)
+			if !ok {
+				return false, fmt.Errorf("object is not a HelmRelease")
+			}
+			return hr.Spec.Suspend, nil
+		},
+		StatusFunc:  defaultFluxObjectStatusFunc,
+		MessageFunc: defaultFluxObjectMessageFunc,
+		Category:    CategoryAutomation,
 	}
 	KustomizationObjectKind = ObjectKind{
 		Gvk: kustomizev1.GroupVersion.WithKind(kustomizev1.KustomizationKind),
@@ -213,7 +231,6 @@ var (
 		AddToSchemeFunc: rbacv1.AddToScheme,
 		Category:        CategoryRBAC,
 	}
-
 	PolicyAgentAuditEventObjectKind = ObjectKind{
 		Gvk: corev1.SchemeGroupVersion.WithKind("Event"),
 		NewClientObjectFunc: func() client.Object {
@@ -229,7 +246,7 @@ var (
 			return e.Labels["pac.weave.works/type"] == "Audit" && e.Source.Component == "policy-agent"
 		},
 		RetentionPolicy: RetentionPolicy(24 * time.Hour),
-		StatusFunc: func(obj client.Object) ObjectStatus {
+		StatusFunc: func(obj client.Object, objectKind ObjectKind) ObjectStatus {
 			e, ok := obj.(*corev1.Event)
 			if !ok {
 				return NoStatus
@@ -269,9 +286,7 @@ var (
 			return &gapiv1.GitOpsTemplate{}
 		},
 		AddToSchemeFunc: gapiv1.AddToScheme,
-		StatusFunc: func(obj client.Object) ObjectStatus {
-			return NoStatus
-		},
+		StatusFunc:      noStatusFunc,
 		MessageFunc: func(obj client.Object) string {
 			e, ok := obj.(*gapiv1.GitOpsTemplate)
 			if !ok {
@@ -294,9 +309,7 @@ var (
 			return &capiv1.CAPITemplate{}
 		},
 		AddToSchemeFunc: capiv1.AddToScheme,
-		StatusFunc: func(obj client.Object) ObjectStatus {
-			return NoStatus
-		},
+		StatusFunc:      noStatusFunc,
 		MessageFunc: func(obj client.Object) string {
 			e, ok := obj.(*capiv1.CAPITemplate)
 			if !ok {
@@ -307,7 +320,6 @@ var (
 		},
 		Category: CategoryTemplate,
 	}
-
 	AutomatedClusterDiscoveryKind = ObjectKind{
 		Gvk: clusterreflectorv1alpha1.GroupVersion.WithKind("AutomatedClusterDiscovery"),
 		NewClientObjectFunc: func() client.Object {
@@ -319,6 +331,10 @@ var (
 		Category:        CategoryClusterDiscovery,
 	}
 )
+
+func noStatusFunc(obj client.Object, kind ObjectKind) ObjectStatus {
+	return NoStatus
+}
 
 // SupportedObjectKinds list with the default supported Object resources to query.
 var SupportedObjectKinds = []ObjectKind{
@@ -346,17 +362,28 @@ var SupportedRbacKinds = []ObjectKind{
 
 // defaultFluxObjectStatusFunc is the default status function for Flux objects.
 // Flux objects all report status via the Conditions field, so we can standardize on that.
-func defaultFluxObjectStatusFunc(obj client.Object) ObjectStatus {
-	fo, err := ToFluxObject(obj)
-	if err != nil {
-		return Failed
+func defaultFluxObjectStatusFunc(obj client.Object, objectKind ObjectKind) ObjectStatus {
+	// TODO we should return errors
+	if objectKind.GetConditionsFunc == nil || objectKind.StatusFunc == nil {
+		return NoStatus
 	}
 
-	if fo.GetSuspended() {
+	conditions, err := objectKind.GetConditionsFunc(obj)
+	if err != nil {
+		return NoStatus
+	}
+
+	suspended, err := objectKind.GetSuspendedFunc(obj)
+	if err != nil {
+		return NoStatus
+
+	}
+
+	if suspended {
 		return Suspended
 	}
 
-	for _, c := range fo.GetConditions() {
+	for _, c := range conditions {
 		if ObjectStatus(c.Type) == NoStatus {
 			return NoStatus
 		}

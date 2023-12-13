@@ -6,6 +6,8 @@ import (
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -162,8 +164,21 @@ func TestStatusAndMessage(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		kind := ObjectKind{
+			Gvk: schema.GroupVersionKind{
+				Kind: "test",
+			},
+			AddToSchemeFunc: func(*runtime.Scheme) error {
+				return nil
+			},
+			NewClientObjectFunc: func() client.Object {
+				return nil
+			},
+			StatusFunc: defaultFluxObjectStatusFunc,
+		}
+
 		t.Run(tt.name, func(t *testing.T) {
-			if got := defaultFluxObjectStatusFunc(tt.obj); got != tt.desiredStatus {
+			if got := defaultFluxObjectStatusFunc(tt.obj, kind); got != tt.desiredStatus {
 				t.Errorf("Status() = %v, want %v", got, tt.desiredStatus)
 			}
 
