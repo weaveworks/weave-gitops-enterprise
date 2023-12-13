@@ -6,15 +6,15 @@ import (
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestStatusAndMessage(t *testing.T) {
-
 	tests := []struct {
 		name           string
 		desiredStatus  ObjectStatus
 		desiredMessage string
-		obj            FluxObject
+		obj            client.Object
 	}{
 		{
 			name:           "HelmRelease with Ready condition",
@@ -64,6 +64,97 @@ func TestStatusAndMessage(t *testing.T) {
 				Status: kustomizev1.KustomizationStatus{
 					Conditions: []metav1.Condition{
 						{Type: "Ready", Status: "False", Message: "Kustomization apply failed: failed to apply revision: main/1234567890"},
+					},
+				},
+			},
+		},
+		{
+			name:           "Kustomization with Suspended computed status",
+			desiredStatus:  Suspended,
+			desiredMessage: "",
+			obj: &kustomizev1.Kustomization{
+				Spec: kustomizev1.KustomizationSpec{
+					Suspend: true,
+				},
+				Status: kustomizev1.KustomizationStatus{
+					Conditions: []metav1.Condition{
+						{Type: "CustomCondition", Status: "CustomStatus", Message: "CustomMessage"},
+					},
+				},
+			},
+		},
+		{
+			name:           "HelmRelease with NoStatus condition",
+			desiredStatus:  NoStatus,
+			desiredMessage: "",
+			obj: &v2beta1.HelmRelease{
+				Status: v2beta1.HelmReleaseStatus{
+					Conditions: []metav1.Condition{
+						{Type: "-", Status: "DoesNotMatter", Message: "CustomMessage"},
+					},
+				},
+			},
+		},
+		{
+			name:           "Kustomization without Ready and without NoStatus conditions",
+			desiredStatus:  Failed,
+			desiredMessage: "",
+			obj: &kustomizev1.Kustomization{
+				Status: kustomizev1.KustomizationStatus{
+					Conditions: []metav1.Condition{
+						{Type: "CustomCondition", Status: "CustomStatus", Message: "CustomMessage"},
+					},
+				},
+			},
+		},
+		{
+			name:           "HelmRelease with Ready condition and Reconciling computed status",
+			desiredStatus:  Reconciling,
+			desiredMessage: "Reconciling message for HelmRelease",
+			obj: &v2beta1.HelmRelease{
+				Status: v2beta1.HelmReleaseStatus{
+					Conditions: []metav1.Condition{
+						{
+							Type:    "Ready",
+							Status:  "Unknown",
+							Reason:  "Progressing",
+							Message: "Reconciling message for HelmRelease",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:           "Kustomization with Available condition and Reconciling computed status",
+			desiredStatus:  Reconciling,
+			desiredMessage: "Reconciling message for Kustomization",
+			obj: &kustomizev1.Kustomization{
+				Status: kustomizev1.KustomizationStatus{
+					Conditions: []metav1.Condition{
+						{
+							Type:    "Available",
+							Status:  "Unknown",
+							Reason:  "Progressing",
+							Message: "Reconciling message for Kustomization",
+						},
+					},
+				},
+			},
+		},
+		// TODO: Replace Kustomization with a Terraform object after Explorer starts supporting Terraform objects.
+		{
+			name:           "Fake Terraform object with Ready condition and PendingAction computed status",
+			desiredStatus:  PendingAction,
+			desiredMessage: "PendingAction message for Terraform object",
+			obj: &kustomizev1.Kustomization{
+				Status: kustomizev1.KustomizationStatus{
+					Conditions: []metav1.Condition{
+						{
+							Type:    "Ready",
+							Status:  "Unknown",
+							Reason:  "TerraformPlannedWithChanges",
+							Message: "PendingAction message for Terraform object",
+						},
 					},
 				},
 			},

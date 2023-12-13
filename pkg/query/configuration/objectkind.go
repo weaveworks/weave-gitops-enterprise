@@ -66,9 +66,12 @@ type ObjectKind struct {
 type ObjectStatus string
 
 const (
-	Success  ObjectStatus = "Success"
-	Failed   ObjectStatus = "Failed"
-	NoStatus ObjectStatus = "-"
+	Success       ObjectStatus = "Success"
+	Failed        ObjectStatus = "Failed"
+	Reconciling   ObjectStatus = "Reconciling"
+	Suspended     ObjectStatus = "Suspended"
+	PendingAction ObjectStatus = "PendingAction"
+	NoStatus      ObjectStatus = "-"
 )
 
 func (ok ObjectKind) String() string {
@@ -104,6 +107,7 @@ func (o ObjectKind) Validate() error {
 type FluxObject interface {
 	client.Object
 	GetConditions() []metav1.Condition
+	GetSuspended() bool
 }
 
 var (
@@ -348,13 +352,27 @@ func defaultFluxObjectStatusFunc(obj client.Object) ObjectStatus {
 		return Failed
 	}
 
+	if fo.GetSuspended() {
+		return Suspended
+	}
+
 	for _, c := range fo.GetConditions() {
 		if ObjectStatus(c.Type) == NoStatus {
 			return NoStatus
 		}
+
 		if c.Type == "Ready" || c.Type == "Available" {
 			if c.Status == "True" {
 				return Success
+			}
+
+			if c.Status == "Unknown" {
+				if c.Reason == "Progressing" {
+					return Reconciling
+				}
+				if c.Reason == "TerraformPlannedWithChanges" {
+					return PendingAction
+				}
 			}
 
 			return Failed
@@ -380,35 +398,80 @@ func defaultFluxObjectMessageFunc(obj client.Object) string {
 	return ""
 }
 
-type AutomatedClusterDiscoveryAdaptor struct {
+type SuspendableAdapter struct {
 	client.Object
 }
 
-func (a *AutomatedClusterDiscoveryAdaptor) GetConditions() []metav1.Condition {
+func (o *SuspendableAdapter) GetConditions() []metav1.Condition {
+	switch t := o.Object.(type) {
+	case *sourcev1beta2.Bucket:
+		return t.GetConditions()
+	case *gitopssets.GitOpsSet:
+		return t.GetConditions()
+	case *sourcev1.GitRepository:
+		return t.GetConditions()
+	case *sourcev1beta2.HelmChart:
+		return t.GetConditions()
+	case *helmv2beta1.HelmRelease:
+		return t.GetConditions()
+	case *sourcev1beta2.HelmRepository:
+		return t.GetConditions()
+	case *kustomizev1.Kustomization:
+		return t.GetConditions()
+	case *sourcev1beta2.OCIRepository:
+		return t.GetConditions()
+	default:
+		return nil
+	}
+}
+
+func (a *SuspendableAdapter) GetSuspended() bool {
+	switch t := a.Object.(type) {
+	case *clusterreflectorv1alpha1.AutomatedClusterDiscovery:
+		return t.Spec.Suspend
+	case *sourcev1beta2.Bucket:
+		return t.Spec.Suspend
+	case *gitopssets.GitOpsSet:
+		return t.Spec.Suspend
+	case *sourcev1.GitRepository:
+		return t.Spec.Suspend
+	case *sourcev1beta2.HelmChart:
+		return t.Spec.Suspend
+	case *helmv2beta1.HelmRelease:
+		return t.Spec.Suspend
+	case *sourcev1beta2.HelmRepository:
+		return t.Spec.Suspend
+	case *kustomizev1.Kustomization:
+		return t.Spec.Suspend
+	case *sourcev1beta2.OCIRepository:
+		return t.Spec.Suspend
+	default:
+		return false
+	}
+}
+
+type AutomatedClusterDiscoveryAdapter struct {
+	client.Object
+}
+
+func (a *AutomatedClusterDiscoveryAdapter) GetConditions() []metav1.Condition {
 	acd := a.Object.(*clusterreflectorv1alpha1.AutomatedClusterDiscovery)
 	return acd.Status.Conditions
 }
 
 func ToFluxObject(obj client.Object) (FluxObject, error) {
 	switch t := obj.(type) {
-	case *helmv2beta1.HelmRelease:
-		return t, nil
-	case *kustomizev1.Kustomization:
-		return t, nil
-	case *sourcev1beta2.HelmRepository:
-		return t, nil
-	case *sourcev1beta2.HelmChart:
-		return t, nil
-	case *sourcev1beta2.Bucket:
-		return t, nil
-	case *sourcev1.GitRepository:
-		return t, nil
-	case *sourcev1beta2.OCIRepository:
-		return t, nil
-	case *gitopssets.GitOpsSet:
-		return t, nil
+	case *sourcev1beta2.Bucket,
+		*gitopssets.GitOpsSet,
+		*sourcev1.GitRepository,
+		*sourcev1beta2.HelmChart,
+		*helmv2beta1.HelmRelease,
+		*sourcev1beta2.HelmRepository,
+		*kustomizev1.Kustomization,
+		*sourcev1beta2.OCIRepository:
+		return &SuspendableAdapter{Object: t}, nil
 	case *clusterreflectorv1alpha1.AutomatedClusterDiscovery:
-		return &AutomatedClusterDiscoveryAdaptor{Object: t}, nil
+		return &SuspendableAdapter{Object: &AutomatedClusterDiscoveryAdapter{Object: t}}, nil
 	}
 
 	return nil, fmt.Errorf("unknown object type: %T", obj)

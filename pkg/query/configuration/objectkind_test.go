@@ -15,7 +15,6 @@ import (
 // like being in the expected flux api version. For example, flux v1 available
 // kinds should be using v1 api version
 func TestObjectsKinds(t *testing.T) {
-
 	g := NewWithT(t)
 
 	t.Run("should contain v1 kustomizations", func(t *testing.T) {
