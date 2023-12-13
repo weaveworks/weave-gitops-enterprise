@@ -39,7 +39,6 @@ const CreateSOPS = () => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const [formError, setFormError] = useState<string>('');
-  const [validateForm, setValidateForm] = useState<boolean>(false);
   const [formData, setFormData] = useState<SOPS>(initialFormData);
   const handleFormData = (value: any, key: string) => {
     setFormData(f => ({ ...f, [key]: value }));
@@ -137,19 +136,18 @@ const CreateSOPS = () => {
         <NotificationsWrapper>
           <FormWrapperSecret
             noValidate
-            onSubmit={event => {
-              setValidateForm(true);
-              validateFormData(event, handleCreateSecret, setFormError);
-            }}
+            onSubmit={event =>
+              validateFormData(event, handleCreateSecret, setFormError)
+            }
           >
             <Flex column>
               <ListClusters
                 value={formData.clusterName}
-                validateForm={validateForm}
                 handleFormData={(val: any) => {
                   handleFormData(val, 'clusterName');
                   handleFormData('', 'kustomization');
                 }}
+                error={formError === 'clusterName' && !formData.clusterName}
               />
               <InputDebounced
                 required
@@ -157,7 +155,7 @@ const CreateSOPS = () => {
                 label="SECRET NAME"
                 value={formData.secretName}
                 handleFormData={val => handleFormData(val, 'secretName')}
-                error={validateForm && !formData.secretName}
+                error={formError === 'secretName' && !formData.secretName}
               />
               <InputDebounced
                 required
@@ -165,7 +163,9 @@ const CreateSOPS = () => {
                 label="SECRET NAMESPACE"
                 value={formData.secretNamespace}
                 handleFormData={val => handleFormData(val, 'secretNamespace')}
-                error={validateForm && !formData.secretNamespace}
+                error={
+                  formError === 'secretNamespace' && !formData.secretNamespace
+                }
               />
             </Flex>
             <h2>Encryption</h2>
@@ -182,12 +182,12 @@ const CreateSOPS = () => {
             </Select>
             {!!formData.clusterName && (
               <ListKustomizations
-                validateForm={validateForm}
                 value={formData.kustomization}
                 handleFormData={(val: any) =>
                   handleFormData(val, 'kustomization')
                 }
                 clusterName={formData.clusterName}
+                error={formError === 'kustomization' && !formData.kustomization}
               />
             )}
             <h2>Secret Data</h2>
@@ -198,7 +198,7 @@ const CreateSOPS = () => {
             <SecretData
               formData={formData}
               setFormData={setFormData}
-              validateForm={validateForm}
+              formError={formError}
             />
             <GitOps
               loading={loading}
