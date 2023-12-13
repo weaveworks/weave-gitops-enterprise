@@ -9,17 +9,22 @@ import (
 // Bootstrap initiated by the command runs the WGE bootstrap workflow
 func Bootstrap(config steps.Config) error {
 
-	adminCredentials, err := steps.NewAskAdminCredsSecretStep(config.ClusterUserAuth, config.Silent)
+	adminCredentials, err := steps.NewAskAdminCredsSecretStep(config.ClusterUserAuth, config.ModesConfig)
 	if err != nil {
 		return fmt.Errorf("cannot create ask admin creds step: %v", err)
 	}
 
 	repositoryConfig := steps.NewGitRepositoryConfigStep(config.GitRepository)
 
-	componentesExtra := steps.NewInstallExtraComponentsStep(config.ComponentsExtra, config.Silent)
+	checkUiDomain, err := steps.NewCheckUIDomainStep(config.ModesConfig)
+	if err != nil {
+		return fmt.Errorf("cannot create check ui: %v", err)
+	}
+
+	componentsExtra := steps.NewInstallExtraComponentsStep(config.ComponentsExtra, config.ModesConfig.Silent)
 
 	// TODO have a single workflow source of truth and documented in https://docs.gitops.weave.works/docs/0.33.0/enterprise/getting-started/install-enterprise/
-	var steps = []steps.BootstrapStep{
+	var workflow = []steps.BootstrapStep{
 		steps.VerifyFluxInstallation,
 		steps.NewAskBootstrapFluxStep(config),
 		repositoryConfig,
@@ -29,16 +34,34 @@ func Bootstrap(config steps.Config) error {
 		steps.NewInstallWGEStep(config),
 		steps.NewInstallOIDCStep(config),
 		steps.NewOIDCConfigStep(config),
-		componentesExtra,
-		steps.CheckUIDomainStep,
+		componentsExtra,
+		checkUiDomain,
 	}
 
-	for _, step := range steps {
+	return execute(config, workflow)
+}
+
+func execute(config steps.Config, worfklow []steps.BootstrapStep) error {
+	var allOutputs []steps.StepOutput
+
+	for _, step := range worfklow {
 		config.Logger.Waitingf(step.Name)
-		_, err := step.Execute(&config)
+		stepOutputs, err := step.Execute(&config)
 		if err != nil {
-			return err
+			return fmt.Errorf("error on step %s: %v", step.Name, err)
+		}
+		allOutputs = append(allOutputs, stepOutputs...)
+	}
+
+	if config.ModesConfig.Export {
+		config.Logger.Actionf("export manifests")
+		for _, output := range allOutputs {
+			err := output.Export(config.OutWriter)
+			if err != nil {
+				return fmt.Errorf("error exporting output %s: %v", output.Name, err)
+			}
 		}
 	}
+
 	return nil
 }

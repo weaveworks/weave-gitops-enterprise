@@ -77,7 +77,6 @@ const GitAuth: FC<{
       />
       {showAuthDialog && (
         <GithubDeviceAuthModal
-          bodyClassName="GithubDeviceAuthModal"
           onClose={() => setShowAuthDialog(false)}
           onSuccess={() => setShowAuthDialog(false)}
           open={showAuthDialog}

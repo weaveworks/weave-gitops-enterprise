@@ -34,7 +34,7 @@ func askBootstrapFlux(input []StepInput, c *Config) ([]StepOutput, error) {
 	if !canAskForFluxBootstrap(input, c) {
 		return []StepOutput{}, nil
 	}
-	if c.BootstrapFlux && c.Silent {
+	if c.BootstrapFlux && c.ModesConfig.Silent {
 		c.Logger.Actionf("bootstrapping flux in the generic way")
 		return []StepOutput{}, nil
 	}
@@ -49,10 +49,15 @@ func askBootstrapFlux(input []StepInput, c *Config) ([]StepOutput, error) {
 			}
 		}
 	}
+
+	if c.ModesConfig.Export {
+		return []StepOutput{}, fmt.Errorf("cannot execute with export mode")
+	}
+
 	return []StepOutput{}, nil
 }
 
 // canAskForGitConfig if fluxInstallation is false, then can ask for git config
 func canAskForFluxBootstrap(input []StepInput, c *Config) bool {
-	return !c.FluxInstallated
+	return !c.FluxInstalled
 }

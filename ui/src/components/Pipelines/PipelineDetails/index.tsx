@@ -1,5 +1,6 @@
 import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import {
+  Flex,
   RouterTab,
   SubRouterTabs,
   YamlView,
@@ -49,21 +50,23 @@ const PipelineDetails = ({ name, namespace }: Props) => {
       <NotificationsWrapper
         errors={mappedErrors(data?.errors || [], namespace)}
       >
-        <SubRouterTabs rootPath={`${path}/status`}>
-          <RouterTab name="Status" path={`${path}/status`}>
-            <Workloads pipeline={data?.pipeline || ({} as Pipeline)} />
-          </RouterTab>
-          <RouterTab name="Yaml" path={`${path}/yaml`}>
-            <YamlView
-              yaml={data?.pipeline?.yaml || ''}
-              header={createYamlCommand(
-                'Pipeline',
-                data?.pipeline?.name,
-                data?.pipeline?.namespace,
-              )}
-            />
-          </RouterTab>
-        </SubRouterTabs>
+        <Flex column gap="16" wide>
+          <SubRouterTabs rootPath={`${path}/status`}>
+            <RouterTab name="Status" path={`${path}/status`}>
+              <Workloads pipeline={data?.pipeline || ({} as Pipeline)} />
+            </RouterTab>
+            <RouterTab name="Yaml" path={`${path}/yaml`}>
+              <YamlView
+                yaml={data?.pipeline?.yaml || ''}
+                header={createYamlCommand(
+                  'Pipeline',
+                  data?.pipeline?.name,
+                  data?.pipeline?.namespace,
+                )}
+              />
+            </RouterTab>
+          </SubRouterTabs>
+        </Flex>
       </NotificationsWrapper>
     </Page>
   );
