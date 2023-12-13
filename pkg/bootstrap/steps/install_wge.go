@@ -3,18 +3,23 @@ package steps
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
+	"golang.org/x/exp/slices"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
-	wgeInstallMsg = "installing v%s ... It may take a few minutes."
+	wgeInstallMsg   = "installing v%s ... It may take a few minutes."
+	versionStepName = "select WGE version"
+	wgeExistsMsg    = "Weave GitOps Enterprise is already installed in namespace %s"
+	versionMsg      = "select one of the following"
 )
 
 const (
@@ -36,17 +41,52 @@ const (
 	gitopssetsHealthBindAddress       = ":8081"
 )
 
+var getVersionInput = StepInput{
+	Name:         inWGEVersion,
+	Type:         multiSelectionChoice,
+	Msg:          versionMsg,
+	Valuesfn:     getWgeVersions,
+	DefaultValue: "",
+	Enabled:      isExistingWgeInstallation,
+}
+
 // NewInstallWGEStep step to install Weave GitOps Enterprise
-func NewInstallWGEStep() BootstrapStep {
+func NewInstallWGEStep(config Config) BootstrapStep {
+
+	inputs := []StepInput{}
+
+	// validate value by user
+	if config.WGEVersion != "" {
+		versions, err := getWgeVersions(inputs, &config)
+		if err != nil {
+			config.Logger.Failuref("couldn't get WGE helm chart: %v", err)
+			os.Exit(1)
+		}
+		if versions, ok := versions.([]string); !ok || !slices.Contains(versions, config.WGEVersion) {
+			config.Logger.Failuref("invalid version: %v. available versions: %s", config.WGEVersion, versions)
+			os.Exit(1)
+		}
+	}
+
+	if config.WGEVersion == "" {
+		inputs = append(inputs, getVersionInput)
+	}
+
 	return BootstrapStep{
 		Name:  "Install Weave GitOps Enterprise",
-		Input: []StepInput{},
+		Input: inputs,
 		Step:  installWge,
 	}
 }
 
 // InstallWge installs weave gitops enterprise chart.
 func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
+
+	if !isExistingWgeInstallation(input, c) {
+		c.Logger.Actionf(wgeExistsMsg, WGEDefaultNamespace)
+		return []StepOutput{}, nil
+	}
+
 	c.Logger.Actionf(wgeInstallMsg, c.WGEVersion)
 
 	wgeHelmRepository, err := constructWgeHelmRepository()
@@ -232,4 +272,10 @@ func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string
 	}
 
 	return utils.CreateHelmReleaseYamlString(wgeHelmRelease)
+}
+
+// isExistingWgeInstallation checks for existing WGE installation on the cluster
+func isExistingWgeInstallation(input []StepInput, c *Config) bool {
+	_, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmVersionProperty)
+	return err != nil
 }

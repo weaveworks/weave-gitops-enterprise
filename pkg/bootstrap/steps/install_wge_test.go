@@ -147,8 +147,8 @@ func TestInstallWge_Execute(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			step := NewInstallWGEStep()
-			gotOutputs, err := step.Execute(&tt.config)
+			// pass an empty input list
+			gotOutputs, err := installWge([]StepInput{}, &tt.config)
 			if tt.wantErr != "" {
 				if msg := err.Error(); msg != tt.wantErr {
 					t.Fatalf("got error %q, want %q", msg, tt.wantErr)
