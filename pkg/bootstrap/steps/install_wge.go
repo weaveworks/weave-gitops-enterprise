@@ -3,7 +3,6 @@ package steps
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -13,6 +12,7 @@ import (
 	"golang.org/x/exp/slices"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -47,11 +47,31 @@ var getVersionInput = StepInput{
 	Msg:          versionMsg,
 	Valuesfn:     getWgeVersions,
 	DefaultValue: "",
-	Enabled:      isExistingWgeInstallation,
+}
+
+// NewCheckWGEInstallationConfig handles the WGE installation configuration
+func NewCheckWGEInstallationConfig(client client.Client) (bool, error) {
+
+	_, err := utils.GetHelmReleaseProperty(client, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmVersionProperty)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // NewInstallWGEStep step to install Weave GitOps Enterprise
 func NewInstallWGEStep(config Config) BootstrapStep {
+
+	// check if WGE is already installed
+	if config.IsExistingWgeInstallation {
+		config.Logger.Waitingf(wgeExistsMsg, WGEDefaultNamespace)
+		return BootstrapStep{
+			Name:  "Existing WGE installation found",
+			Input: []StepInput{},
+			Step:  doNothingStep,
+		}
+	}
 
 	inputs := []StepInput{}
 
@@ -60,11 +80,19 @@ func NewInstallWGEStep(config Config) BootstrapStep {
 		versions, err := getWgeVersions(inputs, &config)
 		if err != nil {
 			config.Logger.Failuref("couldn't get WGE helm chart: %v", err)
-			os.Exit(1)
+			return BootstrapStep{
+				Name:  "Helm chart not found",
+				Input: []StepInput{},
+				Step:  doNothingStep,
+			}
 		}
 		if versions, ok := versions.([]string); !ok || !slices.Contains(versions, config.WGEVersion) {
 			config.Logger.Failuref("invalid version: %v. available versions: %s", config.WGEVersion, versions)
-			os.Exit(1)
+			return BootstrapStep{
+				Name:  "invalid WGE version",
+				Input: []StepInput{},
+				Step:  doNothingStep,
+			}
 		}
 	}
 
@@ -81,11 +109,6 @@ func NewInstallWGEStep(config Config) BootstrapStep {
 
 // InstallWge installs weave gitops enterprise chart.
 func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
-
-	if !isExistingWgeInstallation(input, c) {
-		c.Logger.Actionf(wgeExistsMsg, WGEDefaultNamespace)
-		return []StepOutput{}, nil
-	}
 
 	c.Logger.Actionf(wgeInstallMsg, c.WGEVersion)
 
@@ -272,10 +295,4 @@ func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string
 	}
 
 	return utils.CreateHelmReleaseYamlString(wgeHelmRelease)
-}
-
-// isExistingWgeInstallation checks for existing WGE installation on the cluster
-func isExistingWgeInstallation(input []StepInput, c *Config) bool {
-	_, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmVersionProperty)
-	return err != nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -60,29 +61,30 @@ const (
 
 // ConfigBuilder contains all the different configuration options that a user can introduce
 type ConfigBuilder struct {
-	logger                  logger.Logger
-	kubeconfig              string
-	password                string
-	wgeVersion              string
-	privateKeyPath          string
-	privateKeyPassword      string
-	silent                  bool
-	export                  bool
-	gitUsername             string
-	gitToken                string
-	repoURL                 string
-	repoBranch              string
-	repoPath                string
-	authType                string
-	installOIDC             string
-	discoveryURL            string
-	clientID                string
-	clientSecret            string
-	PromptedForDiscoveryURL bool
-	bootstrapFlux           bool
-	componentsExtra         []string
-	outWriter               io.Writer
-	inReader                io.Reader
+	logger                    logger.Logger
+	kubeconfig                string
+	password                  string
+	isExistingWGEInstallation bool
+	wgeVersion                string
+	privateKeyPath            string
+	privateKeyPassword        string
+	silent                    bool
+	export                    bool
+	gitUsername               string
+	gitToken                  string
+	repoURL                   string
+	repoBranch                string
+	repoPath                  string
+	authType                  string
+	installOIDC               string
+	discoveryURL              string
+	clientID                  string
+	clientSecret              string
+	PromptedForDiscoveryURL   bool
+	bootstrapFlux             bool
+	componentsExtra           []string
+	outWriter                 io.Writer
+	inReader                  io.Reader
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -185,9 +187,10 @@ type Config struct {
 	// OutWriter holds the output to write to
 	OutWriter io.Writer
 
-	WGEVersion      string // user want this version in the cluster
-	ClusterUserAuth ClusterUserAuthConfig
-	ModesConfig     ModesConfig
+	IsExistingWgeInstallation bool
+	WGEVersion                string // user want this version in the cluster
+	ClusterUserAuth           ClusterUserAuthConfig
+	ModesConfig               ModesConfig
 
 	FluxInstalled      bool
 	PrivateKeyPath     string
@@ -251,17 +254,23 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		return Config{}, fmt.Errorf("cannot create components extra configuration: %v", err)
 	}
 
+	isExistingWgeInstallation, err := NewCheckWGEInstallationConfig(kubeHttp.Client)
+	if err != nil && !strings.Contains(err.Error(), "not found") {
+		return Config{}, fmt.Errorf("cannot create check wge installation configuration: %v", err)
+	}
+
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
-		KubernetesClient: kubeHttp.Client,
-		GitClient:        &utils.GoGitClient{},
-		FluxClient:       &utils.CmdFluxClient{},
-		InReader:         cb.inReader,
-		OutWriter:        cb.outWriter,
-		WGEVersion:       cb.wgeVersion,
-		ClusterUserAuth:  clusterUserAuthConfig,
-		GitRepository:    gitRepositoryConfig,
-		Logger:           cb.logger,
+		KubernetesClient:          kubeHttp.Client,
+		GitClient:                 &utils.GoGitClient{},
+		FluxClient:                &utils.CmdFluxClient{},
+		InReader:                  cb.inReader,
+		OutWriter:                 cb.outWriter,
+		IsExistingWgeInstallation: isExistingWgeInstallation,
+		WGEVersion:                cb.wgeVersion,
+		ClusterUserAuth:           clusterUserAuthConfig,
+		GitRepository:             gitRepositoryConfig,
+		Logger:                    cb.logger,
 		ModesConfig: ModesConfig{
 			Silent: cb.silent,
 			Export: cb.export,
