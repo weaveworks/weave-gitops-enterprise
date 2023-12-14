@@ -80,7 +80,7 @@ export const SecretProperty = ({
                 placeholder="Secret Property"
                 value={obj.key}
                 handleFormData={val => handleSecretChange(obj.id, true, val)}
-                error={formError === 'data' && !obj.key}
+                error={formError === 'dataSecretKey' && !obj.key}
               />
               <InputDebounced
                 name="dataSecretValue"

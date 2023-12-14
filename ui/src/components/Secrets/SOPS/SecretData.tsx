@@ -13,6 +13,8 @@ const data = ({
   setFormData: Dispatch<React.SetStateAction<any>>;
   formError: string;
 }) => {
+  console.log(formError);
+
   const handleSecretChange = (id: number, isKey: boolean, value: string) => {
     setFormData((f: ExternalSecret) => ({
       ...f,
@@ -58,7 +60,7 @@ const data = ({
             placeholder="Secret key"
             value={obj.key}
             handleFormData={val => handleSecretChange(obj.id, true, val)}
-            error={formError === 'data' && !obj.key}
+            error={formError === 'dataSecretKey' && !obj.key}
           />
           <InputDebounced
             required
@@ -67,7 +69,7 @@ const data = ({
             placeholder="secret value"
             value={obj.value}
             handleFormData={val => handleSecretChange(obj.id, false, val)}
-            error={formError === 'data' && !obj.value}
+            error={formError === 'dataSecretValue' && !obj.value}
           />
           {formData.data.length > 1 && (
             <RemoveCircleOutlineIcon
