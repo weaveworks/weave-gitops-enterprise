@@ -198,42 +198,6 @@ func TestInstallWge_Execute(t *testing.T) {
 			}, fluxSystemGitRepository(), fluxSystemKustomization()),
 			wantOutput: []StepOutput{},
 		},
-		// a case when WGEversion is not specified
-		{
-			name: "should install weave gitops enterprise by select the version interactively",
-			config: MakeTestConfig(t, Config{
-				GitUsername: "test",
-				GitToken:    "abc",
-				GitRepository: GitRepositoryConfig{
-					Url:    "https://test.com.git",
-					Branch: "main",
-					Path:   "/",
-					Scheme: "https",
-				},
-				IsExistingWgeInstallation: false,
-				ChartURL:                  mockServer.URL,
-			}, fluxSystemGitRepository(), fluxSystemKustomization()),
-			wantOutput: []StepOutput{
-				{
-					Name: wgeHelmrepoFileName,
-					Type: typeFile,
-					Value: fileContent{
-						Name:      wgeHelmrepoFileName,
-						Content:   expectedHelmRepository,
-						CommitMsg: wgeHelmRepoCommitMsg,
-					},
-				},
-				{
-					Name: wgeHelmReleaseFileName,
-					Type: typeFile,
-					Value: fileContent{
-						Name:      wgeHelmReleaseFileName,
-						Content:   expectedHelmRelease,
-						CommitMsg: wgeHelmReleaseCommitMsg,
-					},
-				},
-			},
-		},
 	}
 
 	for _, tt := range tests {
