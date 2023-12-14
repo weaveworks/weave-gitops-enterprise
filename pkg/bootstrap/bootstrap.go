@@ -21,6 +21,11 @@ func Bootstrap(config steps.Config) error {
 		return fmt.Errorf("cannot create check ui: %v", err)
 	}
 
+	installWge, err := steps.NewInstallWGEStep(config.WgeConfig, config.Logger)
+	if err != nil {
+		return fmt.Errorf("cannot create install WGE: %v", err)
+	}
+
 	componentsExtra := steps.NewInstallExtraComponentsStep(config.ComponentsExtra, config.ModesConfig.Silent)
 
 	// TODO have a single workflow source of truth and documented in https://docs.gitops.weave.works/docs/0.33.0/enterprise/getting-started/install-enterprise/
@@ -31,7 +36,7 @@ func Bootstrap(config steps.Config) error {
 		steps.NewBootstrapFlux(config),
 		steps.CheckEntitlementSecret,
 		adminCredentials,
-		steps.NewInstallWGEStep(config),
+		installWge,
 		steps.NewInstallOIDCStep(config),
 		steps.NewOIDCConfigStep(config),
 		componentsExtra,

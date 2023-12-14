@@ -7,10 +7,11 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"gopkg.in/yaml.v2"
+	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func getWgeVersions(input []StepInput, c *Config) (interface{}, error) {
-	entitlementSecret, err := utils.GetSecret(c.KubernetesClient, entitlementSecretName, WGEDefaultNamespace)
+func getWgeVersions(client k8s_client.Client) ([]string, error) {
+	entitlementSecret, err := utils.GetSecret(client, entitlementSecretName, WGEDefaultNamespace)
 	if err != nil {
 		return []string{}, err
 	}
