@@ -168,8 +168,7 @@ const CreateExternalSecret = () => {
             </Flex>
             {formData.clusterName && (
               <ListSecretsStore
-                // value={formData.secretStore}
-                value="test"
+                value={formData.secretStore}
                 handleFormData={(val: any) => handleSecretStoreChange(val)}
                 clusterName={formData.clusterName}
                 error={formError === 'secretStoreRef' && !formData.secretStore}

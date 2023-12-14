@@ -13,8 +13,6 @@ const data = ({
   setFormData: Dispatch<React.SetStateAction<any>>;
   formError: string;
 }) => {
-  console.log(formError);
-
   const handleSecretChange = (id: number, isKey: boolean, value: string) => {
     setFormData((f: ExternalSecret) => ({
       ...f,
