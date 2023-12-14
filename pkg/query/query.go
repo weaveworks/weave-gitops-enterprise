@@ -3,11 +3,13 @@ package query
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/weaveworks/weave-gitops/core/logger"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
+	querymetrics "github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/metrics"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -72,6 +74,9 @@ type qs struct {
 }
 
 func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOption) ([]models.Object, error) {
+	var err error
+	defer recordMetrics(querymetrics.RunQueryAction, time.Now(), err)
+
 	principal := auth.Principal(ctx)
 	if principal == nil {
 		return nil, fmt.Errorf("principal not found")
@@ -149,4 +154,13 @@ func (q *qs) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
 
 func (q *qs) ListFacets(ctx context.Context, cat configuration.ObjectCategory) (store.Facets, error) {
 	return q.index.ListFacets(ctx, cat)
+}
+
+func recordMetrics(action string, start time.Time, err error) {
+	status := querymetrics.SuccessLabel
+	if err != nil {
+		status = querymetrics.FailedLabel
+	}
+
+	querymetrics.QueryServiceSetLatency(action, status, time.Since(start))
 }

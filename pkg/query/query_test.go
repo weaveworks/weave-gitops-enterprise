@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -14,8 +15,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
+
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/metrics"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+
+	wegometrics "github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
@@ -767,6 +772,72 @@ func TestQueryOrdering_Realistic(t *testing.T) {
 		}
 	})
 
+}
+
+func TestQuery_Metrics(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	dir, err := os.MkdirTemp("", "test")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	db, err := store.CreateSQLiteDB(dir)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, err := store.NewSQLiteStore(db, logr.Discard())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	idx, err := store.NewIndexer(s, dir, logr.Discard())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{
+		ID: "test",
+	})
+
+	objects := []models.Object{
+		{
+			Cluster:    "test-cluster-1",
+			Name:       "obj-1",
+			Namespace:  "namespace-a",
+			Kind:       "Deployment",
+			APIGroup:   "apps",
+			APIVersion: "v1",
+		},
+		{
+			Cluster:    "test-cluster-1",
+			Name:       "obj-2",
+			Namespace:  "namespace-b",
+			Kind:       "Deployment",
+			APIGroup:   "apps",
+			APIVersion: "v1",
+		},
+	}
+
+	g.Expect(store.SeedObjects(db, objects)).To(Succeed())
+	g.Expect(idx.Add(context.Background(), objects)).To(Succeed())
+
+	q := &qs{
+		log:        logr.Discard(),
+		debug:      logr.Discard(),
+		r:          s,
+		index:      idx,
+		authorizer: allowAll,
+	}
+
+	qy := &query{
+		terms: "",
+		limit: 3,
+	}
+
+	_, h := wegometrics.NewDefaultPrometheusHandler()
+	ts := httptest.NewServer(h)
+	defer ts.Close()
+
+	_, err = q.RunQuery(ctx, qy, qy)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	metrics.AssertMetrics(t, ts, []string{
+		`query_latency_seconds_bucket{action="RunQuery",status="success",le="0.01"}`,
+	})
 }
 
 type query struct {
