@@ -7,21 +7,19 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"gopkg.in/yaml.v2"
+	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func getWgeVersions(input []StepInput, c *Config) (interface{}, error) {
-	entitlementSecret, err := utils.GetSecret(c.KubernetesClient, entitlementSecretName, WGEDefaultNamespace)
+// getWgeVersions gets the latest 3 available WGE versions from the helm repository
+func getWgeVersions(client k8s_client.Client) ([]string, error) {
+	entitlementSecret, err := utils.GetSecret(client, entitlementSecretName, WGEDefaultNamespace)
 	if err != nil {
 		return []string{}, err
 	}
 
 	username, password := string(entitlementSecret.Data["username"]), string(entitlementSecret.Data["password"])
 
-	chartUrl := c.ChartURL
-	if chartUrl == "" {
-		chartUrl = fmt.Sprintf("%s/index.yaml", wgeChartUrl)
-	}
-
+	chartUrl := fmt.Sprintf("%s/index.yaml", wgeChartUrl)
 	versions, err := fetchHelmChartVersions(chartUrl, username, password)
 	if err != nil {
 		return []string{}, err

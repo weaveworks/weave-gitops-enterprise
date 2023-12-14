@@ -9,6 +9,7 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"golang.org/x/exp/slices"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,10 +17,9 @@ import (
 )
 
 const (
-	wgeInstallMsg   = "installing v%s ... It may take a few minutes."
-	versionStepName = "select WGE version"
-	wgeExistsMsg    = "Weave GitOps Enterprise is already installed in namespace %s"
-	versionMsg      = "select one of the following"
+	wgeInstallMsg = "installing v%s ... It may take a few minutes."
+	wgeExistsMsg  = "Weave GitOps Enterprise is already installed in namespace %s"
+	versionMsg    = "select one of the following"
 )
 
 const (
@@ -41,62 +41,65 @@ const (
 	gitopssetsHealthBindAddress       = ":8081"
 )
 
-var getVersionInput = StepInput{
-	Name:         inWGEVersion,
-	Type:         multiSelectionChoice,
-	Msg:          versionMsg,
-	Valuesfn:     getWgeVersions,
-	DefaultValue: "",
+// WgeConfig holds configuration about Weave GitOps Enterprise
+type WgeConfig struct {
+	// ExistingVersion is the version found in the cluster
+	ExistingVersion string
+	// RequestedVersion is the version requested by the user
+	RequestedVersion string
+	// AllowedVersions represent the allowed versions to install
+	AllowedVersions []string
 }
 
-// NewCheckWGEInstallationConfig handles the WGE installation configuration
-func NewCheckWGEInstallationConfig(client client.Client) (bool, error) {
-
-	_, err := utils.GetHelmReleaseProperty(client, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmVersionProperty)
+// NewWgeConfig creates a WGE configuration out of the user input and discovered state
+func NewWgeConfig(requestedWgeVersion string, client client.Client) (WgeConfig, error) {
+	existingVersion, err := utils.GetHelmReleaseProperty(client, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmVersionProperty)
 	if err != nil {
-		return false, err
+		return WgeConfig{}, fmt.Errorf("error getting WGE version: %v", err)
 	}
 
-	return true, nil
+	allowedWgeVersions, err := getWgeVersions(client)
+	if err != nil {
+		return WgeConfig{}, fmt.Errorf("error getting valid WGE versions: %v", err)
+	}
+
+	// validate the user introduced version
+	if requestedWgeVersion != "" {
+		if !slices.Contains(allowedWgeVersions, requestedWgeVersion) {
+			return WgeConfig{}, fmt.Errorf("invalid version: %v. available versions: %s", requestedWgeVersion, allowedWgeVersions)
+		}
+	}
+
+	return WgeConfig{
+		ExistingVersion:  existingVersion,
+		RequestedVersion: requestedWgeVersion,
+		AllowedVersions:  allowedWgeVersions,
+	}, nil
 }
 
-// NewInstallWGEStep step to install Weave GitOps Enterprise
-func NewInstallWGEStep(config Config) BootstrapStep {
+// NewInstallWGEStep creates step to install Weave GitOps Enterprise out of the existing configuration
+func NewInstallWGEStep(config WgeConfig, logger logger.Logger) (BootstrapStep, error) {
 
 	// check if WGE is already installed
-	if config.IsExistingWgeInstallation {
-		config.Logger.Waitingf(wgeExistsMsg, WGEDefaultNamespace)
+	if config.ExistingVersion != "" {
+		logger.Actionf(wgeExistsMsg, WGEDefaultNamespace)
 		return BootstrapStep{
 			Name:  "Existing WGE installation found",
 			Input: []StepInput{},
 			Step:  doNothingStep,
-		}
+		}, nil
 	}
 
 	inputs := []StepInput{}
 
-	// validate value by user
-	if config.WGEVersion != "" {
-		versions, err := getWgeVersions(inputs, &config)
-		if err != nil {
-			config.Logger.Failuref("couldn't get WGE helm chart: %v", err)
-			return BootstrapStep{
-				Name:  "Helm chart not found",
-				Input: []StepInput{},
-				Step:  doNothingStep,
-			}
+	if config.RequestedVersion == "" {
+		var getVersionInput = StepInput{
+			Name:         inWGEVersion,
+			Type:         multiSelectionChoice,
+			Msg:          versionMsg,
+			Values:       config.AllowedVersions,
+			DefaultValue: "",
 		}
-		if versions, ok := versions.([]string); !ok || !slices.Contains(versions, config.WGEVersion) {
-			config.Logger.Failuref("invalid version: %v. available versions: %s", config.WGEVersion, versions)
-			return BootstrapStep{
-				Name:  "invalid WGE version",
-				Input: []StepInput{},
-				Step:  doNothingStep,
-			}
-		}
-	}
-
-	if config.WGEVersion == "" {
 		inputs = append(inputs, getVersionInput)
 	}
 
@@ -104,13 +107,14 @@ func NewInstallWGEStep(config Config) BootstrapStep {
 		Name:  "Install Weave GitOps Enterprise",
 		Input: inputs,
 		Step:  installWge,
-	}
+	}, nil
 }
 
 // InstallWge installs weave gitops enterprise chart.
 func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 
-	c.Logger.Actionf(wgeInstallMsg, c.WGEVersion)
+	requestedVersion := c.WgeConfig.RequestedVersion
+	c.Logger.Actionf(wgeInstallMsg, requestedVersion)
 
 	wgeHelmRepository, err := constructWgeHelmRepository()
 	if err != nil {
@@ -155,7 +159,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 		ClusterController: clusterControllerValues,
 	}
 
-	wgeHelmRelease, err := constructWGEhelmRelease(wgeValues, c.WGEVersion)
+	wgeHelmRelease, err := constructWGEhelmRelease(wgeValues, requestedVersion)
 	if err != nil {
 		return []StepOutput{}, err
 	}

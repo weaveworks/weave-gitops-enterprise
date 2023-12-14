@@ -111,8 +111,8 @@ func TestBootstrapCmd(t *testing.T) {
 	gitRepoPathFlag := fmt.Sprintf("--repo-path=%s", gitRepoPath)
 
 	// wge version
-	wgeVersion := os.Getenv("WGE_VERSION")
-	g.Expect(wgeVersion).NotTo(BeEmpty())
+	wgeVersion := "0.37.0"
+	wgeVersionFlag := fmt.Sprintf("--version=%s", wgeVersion)
 
 	// oidc configuration
 	oidcClientSecret := os.Getenv("OIDC_CLIENT_SECRET")
@@ -135,7 +135,7 @@ func TestBootstrapCmd(t *testing.T) {
 		{
 			name: "journey flux exists: should bootstrap with valid arguments",
 			flags: []string{kubeconfigFlag,
-				"--version=0.37.0",
+				wgeVersionFlag,
 				privateKeyFlag, privateKeyPasswordFlag,
 				"--password=admin123",
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
@@ -157,7 +157,7 @@ func TestBootstrapCmd(t *testing.T) {
 		{
 			name: "journey flux does not exist: should bootstrap with valid arguments",
 			flags: []string{kubeconfigFlag,
-				"--version=0.37.0",
+				wgeVersionFlag,
 				"--password=admin123",
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
 				"--client-id=weave-gitops-enterprise",
@@ -180,7 +180,6 @@ func TestBootstrapCmd(t *testing.T) {
 		{
 			name: "journey flux does not exist interactive",
 			flags: []string{kubeconfigFlag,
-				"--version=0.37.0",
 				"--password=admin123",
 				"--components-extra=none",
 			},
