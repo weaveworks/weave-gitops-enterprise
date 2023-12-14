@@ -17,7 +17,11 @@ func getWgeVersions(input []StepInput, c *Config) (interface{}, error) {
 
 	username, password := string(entitlementSecret.Data["username"]), string(entitlementSecret.Data["password"])
 
-	chartUrl := fmt.Sprintf("%s/index.yaml", wgeChartUrl)
+	chartUrl := c.ChartURL
+	if chartUrl == "" {
+		chartUrl = fmt.Sprintf("%s/index.yaml", wgeChartUrl)
+	}
+
 	versions, err := fetchHelmChartVersions(chartUrl, username, password)
 	if err != nil {
 		return []string{}, err

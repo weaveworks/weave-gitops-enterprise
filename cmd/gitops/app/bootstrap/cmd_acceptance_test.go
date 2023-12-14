@@ -110,6 +110,10 @@ func TestBootstrapCmd(t *testing.T) {
 	gitBranchFlag := fmt.Sprintf("--branch=%s", gitBranch)
 	gitRepoPathFlag := fmt.Sprintf("--repo-path=%s", gitRepoPath)
 
+	// wge version
+	wgeVersion := os.Getenv("WGE_VERSION")
+	g.Expect(wgeVersion).NotTo(BeEmpty())
+
 	// oidc configuration
 	oidcClientSecret := os.Getenv("OIDC_CLIENT_SECRET")
 	g.Expect(oidcClientSecret).NotTo(BeEmpty())
@@ -187,6 +191,32 @@ func TestBootstrapCmd(t *testing.T) {
 				fmt.Sprintf("%s\n", gitRepoPath),  // please enter your flux path for your cluster
 				fmt.Sprintf("%s\n", gitUsername),  // please enter your git username
 				fmt.Sprintf("%s\n", gitPassword),  // please enter your git password
+				"N\n",                             // Do you want to setup OIDC to access Weave GitOps Dashboards?
+			},
+			setup: func(t *testing.T) {
+				createEntitlements(t, testLog)
+			},
+			reset: func(t *testing.T) {
+				deleteEntitlements(t, testLog)
+				deleteClusterUser(t, testLog)
+				uninstallFlux(g, kubeconfigFlag)
+			},
+			expectedErrorStr: "",
+		},
+		{
+			name: "journey WGE version is not provided: should take the wge from user input",
+			flags: []string{kubeconfigFlag,
+				"--password=admin123",
+				"--components-extra=none",
+			},
+			userInputs: []string{
+				"y\n",                             // do you want to bootstrap flux using the generic way?
+				fmt.Sprintf("%s\n", repoURLHTTPS), // please enter your flux git https or ssh repository url
+				fmt.Sprintf("%s\n", gitBranch),    // please enter your flux git repository branch
+				fmt.Sprintf("%s\n", gitRepoPath),  // please enter your flux path for your cluster
+				fmt.Sprintf("%s\n", gitUsername),  // please enter your git username
+				fmt.Sprintf("%s\n", gitPassword),  // please enter your git password
+				fmt.Sprintf("%s\n", wgeVersion),   // please select your wge version
 				"N\n",                             // Do you want to setup OIDC to access Weave GitOps Dashboards?
 			},
 			setup: func(t *testing.T) {

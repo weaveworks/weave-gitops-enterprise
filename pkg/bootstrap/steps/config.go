@@ -61,30 +61,30 @@ const (
 
 // ConfigBuilder contains all the different configuration options that a user can introduce
 type ConfigBuilder struct {
-	logger                    logger.Logger
-	kubeconfig                string
-	password                  string
-	isExistingWGEInstallation bool
-	wgeVersion                string
-	privateKeyPath            string
-	privateKeyPassword        string
-	silent                    bool
-	export                    bool
-	gitUsername               string
-	gitToken                  string
-	repoURL                   string
-	repoBranch                string
-	repoPath                  string
-	authType                  string
-	installOIDC               string
-	discoveryURL              string
-	clientID                  string
-	clientSecret              string
-	PromptedForDiscoveryURL   bool
-	bootstrapFlux             bool
-	componentsExtra           []string
-	outWriter                 io.Writer
-	inReader                  io.Reader
+	logger                  logger.Logger
+	kubeconfig              string
+	password                string
+	wgeVersion              string
+	chartURL                string
+	privateKeyPath          string
+	privateKeyPassword      string
+	silent                  bool
+	export                  bool
+	gitUsername             string
+	gitToken                string
+	repoURL                 string
+	repoBranch              string
+	repoPath                string
+	authType                string
+	installOIDC             string
+	discoveryURL            string
+	clientID                string
+	clientSecret            string
+	PromptedForDiscoveryURL bool
+	bootstrapFlux           bool
+	componentsExtra         []string
+	outWriter               io.Writer
+	inReader                io.Reader
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -191,6 +191,7 @@ type Config struct {
 	WGEVersion                string // user want this version in the cluster
 	ClusterUserAuth           ClusterUserAuthConfig
 	ModesConfig               ModesConfig
+	ChartURL                  string
 
 	FluxInstalled      bool
 	PrivateKeyPath     string
@@ -269,6 +270,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		IsExistingWgeInstallation: isExistingWgeInstallation,
 		WGEVersion:                cb.wgeVersion,
 		ClusterUserAuth:           clusterUserAuthConfig,
+		ChartURL:                  cb.chartURL,
 		GitRepository:             gitRepositoryConfig,
 		Logger:                    cb.logger,
 		ModesConfig: ModesConfig{
