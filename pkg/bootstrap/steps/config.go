@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -187,11 +186,11 @@ type Config struct {
 	// OutWriter holds the output to write to
 	OutWriter io.Writer
 
-	IsExistingWgeInstallation bool
-	WGEVersion                string // user want this version in the cluster
-	ClusterUserAuth           ClusterUserAuthConfig
-	ModesConfig               ModesConfig
-	ChartURL                  string
+	WgeConfig WgeConfig
+	ChartURL  string
+
+	ClusterUserAuth ClusterUserAuthConfig
+	ModesConfig     ModesConfig
 
 	FluxInstalled      bool
 	PrivateKeyPath     string
@@ -255,24 +254,23 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		return Config{}, fmt.Errorf("cannot create components extra configuration: %v", err)
 	}
 
-	isExistingWgeInstallation, err := NewCheckWGEInstallationConfig(kubeHttp.Client)
-	if err != nil && !strings.Contains(err.Error(), "not found") {
-		return Config{}, fmt.Errorf("cannot create check wge installation configuration: %v", err)
+	wgeConfig, err := NewWgeConfig(cb.wgeVersion, kubeHttp.Client)
+	if err != nil {
+		return Config{}, fmt.Errorf("cannot create WGE configuration: %v", err)
 	}
 
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
-		KubernetesClient:          kubeHttp.Client,
-		GitClient:                 &utils.GoGitClient{},
-		FluxClient:                &utils.CmdFluxClient{},
-		InReader:                  cb.inReader,
-		OutWriter:                 cb.outWriter,
-		IsExistingWgeInstallation: isExistingWgeInstallation,
-		WGEVersion:                cb.wgeVersion,
-		ClusterUserAuth:           clusterUserAuthConfig,
-		ChartURL:                  cb.chartURL,
-		GitRepository:             gitRepositoryConfig,
-		Logger:                    cb.logger,
+		KubernetesClient: kubeHttp.Client,
+		GitClient:        &utils.GoGitClient{},
+		FluxClient:       &utils.CmdFluxClient{},
+		InReader:         cb.inReader,
+		OutWriter:        cb.outWriter,
+		WgeConfig:        wgeConfig,
+		ClusterUserAuth:  clusterUserAuthConfig,
+		ChartURL:         cb.chartURL,
+		GitRepository:    gitRepositoryConfig,
+		Logger:           cb.logger,
 		ModesConfig: ModesConfig{
 			Silent: cb.silent,
 			Export: cb.export,

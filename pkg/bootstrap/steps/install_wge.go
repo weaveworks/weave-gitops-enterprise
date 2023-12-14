@@ -49,15 +49,25 @@ var getVersionInput = StepInput{
 	DefaultValue: "",
 }
 
-// NewCheckWGEInstallationConfig handles the WGE installation configuration
-func NewCheckWGEInstallationConfig(client client.Client) (bool, error) {
+// WgeConfig holds configuration about Weave GitOps Enterprise
+type WgeConfig struct {
+	// ExistingVersion is the version found in the cluster
+	ExistingVersion string
+	// RequestedVersion is the version requested by the user
+	RequestedVersion string
+}
 
-	_, err := utils.GetHelmReleaseProperty(client, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmVersionProperty)
+// NewWgeConfig creates a WGE configuration out of the user input and discovered state
+func NewWgeConfig(wgeVersion string, client client.Client) (WgeConfig, error) {
+	currentVersion, err := utils.GetHelmReleaseProperty(client, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmVersionProperty)
 	if err != nil {
-		return false, err
+		return WgeConfig{}, fmt.Errorf("error getting WGE version: %v", err)
 	}
 
-	return true, nil
+	return WgeConfig{
+		ExistingVersion:  currentVersion,
+		RequestedVersion: wgeVersion,
+	}, nil
 }
 
 // NewInstallWGEStep step to install Weave GitOps Enterprise
