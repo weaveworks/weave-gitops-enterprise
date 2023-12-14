@@ -63,7 +63,6 @@ type ConfigBuilder struct {
 	kubeconfig              string
 	password                string
 	wgeVersion              string
-	chartURL                string
 	privateKeyPath          string
 	privateKeyPassword      string
 	silent                  bool
@@ -186,7 +185,6 @@ type Config struct {
 	OutWriter io.Writer
 
 	WgeConfig WgeConfig
-	ChartURL  string
 
 	ClusterUserAuth ClusterUserAuthConfig
 	ModesConfig     ModesConfig
@@ -267,7 +265,6 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		OutWriter:        cb.outWriter,
 		WgeConfig:        wgeConfig,
 		ClusterUserAuth:  clusterUserAuthConfig,
-		ChartURL:         cb.chartURL,
 		GitRepository:    gitRepositoryConfig,
 		Logger:           cb.logger,
 		ModesConfig: ModesConfig{

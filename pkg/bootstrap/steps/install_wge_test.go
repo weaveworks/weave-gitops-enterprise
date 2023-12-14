@@ -1,17 +1,12 @@
 package steps
 
 import (
-	"fmt"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/weave-gitops-enterprise/test/utils"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -110,35 +105,6 @@ status: {}
 
 func TestInstallWge_Execute(t *testing.T) {
 
-	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		username, password, ok := r.BasicAuth()
-		if !ok || username != "testuser" || password != "testpassword" {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		_, _ = fmt.Fprintln(w, `entries:
-  mccp:
-  - version: 1.0.0
-    name: mccp
-  - version: 1.1.0
-    name: mccp
-  - version: 1.2.0
-    name: mccp`)
-	}))
-	defer mockServer.Close()
-
-	secretName := "weave-gitops-enterprise-credentials"
-	secretNamespace := "flux-system"
-	fakeClient := utils.CreateFakeClient(t, &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: secretNamespace},
-		Type:       "Opaque",
-		Data: map[string][]byte{
-			"username": []byte("testuser"),
-			"password": []byte("testpassword"),
-		},
-	})
-
 	tests := []struct {
 		name       string
 		config     Config
@@ -148,7 +114,11 @@ func TestInstallWge_Execute(t *testing.T) {
 		{
 			name: "should install weave gitops enterprise",
 			config: MakeTestConfig(t, Config{
-				WGEVersion:  "1.0.0",
+				WgeConfig: WgeConfig{
+					ExistingVersion:  "",
+					RequestedVersion: "1.0.0",
+					AllowedVersions:  []string{"1.0.0", "1.1.0", "1.2.0"},
+				},
 				GitUsername: "test",
 				GitToken:    "abc",
 				GitRepository: GitRepositoryConfig{
@@ -157,8 +127,6 @@ func TestInstallWge_Execute(t *testing.T) {
 					Path:   "/",
 					Scheme: "https",
 				},
-				IsExistingWgeInstallation: false,
-				ChartURL:                  mockServer.URL,
 			}, fluxSystemGitRepository(), fluxSystemKustomization()),
 			wantOutput: []StepOutput{
 				{
@@ -184,7 +152,11 @@ func TestInstallWge_Execute(t *testing.T) {
 		{
 			name: "should not install weave gitops enterprise if it already exists",
 			config: MakeTestConfig(t, Config{
-				WGEVersion:  "1.0.0",
+				WgeConfig: WgeConfig{
+					ExistingVersion:  "1.0.0",
+					RequestedVersion: "1.1.0",
+					AllowedVersions:  []string{"1.0.0", "1.1.0", "1.2.0"},
+				},
 				GitUsername: "test",
 				GitToken:    "abc",
 				GitRepository: GitRepositoryConfig{
@@ -193,8 +165,6 @@ func TestInstallWge_Execute(t *testing.T) {
 					Path:   "/",
 					Scheme: "https",
 				},
-				IsExistingWgeInstallation: true,
-				ChartURL:                  mockServer.URL,
 			}, fluxSystemGitRepository(), fluxSystemKustomization()),
 			wantOutput: []StepOutput{},
 		},
@@ -202,9 +172,8 @@ func TestInstallWge_Execute(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			//use fake client
-			tt.config.KubernetesClient = fakeClient
-			step := NewInstallWGEStep(tt.config)
+			step, err := NewInstallWGEStep(tt.config.WgeConfig, tt.config.Logger)
+			assert.NoError(t, err)
 			gotOutputs, err := step.Execute(&tt.config)
 			if tt.wantErr != "" {
 				if msg := err.Error(); msg != tt.wantErr {
@@ -212,7 +181,6 @@ func TestInstallWge_Execute(t *testing.T) {
 				}
 				return
 			}
-
 			assert.NoError(t, err)
 			if diff := cmp.Diff(tt.wantOutput, gotOutputs); diff != "" {
 				t.Fatalf("unexpected wge outputs:\n%s", diff)
