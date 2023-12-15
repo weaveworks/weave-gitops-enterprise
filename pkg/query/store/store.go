@@ -25,12 +25,14 @@ type StoreWriter interface {
 	StoreRoles(ctx context.Context, roles []models.Role) error
 	StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error
 	StoreObjects(ctx context.Context, objects []models.Object) error
+	StoreTenants(ctx context.Context, tenants []models.Tenant) error
 	DeleteObjects(ctx context.Context, object []models.Object) error
 	DeleteAllObjects(ctx context.Context, clusters []string) error
 	DeleteRoles(ctx context.Context, roles []models.Role) error
 	DeleteAllRoles(ctx context.Context, clusters []string) error
 	DeleteRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error
 	DeleteAllRoleBindings(ctx context.Context, clusters []string) error
+	DeleteTenants(ctx context.Context, tenants []models.Tenant) error
 }
 
 type QueryOperand string
@@ -73,6 +75,7 @@ type StoreReader interface {
 	GetRoles(ctx context.Context) ([]models.Role, error)
 	GetRoleBindings(ctx context.Context) ([]models.RoleBinding, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
+	GetTenants(ctx context.Context) ([]models.Tenant, error)
 }
 
 // Iterator provides an iterable interface for requesting the next row of an object.
