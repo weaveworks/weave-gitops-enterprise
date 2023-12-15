@@ -63,7 +63,7 @@ func TestNewInstallExtraComponents(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			config := MakeTestConfig(t, tt.config)
-			stepConfig, err := NewInstallExtraComponentsConfig(tt.config.ComponentsExtra.Requested, config.KubernetesClient)
+			stepConfig, err := NewInstallExtraComponentsConfig(tt.config.ComponentsExtra.Requested, config.KubernetesClient, false)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
