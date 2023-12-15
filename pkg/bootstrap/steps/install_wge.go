@@ -52,10 +52,16 @@ type WgeConfig struct {
 }
 
 // NewWgeConfig creates a WGE configuration out of the user input and discovered state
-func NewWgeConfig(requestedWgeVersion string, client client.Client) (WgeConfig, error) {
-	existingVersion, err := utils.GetHelmReleaseProperty(client, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmVersionProperty)
-	if err != nil {
-		return WgeConfig{}, fmt.Errorf("error getting WGE version: %v", err)
+func NewWgeConfig(requestedWgeVersion string, client client.Client, fluxInstalled bool) (WgeConfig, error) {
+
+	var existingVersion string
+	var err error
+
+	if fluxInstalled {
+		existingVersion, err = utils.GetHelmReleaseProperty(client, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmVersionProperty)
+		if err != nil {
+			return WgeConfig{}, fmt.Errorf("error getting WGE version: %v", err)
+		}
 	}
 
 	allowedWgeVersions, err := getWgeVersions(client)

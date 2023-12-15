@@ -241,19 +241,25 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		return Config{}, fmt.Errorf("error creating cluster user auth configuration: %v", err)
 	}
 
+	fluxConfig, err := NewFluxConfig(cb.logger, kubeHttp.Client)
+	if err != nil {
+		return Config{}, fmt.Errorf("error creating flux configuration: %v", err)
+	}
+
+	// TODO add fluxConfig to git repository config
 	gitRepositoryConfig, err := NewGitRepositoryConfig(cb.repoURL, cb.repoBranch, cb.repoPath)
 	if err != nil {
 		return Config{}, fmt.Errorf("error creating git repository configuration: %v", err)
 	}
 
-	componentsExtraConfig, err := NewInstallExtraComponentsConfig(cb.componentsExtra, kubeHttp.Client)
-	if err != nil {
-		return Config{}, fmt.Errorf("cannot create components extra configuration: %v", err)
-	}
-
-	wgeConfig, err := NewWgeConfig(cb.wgeVersion, kubeHttp.Client)
+	wgeConfig, err := NewWgeConfig(cb.wgeVersion, kubeHttp.Client, fluxConfig.FluxInstalled)
 	if err != nil {
 		return Config{}, fmt.Errorf("cannot create WGE configuration: %v", err)
+	}
+
+	componentsExtraConfig, err := NewInstallExtraComponentsConfig(cb.componentsExtra, kubeHttp.Client, fluxConfig.FluxInstalled)
+	if err != nil {
+		return Config{}, fmt.Errorf("cannot create components extra configuration: %v", err)
 	}
 
 	//TODO we should do validations in case invalid values and throw an error early

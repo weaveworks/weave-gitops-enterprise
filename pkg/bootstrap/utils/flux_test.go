@@ -9,9 +9,11 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
+	tassert "github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops-enterprise/test/utils"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func TestCreateHelmReleaseYamlString(t *testing.T) {
@@ -114,31 +116,6 @@ status: {}
 
 func TestGetHelmReleaseProperty(t *testing.T) {
 
-	tests := []struct {
-		name        string
-		property    string
-		expectedOut string
-		err         bool
-	}{
-		{
-			name:     "property doesn't exist",
-			property: "test",
-			err:      true,
-		},
-		{
-			name:        "property exist",
-			property:    "version",
-			expectedOut: "1.0.0",
-			err:         false,
-		},
-		{
-			name:        "property exist",
-			property:    "domain",
-			expectedOut: "testdomain.com",
-			err:         false,
-		},
-	}
-
 	values := map[string]interface{}{
 		"ingress": map[string]interface{}{
 			"annotations": map[string]string{
@@ -189,15 +166,62 @@ func TestGetHelmReleaseProperty(t *testing.T) {
 		},
 	}
 
+	tests := []struct {
+		name        string
+		objects     []runtime.Object
+		property    string
+		expectedOut string
+		wantErr     tassert.ErrorAssertionFunc
+	}{
+		{
+			name: "should return error for unsupported property",
+			objects: []runtime.Object{
+				testHR,
+			},
+			property: "test",
+			wantErr: func(t tassert.TestingT, err error, i ...interface{}) bool {
+				tassert.Error(t, err)
+				tassert.Contains(t, err.Error(), "unsupported property: test")
+				return true
+			},
+		},
+		{
+			name:        "should return err if helm release CRD does not exist",
+			objects:     []runtime.Object{},
+			property:    "domain",
+			expectedOut: "testdomain.com",
+			wantErr: func(t tassert.TestingT, err error, i ...interface{}) bool {
+				tassert.Error(t, err)
+				tassert.Contains(t, err.Error(), "invalid repository scheme")
+				return true
+			},
+		},
+
+		{
+			name: "should return value for supported property 'version'",
+			objects: []runtime.Object{
+				testHR,
+			},
+			property:    "version",
+			expectedOut: "1.0.0",
+			wantErr:     tassert.NoError,
+		},
+		{
+			name: "should return value for supported property 'domain'",
+			objects: []runtime.Object{
+				testHR,
+			},
+			property:    "domain",
+			expectedOut: "testdomain.com",
+			wantErr:     tassert.NoError,
+		},
+	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client := utils.CreateFakeClient(t, testHR)
+			client := utils.CreateFakeClient(t, tt.objects...)
 			prop, err := GetHelmReleaseProperty(client, "wego", "flux-system", tt.property)
-			if err != nil {
-				if tt.err {
-					return
-				}
-				t.Fatalf("error getting property: %v", err)
+			if tt.wantErr != nil {
+				tt.wantErr(t, err, "unexpected error ")
 			}
 			assert.Equal(t, tt.expectedOut, prop, "invalid property")
 		})
