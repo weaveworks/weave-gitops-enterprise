@@ -186,17 +186,16 @@ func TestGetHelmReleaseProperty(t *testing.T) {
 			},
 		},
 		{
-			name:        "should return err if helm release CRD does not exist",
+			name:        "should return err if helm release not found",
 			objects:     []runtime.Object{},
 			property:    "domain",
-			expectedOut: "testdomain.com",
+			expectedOut: "",
 			wantErr: func(t tassert.TestingT, err error, i ...interface{}) bool {
 				tassert.Error(t, err)
-				tassert.Contains(t, err.Error(), "invalid repository scheme")
+				tassert.Contains(t, err.Error(), "helmreleases.helm.toolkit.fluxcd.io \"wego\" not found")
 				return true
 			},
 		},
-
 		{
 			name: "should return value for supported property 'version'",
 			objects: []runtime.Object{
@@ -222,6 +221,7 @@ func TestGetHelmReleaseProperty(t *testing.T) {
 			prop, err := GetHelmReleaseProperty(client, "wego", "flux-system", tt.property)
 			if tt.wantErr != nil {
 				tt.wantErr(t, err, "unexpected error ")
+				return
 			}
 			assert.Equal(t, tt.expectedOut, prop, "invalid property")
 		})

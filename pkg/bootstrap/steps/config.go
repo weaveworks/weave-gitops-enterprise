@@ -175,21 +175,17 @@ type Config struct {
 	GitClient utils.GitClient
 	// TODO move me to a better package
 	FluxClient utils.FluxClient
-
-	Logger logger.Logger
-
+	Logger     logger.Logger
 	// InReader holds the stream to read input from
 	InReader io.Reader
-
 	// OutWriter holds the output to write to
-	OutWriter io.Writer
-
-	WgeConfig WgeConfig
+	OutWriter  io.Writer
+	FluxConfig FluxConfig
+	WgeConfig  WgeConfig
 
 	ClusterUserAuth ClusterUserAuthConfig
 	ModesConfig     ModesConfig
 
-	FluxInstalled      bool
 	PrivateKeyPath     string
 	PrivateKeyPassword string
 
@@ -252,12 +248,12 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		return Config{}, fmt.Errorf("error creating git repository configuration: %v", err)
 	}
 
-	wgeConfig, err := NewWgeConfig(cb.wgeVersion, kubeHttp.Client, fluxConfig.FluxInstalled)
+	wgeConfig, err := NewWgeConfig(cb.wgeVersion, kubeHttp.Client, fluxConfig.IsInstalled)
 	if err != nil {
 		return Config{}, fmt.Errorf("cannot create WGE configuration: %v", err)
 	}
 
-	componentsExtraConfig, err := NewInstallExtraComponentsConfig(cb.componentsExtra, kubeHttp.Client, fluxConfig.FluxInstalled)
+	componentsExtraConfig, err := NewInstallExtraComponentsConfig(cb.componentsExtra, kubeHttp.Client, fluxConfig.IsInstalled)
 	if err != nil {
 		return Config{}, fmt.Errorf("cannot create components extra configuration: %v", err)
 	}
@@ -288,6 +284,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		ClientSecret:            cb.clientSecret,
 		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
 		ComponentsExtra:         componentsExtraConfig,
+		FluxConfig:              fluxConfig,
 		BootstrapFlux:           cb.bootstrapFlux,
 	}, nil
 
