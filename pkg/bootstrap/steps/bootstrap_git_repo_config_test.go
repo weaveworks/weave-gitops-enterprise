@@ -68,7 +68,7 @@ func TestNewGitRepositoryConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewGitRepositoryConfig(tt.args.url, tt.args.branch, tt.args.path)
+			got, err := NewGitRepositoryConfig(tt.args.url, tt.args.branch, tt.args.path, FluxConfig{})
 			if !tt.wantErr(t, err, fmt.Sprintf("NewGitRepositoryConfig(%v, %v, %v)", tt.args.url, tt.args.branch, tt.args.path)) {
 				return
 			}

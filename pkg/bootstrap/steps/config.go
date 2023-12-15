@@ -242,8 +242,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		return Config{}, fmt.Errorf("error creating flux configuration: %v", err)
 	}
 
-	// TODO add fluxConfig to git repository config
-	gitRepositoryConfig, err := NewGitRepositoryConfig(cb.repoURL, cb.repoBranch, cb.repoPath)
+	gitRepositoryConfig, err := NewGitRepositoryConfig(cb.repoURL, cb.repoBranch, cb.repoPath, fluxConfig)
 	if err != nil {
 		return Config{}, fmt.Errorf("error creating git repository configuration: %v", err)
 	}
