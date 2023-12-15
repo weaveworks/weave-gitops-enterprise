@@ -52,7 +52,7 @@ func MakeTestConfig(t *testing.T, config Config, objects ...runtime.Object) Conf
 		ModesConfig:             config.ModesConfig,
 		ClusterUserAuth:         config.ClusterUserAuth,
 		GitRepository:           config.GitRepository,
-		FluxInstalled:           config.FluxInstalled,
+		FluxConfig:              config.FluxConfig,
 		PrivateKeyPath:          config.PrivateKeyPath,
 		PrivateKeyPassword:      config.PrivateKeyPassword,
 		GitUsername:             config.GitUsername,

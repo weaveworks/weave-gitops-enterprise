@@ -25,8 +25,8 @@ type FluxConfig struct {
 	Url string
 	// Scheme flux-system git repository scheme
 	Scheme string
-	// FluxInstalled indicates whether flux is already installed
-	FluxInstalled bool
+	// IsInstalled indicates whether flux is already installed
+	IsInstalled bool
 }
 
 // NewFluxConfig creates a Flux configuration out of the existing cluster
@@ -38,7 +38,7 @@ func NewFluxConfig(logger logger.Logger, client k8s_client.Client) (FluxConfig, 
 	if err != nil {
 		if strings.Contains(string(out), "customresourcedefinitions.apiextensions.k8s.io \"gitrepositories.source.toolkit.fluxcd.io\" not found") {
 			return FluxConfig{
-				FluxInstalled: false,
+				IsInstalled: false,
 			}, nil
 		}
 		return FluxConfig{}, fmt.Errorf("flux installed error: %v. %s", string(out), fluxRecoverMsg)
@@ -65,9 +65,9 @@ func NewFluxConfig(logger logger.Logger, client k8s_client.Client) (FluxConfig, 
 	logger.Successf("detected git scheme: %s", scheme)
 
 	return FluxConfig{
-		Url:           repoUrl,
-		Scheme:        scheme,
-		FluxInstalled: true,
+		Url:         repoUrl,
+		Scheme:      scheme,
+		IsInstalled: true,
 	}, nil
 }
 
