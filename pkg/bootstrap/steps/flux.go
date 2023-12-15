@@ -25,6 +25,8 @@ type FluxConfig struct {
 	Url string
 	// Scheme flux-system git repository scheme
 	Scheme string
+	// Branch flux-system git repository branch
+	Branch string
 	// IsInstalled indicates whether flux is already installed
 	IsInstalled bool
 }
@@ -65,8 +67,10 @@ func NewFluxConfig(logger logger.Logger, client k8s_client.Client) (FluxConfig, 
 	logger.Successf("detected git scheme: %s", scheme)
 
 	return FluxConfig{
-		Url:         repoUrl,
-		Scheme:      scheme,
+		Url:    repoUrl,
+		Scheme: scheme,
+		Branch: repo.Spec.Reference.Branch,
+
 		IsInstalled: true,
 	}, nil
 }

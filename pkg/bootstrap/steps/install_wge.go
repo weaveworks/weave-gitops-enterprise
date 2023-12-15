@@ -3,6 +3,7 @@ package steps
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -12,6 +13,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"golang.org/x/exp/slices"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apimachineryerrors "k8s.io/apimachinery/pkg/api/errors"
+
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -60,7 +63,13 @@ func NewWgeConfig(requestedWgeVersion string, client client.Client, fluxInstalle
 	if fluxInstalled {
 		existingVersion, err = utils.GetHelmReleaseProperty(client, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmVersionProperty)
 		if err != nil {
-			return WgeConfig{}, fmt.Errorf("error getting WGE version: %v", err)
+			if e, ok := err.(*apimachineryerrors.StatusError); ok {
+				if e.ErrStatus.Code != http.StatusNotFound {
+					return WgeConfig{}, fmt.Errorf("error getting WGE version: %v", err)
+				}
+			} else {
+				return WgeConfig{}, fmt.Errorf("error getting WGE version: %v", err)
+			}
 		}
 	}
 

@@ -56,10 +56,21 @@ type GitRepositoryConfig struct {
 }
 
 // NewGitRepositoryConfig creates new Git repository configuration from valid input parameters.
-func NewGitRepositoryConfig(url string, branch string, path string) (GitRepositoryConfig, error) {
+func NewGitRepositoryConfig(url string, branch string, path string, fluxConfig FluxConfig) (GitRepositoryConfig, error) {
 	var scheme string
 	var err error
 	var normalisedUrl string
+
+	// using flux config as we dont support updates
+	if fluxConfig.IsInstalled {
+		return GitRepositoryConfig{
+			Url:    fluxConfig.Url,
+			Scheme: fluxConfig.Scheme,
+			Branch: fluxConfig.Branch,
+			// TODO we should use the existing flux configuration
+			Path: path,
+		}, nil
+	}
 
 	if url != "" {
 		normalisedUrl, scheme, err = normaliseUrl(url)
@@ -157,7 +168,7 @@ func createGitRepositoryConfig(input []StepInput, c *Config) ([]StepOutput, erro
 		}
 	}
 
-	repoConfig, err := NewGitRepositoryConfig(repoURL, repoBranch, repoPath)
+	repoConfig, err := NewGitRepositoryConfig(repoURL, repoBranch, repoPath, c.FluxConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error creating git repository configuration: %v", err)
 	}

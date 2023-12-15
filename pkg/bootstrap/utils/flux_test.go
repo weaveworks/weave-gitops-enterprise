@@ -188,7 +188,7 @@ func TestGetHelmReleaseProperty(t *testing.T) {
 		{
 			name:        "should return err if helm release not found",
 			objects:     []runtime.Object{},
-			property:    "domain",
+			property:    "version",
 			expectedOut: "",
 			wantErr: func(t tassert.TestingT, err error, i ...interface{}) bool {
 				tassert.Error(t, err)
