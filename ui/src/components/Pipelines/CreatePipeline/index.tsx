@@ -6,10 +6,9 @@ import {
   Page,
   Text,
 } from '@weaveworks/weave-gitops';
-import { useCallback, useContext, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import {
@@ -64,7 +63,6 @@ const CreatePipeline = () => {
   const handleFormData = (value: any, key: string) => {
     setFormData(f => ({ ...f, [key]: value }));
   };
-  const { api } = useContext(EnterpriseClientContext);
 
   const { setNotifications } = useNotifications();
 
@@ -221,6 +219,7 @@ const CreatePipeline = () => {
                   <div className="card w-50">
                     {/* <FollowSteps /> */}
                     <CreateEnvironmentForm />
+                    {/* <AddTarget /> */}
                   </div>
                   <div className="card w-50">
                     <EnvironmentCard />
