@@ -61,32 +61,6 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 			},
 			errPattern: "",
 		},
-		{
-			name: "gets an object tenant",
-			objectRecords: []models.ObjectTransaction{
-				testutils.NewObjectTransaction("anyCluster", testutils.NewHelmRelease("createdOrUpdatedHelmRelease", "default", func(hr *v2beta1.HelmRelease) {
-					hr.Labels = map[string]string{
-						tenantLabel: "my-tenant",
-					}
-				}), models.TransactionTypeUpsert),
-			},
-			expectedStoreNumCalls: map[models.TransactionType]int{
-				models.TransactionTypeDelete:    0,
-				models.TransactionTypeUpsert:    1,
-				models.TransactionTypeDeleteAll: 0,
-			},
-			expectedObject: []models.Object{{
-				Cluster:    "anyCluster",
-				Name:       "createdOrUpdatedHelmRelease",
-				Namespace:  "default",
-				APIGroup:   "",
-				APIVersion: "v2beta1",
-				Kind:       "HelmRelease",
-				Tenant:     "my-tenant",
-				Status:     "Failed",
-				Labels:     map[string]string{},
-			}},
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

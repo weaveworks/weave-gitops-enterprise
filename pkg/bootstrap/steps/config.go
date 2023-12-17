@@ -2,6 +2,7 @@ package steps
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
@@ -65,6 +66,7 @@ type ConfigBuilder struct {
 	privateKeyPath          string
 	privateKeyPassword      string
 	silent                  bool
+	export                  bool
 	gitUsername             string
 	gitToken                string
 	repoURL                 string
@@ -78,6 +80,8 @@ type ConfigBuilder struct {
 	PromptedForDiscoveryURL bool
 	bootstrapFlux           bool
 	componentsExtra         []string
+	outWriter               io.Writer
+	inReader                io.Reader
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -133,7 +137,7 @@ func (c *ConfigBuilder) WithOIDCConfig(discoveryURL string, clientID string, cli
 	return c
 }
 
-func (c *ConfigBuilder) WithSilentFlag(silent bool) *ConfigBuilder {
+func (c *ConfigBuilder) WithSilent(silent bool) *ConfigBuilder {
 	c.silent = silent
 	return c
 }
@@ -148,6 +152,21 @@ func (c *ConfigBuilder) WithComponentsExtra(componentsExtra []string) *ConfigBui
 	return c
 }
 
+func (c *ConfigBuilder) WithExport(export bool) *ConfigBuilder {
+	c.export = export
+	return c
+}
+
+func (c *ConfigBuilder) WithInReader(inReader io.Reader) *ConfigBuilder {
+	c.inReader = inReader
+	return c
+}
+
+func (c *ConfigBuilder) WithOutWriter(outWriter io.Writer) *ConfigBuilder {
+	c.outWriter = outWriter
+	return c
+}
+
 // Config is the configuration struct to user for WGE installation. It includes
 // configuration values as well as other required structs like clients
 type Config struct {
@@ -159,12 +178,17 @@ type Config struct {
 
 	Logger logger.Logger
 
+	// InReader holds the stream to read input from
+	InReader io.Reader
+
+	// OutWriter holds the output to write to
+	OutWriter io.Writer
+
 	WGEVersion      string // user want this version in the cluster
 	ClusterUserAuth ClusterUserAuthConfig
+	ModesConfig     ModesConfig
 
-	Silent bool
-
-	FluxInstallated    bool
+	FluxInstalled      bool
 	PrivateKeyPath     string
 	PrivateKeyPassword string
 
@@ -173,12 +197,6 @@ type Config struct {
 
 	// GitRepository contains the configuration for the git repo
 	GitRepository GitRepositoryConfig
-	// Deprecated: use GitRepository.Url instead
-	RepoURL string
-	// Deprecated: use GitRepository.Branch instead
-	Branch string
-	// Deprecated: use GitRepository.Path instead
-	RepoPath string
 
 	AuthType                string
 	InstallOIDC             string
@@ -197,6 +215,11 @@ type Config struct {
 // and checks the requirements for the environments.
 func (cb *ConfigBuilder) Build() (Config, error) {
 	l := cb.logger
+
+	if cb.inReader == nil {
+		return Config{}, fmt.Errorf("input cannot be nil")
+	}
+
 	l.Actionf("creating client to cluster")
 	kubeHttp, err := utils.GetKubernetesHttp(cb.kubeconfig)
 	if err != nil {
@@ -229,17 +252,19 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
-		KubernetesClient:        kubeHttp.Client,
-		GitClient:               &utils.GoGitClient{},
-		FluxClient:              &utils.CmdFluxClient{},
-		WGEVersion:              cb.wgeVersion,
-		ClusterUserAuth:         clusterUserAuthConfig,
-		GitRepository:           gitRepositoryConfig,
-		Branch:                  gitRepositoryConfig.Branch,
-		RepoPath:                gitRepositoryConfig.Path,
-		Logger:                  cb.logger,
-		Silent:                  cb.silent,
-		RepoURL:                 cb.repoURL,
+		KubernetesClient: kubeHttp.Client,
+		GitClient:        &utils.GoGitClient{},
+		FluxClient:       &utils.CmdFluxClient{},
+		InReader:         cb.inReader,
+		OutWriter:        cb.outWriter,
+		WGEVersion:       cb.wgeVersion,
+		ClusterUserAuth:  clusterUserAuthConfig,
+		GitRepository:    gitRepositoryConfig,
+		Logger:           cb.logger,
+		ModesConfig: ModesConfig{
+			Silent: cb.silent,
+			Export: cb.export,
+		},
 		PrivateKeyPath:          cb.privateKeyPath,
 		PrivateKeyPassword:      cb.privateKeyPassword,
 		GitUsername:             cb.gitUsername,

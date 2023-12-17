@@ -112,7 +112,7 @@ func TestInstallWge_Execute(t *testing.T) {
 	}{
 		{
 			name: "should install weave gitops enterprise",
-			config: makeTestConfig(t, Config{
+			config: MakeTestConfig(t, Config{
 				WGEVersion:  "1.0.0",
 				GitUsername: "test",
 				GitToken:    "abc",

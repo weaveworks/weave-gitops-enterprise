@@ -6,6 +6,6 @@ import { useEnterpriseClient } from '../contexts/API';
 export function useListCredentials() {
   const { clustersService } = useEnterpriseClient();
   return useQuery<ListCredentialsResponse, Error>('credentials', () =>
-    clustersService.vice.ListCredentials({}),
+    clustersService.ListCredentials({}),
   );
 }

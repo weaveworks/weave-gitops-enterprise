@@ -8,7 +8,6 @@ import { storeProviderToken } from './utils';
 
 type Props = {
   className?: string;
-  bodyClassName?: string;
   open: boolean;
   onSuccess: (token: string) => void;
   onClose: () => void;
@@ -17,7 +16,6 @@ type Props = {
 
 export function GithubDeviceAuthModal({
   className,
-  bodyClassName,
   open,
   onClose,
   repoName,
@@ -27,7 +25,6 @@ export function GithubDeviceAuthModal({
   return (
     <Modal
       className={className}
-      bodyClassName={bodyClassName}
       title="Authenticate with Github"
       open={open}
       onClose={onClose}

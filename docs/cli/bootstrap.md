@@ -152,7 +152,7 @@ func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
 		{
 			name: "should create cluster user non-interactive",
 			setup: func() (BootstrapStep, Config) {
-				config := makeTestConfig(t, Config{})
+				config := MakeTestConfig(t, Config{})
 				step, err := NewAskAdminCredsSecretStep(config.ClusterUserAuth, true)
 				assert.NoError(t, err)
 				return step, config
@@ -375,6 +375,7 @@ Entitlement stage
 - `GIT_PRIVATEKEY_PATH`: path to the private key to do the git operations.
 - `GIT_PRIVATEKEY_PASSWORD`: password protecting access to private key
 - `GIT_REPO_URL_SSH`: git ssh url for the repo wge configuration repo.
+- `GIT_REPO_URL_SSH_NO_SCHEME`: git ssh url for the repo wge configuration repo without scheme like `git@github.com:weaveworks/cli-dev.git` 
 - `GIT_REPO_URL_HTTPS`: git https url for the repo wge configuration repo.
 - `GIT_USERNAME`: git username for testing https auth
 - `GIT_PASSWORD`: git password for testing https auth

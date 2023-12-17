@@ -46,7 +46,7 @@ export const useGetPipeline = (req: GetPipelineRequest, enabled?: boolean) => {
     [PIPELINES_KEY, req.namespace, req.name],
     () => pipelinsService.GetPipeline(req),
     {
-      refetchInterval: 5000,
+      refetchInterval: 50000,
       retry: false,
       onError,
       enabled,

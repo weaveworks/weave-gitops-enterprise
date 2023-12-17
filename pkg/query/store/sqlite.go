@@ -215,6 +215,35 @@ func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object)
 	return nil
 }
 
+func (i *SQLiteStore) StoreTenants(ctx context.Context, tenants []models.Tenant) (err error) {
+	metrics.DataStoreInflightRequests(metrics.StoreTenantsAction, 1)
+	defer recordMetrics(metrics.StoreTenantsAction, time.Now(), err)
+
+	for _, tenant := range tenants {
+		if err := tenant.Validate(); err != nil {
+			i.log.Error(err, "invalid tenant")
+			continue
+		}
+
+		tenant.ID = tenant.GetID()
+
+		clauses := i.db.Clauses(clause.OnConflict{
+			Columns: []clause.Column{
+				{Name: "id"},
+			},
+			UpdateAll: true,
+		})
+
+		result := clauses.Create(&tenant)
+		if result.Error != nil {
+			return fmt.Errorf("failed to store tenant: %w", result.Error)
+		}
+		i.debug.Info("tenant stored", "tenant", tenant.GetID())
+	}
+
+	return nil
+}
+
 func (i *SQLiteStore) GetObjects(ctx context.Context, ids []string, opts QueryOption) (it Iterator, err error) {
 	// If offset is zero, it was not set.
 	// -1 tells GORM to ignore the offset
@@ -337,6 +366,18 @@ func (i *SQLiteStore) GetAccessRules(ctx context.Context) (acs []models.AccessRu
 	return rules, result.Error
 }
 
+func (i *SQLiteStore) GetTenants(ctx context.Context) (tenants []models.Tenant, err error) {
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.GetTenantsAction, 1)
+	defer recordMetrics(metrics.GetTenantsAction, time.Now(), err)
+
+	result := i.db.Model(&models.Tenant{}).Find(&tenants)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get tenants: %w", result.Error)
+	}
+	return tenants, nil
+}
+
 func (i *SQLiteStore) DeleteObjects(ctx context.Context, objects []models.Object) (err error) {
 	// metrics
 	metrics.DataStoreInflightRequests(metrics.DeleteObjectsAction, 1)
@@ -406,6 +447,28 @@ func (i *SQLiteStore) DeleteRoleBindings(ctx context.Context, roleBindings []mod
 	return nil
 }
 
+func (i *SQLiteStore) DeleteTenants(ctx context.Context, tenants []models.Tenant) (err error) {
+	metrics.DataStoreInflightRequests(metrics.DeleteTenantsAction, 1)
+	defer recordMetrics(metrics.DeleteTenantsAction, time.Now(), err)
+
+	for _, tenant := range tenants {
+		if err := tenant.Validate(); err != nil {
+			return fmt.Errorf("invalid tenant: %w", err)
+		}
+
+		where := i.db.Where(
+			"id = ? ",
+			tenant.GetID(),
+		)
+		result := i.db.Unscoped().Delete(&models.Tenant{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete tenant: %w", result.Error)
+		}
+	}
+
+	return nil
+}
+
 func CreateSQLiteDB(path string) (*gorm.DB, error) {
 	dbFileLocation := filepath.Join(path, dbFile)
 	// make sure the directory exists
@@ -428,7 +491,7 @@ func CreateSQLiteDB(path string) (*gorm.DB, error) {
 	// From the readme: https://github.com/mattn/go-sqlite3
 	goDB.SetMaxOpenConns(1)
 
-	if err := db.AutoMigrate(&models.Object{}, &models.Role{}, &models.Subject{}, &models.RoleBinding{}, &models.PolicyRule{}); err != nil {
+	if err := db.AutoMigrate(&models.Object{}, &models.Role{}, &models.Subject{}, &models.RoleBinding{}, &models.PolicyRule{}, &models.Tenant{}); err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
 
