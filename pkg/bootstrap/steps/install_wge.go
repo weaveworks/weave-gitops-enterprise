@@ -11,8 +11,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"sigs.k8s.io/cli-utils/pkg/object"
 )
 
 const (
@@ -38,18 +36,13 @@ const (
 	gitopssetsHealthBindAddress       = ":8081"
 )
 
-var Components = []string{"cluster-controller-manager",
-	"gitopssets-controller-manager",
-	"weave-gitops-enterprise-mccp-cluster-bootstrap-controller",
-	"weave-gitops-enterprise-mccp-cluster-service"}
-
 // NewInstallWGEStep step to install Weave GitOps Enterprise
 func NewInstallWGEStep() BootstrapStep {
 	return BootstrapStep{
 		Name:   "Install Weave GitOps Enterprise",
 		Input:  []StepInput{},
 		Step:   installWge,
-		Verify: verifyComponents,
+		Verify: verifyHelmsRelease,
 	}
 }
 
@@ -242,36 +235,20 @@ func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string
 	return utils.CreateHelmReleaseYamlString(wgeHelmRelease)
 }
 
-func verifyComponents(output []StepOutput, c *Config) error {
+func verifyHelmsRelease(output []StepOutput, c *Config) error {
 	c.Logger.Waitingf("waiting for components to be healthy")
-	err := reportComponentsHealth(c, Components, WGEDefaultNamespace, 5*time.Minute)
+
+	isReady, err := utils.CheckHelmReleaseReady(c.KubernetesClient, "weave-gitops-enterprise", "flux-system", 5*time.Minute)
 	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func reportComponentsHealth(c *Config, componentNames []string, namespace string, timeout time.Duration) error {
-	// Initialize the status checker
-	checker, err := utils.NewStatusChecker(c.KubernetesClient, 5*time.Second, timeout, c.Logger)
-	if err != nil {
+		c.Logger.Failuref("Error checking HelmRelease status: %w", err)
 		return err
 	}
 
-	// Construct a list of resources to check
-	var identifiers []object.ObjMetadata
-	for _, name := range componentNames {
-		identifiers = append(identifiers, object.ObjMetadata{
-			Namespace: namespace,
-			Name:      name,
-			GroupKind: schema.GroupKind{Group: "apps", Kind: "Deployment"},
-		})
+	if isReady {
+		c.Logger.Actionf("HelmRelease is ready and components are healthy")
+		return nil
 	}
 
-	// Perform the health check
-	if err := checker.Assess(identifiers...); err != nil {
-		return err
-	}
-
-	return nil
+	// Handle the case where the HelmRelease is not ready
+	return fmt.Errorf("HelmRelease is not ready")
 }

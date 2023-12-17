@@ -11,6 +11,7 @@ import (
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/test/utils"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -289,4 +290,63 @@ func TestGetHelmReleaseValues(t *testing.T) {
 		})
 	}
 
+}
+
+// test CheckHelmReleaseReady
+func TestCheckHelmReleaseReady(t *testing.T) {
+	tests := []struct {
+		name        string
+		helmRelease helmv2.HelmRelease
+		expected    bool
+	}{
+		{
+			name: "helmrelease is ready",
+			helmRelease: helmv2.HelmRelease{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "wego",
+					Namespace: "flux-system",
+				},
+				Status: helmv2.HelmReleaseStatus{
+					Conditions: []metav1.Condition{
+						{
+							Type:   HelmReleaseReadyCondition,
+							Status: metav1.ConditionTrue,
+						},
+					},
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "helmrelease is not ready",
+			helmRelease: helmv2.HelmRelease{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "wego",
+					Namespace: "flux-system",
+				},
+				Status: helmv2.HelmReleaseStatus{
+					Conditions: []metav1.Condition{
+						{
+							Type:   HelmReleaseReadyCondition,
+							Status: metav1.ConditionFalse,
+						},
+					},
+				},
+			},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := utils.CreateFakeClient(t, &tt.helmRelease)
+			ready, err := CheckHelmReleaseReady(client, "wego", "flux-system", 5*time.Second)
+
+			if err != nil {
+				assert.Equal(t, false, tt.expected, "error checking helmrelease: timeout waiting for HelmRelease wego to be ready")
+				return
+			}
+			assert.Equal(t, tt.expected, ready, "helmrelease is not ready")
+		})
+	}
 }

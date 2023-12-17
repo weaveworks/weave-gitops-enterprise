@@ -9,14 +9,24 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 	k8syaml "sigs.k8s.io/yaml"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"time"
 )
 
 const (
-	HelmVersionProperty = "version"
-	HelmDomainProperty  = "domain"
+	HelmVersionProperty            = "version"
+	HelmDomainProperty             = "domain"
+	HelmReleaseReadyCondition      = "Ready"
+	HelmReleaseReadyConditionTrue  = "True"
+	HelmReleaseReadyConditionFalse = "False"
 )
 
 type FluxClient interface {
@@ -185,4 +195,36 @@ func GetHelmReleaseValues(client k8s_client.Client, name string, namespace strin
 	}
 
 	return helmrelease.Spec.Values.Raw, nil
+}
+
+// CheckHelmReleaseReady checks if the 'Ready' condition of a HelmRelease is true
+// and waits until it's ready or the timeout is reached
+func CheckHelmReleaseReady(k8sClient client.Client, releaseName, namespace string, timeout time.Duration) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	ticker := time.NewTicker(5 * time.Second) // Polling interval
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return false, fmt.Errorf("timeout waiting for HelmRelease %s to be ready", releaseName)
+		case <-ticker.C:
+			helmRelease := &helmv2.HelmRelease{}
+			err := k8sClient.Get(ctx, client.ObjectKey{
+				Name:      releaseName,
+				Namespace: namespace,
+			}, helmRelease)
+			if err != nil {
+				return false, fmt.Errorf("error getting HelmRelease: %w", err)
+			}
+
+			for _, condition := range helmRelease.Status.Conditions {
+				if condition.Type == HelmReleaseReadyCondition && condition.Status == metav1.ConditionTrue {
+					return true, nil
+				}
+			}
+		}
+	}
 }
