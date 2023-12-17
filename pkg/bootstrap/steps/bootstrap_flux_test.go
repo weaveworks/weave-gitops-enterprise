@@ -29,8 +29,10 @@ func TestConfigureFluxCreds(t *testing.T) {
 				},
 			},
 			config: &Config{
-				FluxInstallated: true,
-				GitScheme:       sshScheme,
+				FluxInstalled: true,
+				GitRepository: GitRepositoryConfig{
+					Scheme: sshScheme,
+				},
 			},
 			askSSH:   true,
 			askHTTPS: false,
@@ -49,8 +51,10 @@ func TestConfigureFluxCreds(t *testing.T) {
 				},
 			},
 			config: &Config{
-				FluxInstallated: true,
-				GitScheme:       httpsScheme,
+				FluxInstalled: true,
+				GitRepository: GitRepositoryConfig{
+					Scheme: httpsScheme,
+				},
 			},
 			err:      false,
 			askSSH:   false,
@@ -59,7 +63,7 @@ func TestConfigureFluxCreds(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := makeTestConfig(t, *tt.config)
+			config := MakeTestConfig(t, *tt.config)
 
 			_, err := configureFluxCreds(tt.input, &config)
 			if err != nil {

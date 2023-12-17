@@ -152,7 +152,7 @@ func TestAskAdminCredsSecretStep_Execute(t *testing.T) {
 		{
 			name: "should create cluster user non-interactive",
 			setup: func() (BootstrapStep, Config) {
-				config := makeTestConfig(t, Config{})
+				config := MakeTestConfig(t, Config{})
 				step, err := NewAskAdminCredsSecretStep(config.ClusterUserAuth, true)
 				assert.NoError(t, err)
 				return step, config
@@ -274,9 +274,16 @@ func selectWgeVersion(input []StepInput, c *Config) ([]StepOutput, error) {
 
 ```
 
+## Default Behaviours (default value in inputs)
 
+CLI take the decisions that considered safe to user by using the information provided by user in which no mutation could happen on the user's cluster.
 
+The default values in the step input will be used while silent mode is on by providing `-s`, `--silent`
 
+Examples:
+- Using existing credentials this will not replace the user's data and it's safe
+- Not to install extra controllers unless provided otherwise
+- Not to install OIDC unless provided otherwise
 
 ## Error management 
 
@@ -368,6 +375,7 @@ Entitlement stage
 - `GIT_PRIVATEKEY_PATH`: path to the private key to do the git operations.
 - `GIT_PRIVATEKEY_PASSWORD`: password protecting access to private key
 - `GIT_REPO_URL_SSH`: git ssh url for the repo wge configuration repo.
+- `GIT_REPO_URL_SSH_NO_SCHEME`: git ssh url for the repo wge configuration repo without scheme like `git@github.com:weaveworks/cli-dev.git` 
 - `GIT_REPO_URL_HTTPS`: git https url for the repo wge configuration repo.
 - `GIT_USERNAME`: git username for testing https auth
 - `GIT_PASSWORD`: git password for testing https auth

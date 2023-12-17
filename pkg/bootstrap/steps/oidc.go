@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	corev1 "k8s.io/api/core/v1"
@@ -70,7 +69,7 @@ func NewOIDCConfigStep(config Config) BootstrapStep {
 			Name:            inExistingOIDC,
 			Type:            confirmInput,
 			Msg:             existingOIDCMsg,
-			DefaultValue:    "",
+			DefaultValue:    confirmYes,
 			Enabled:         isExistingOIDCConfig,
 			StepInformation: fmt.Sprintf(oidcConfigExistWarningMsg, oidcSecretName, WGEDefaultNamespace),
 		},
@@ -137,20 +136,9 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 		return []StepOutput{}, nil
 	}
 
-	// process user domain if not passed
-	if c.UserDomain == "" {
-		domain, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmDomainProperty)
-		if err != nil {
-			return []StepOutput{}, fmt.Errorf("error getting helm release domain: %v", err)
-		}
-		if strings.Contains(domain, domainTypeLocalhost) {
-			c.DomainType = domainTypeLocalhost
-			c.UserDomain = domainTypeLocalhost
-		} else {
-			c.DomainType = domainTypeExternalDNS
-			c.UserDomain = domain
-		}
-		c.Logger.Actionf("setting user domain: %s", domain)
+	domain, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmDomainProperty)
+	if err != nil {
+		return []StepOutput{}, fmt.Errorf("error resolving domain: %v", err)
 	}
 
 	issuerUrl, err := getIssuerFromDiscoveryUrl(c)
@@ -159,12 +147,7 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 	}
 	c.Logger.Actionf("retrieved issuer url: %s", issuerUrl)
 	c.IssuerURL = issuerUrl
-
-	if c.DomainType == domainTypeLocalhost {
-		c.RedirectURL = "http://localhost:8000/oauth2/callback"
-	} else {
-		c.RedirectURL = fmt.Sprintf("https://%s/oauth2/callback", c.UserDomain)
-	}
+	c.RedirectURL = fmt.Sprintf("http://%s/oauth2/callback", domain)
 	c.Logger.Actionf("setting redirect url: %s", c.RedirectURL)
 
 	oidcSecretData := map[string][]byte{
@@ -209,6 +192,10 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 	}
 
 	secret := corev1.Secret{
+		TypeMeta: v1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Secret",
+		},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      oidcSecretName,
 			Namespace: WGEDefaultNamespace,

@@ -37,7 +37,7 @@ dependencies:
     repository: "oci://ghcr.io/weaveworks/charts"
     condition: enablePipelines
   - name: gitopssets-controller
-    version: "0.16.4"
+    version: "0.16.5"
     repository: "oci://ghcr.io/weaveworks/charts"
     condition: gitopssets-controller.enabled
   - name: cluster-reflector-controller

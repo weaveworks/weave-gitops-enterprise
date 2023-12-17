@@ -76,7 +76,7 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 	if principal == nil {
 		return nil, fmt.Errorf("principal not found")
 	}
-	q.debug.Info("query received", "query", query, "principal", principal.ID)
+	q.debug.Info("query received", "filters", query.GetFilters(), "terms", query.GetTerms(), "principal", principal.ID)
 
 	roles, err := q.r.GetRoles(ctx)
 	if err != nil {
@@ -86,6 +86,13 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 	if err != nil {
 		return nil, fmt.Errorf("error fetching access rules from the store: %w", err)
 	}
+
+	tenants, err := q.r.GetTenants(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching tenants from the store: %w", err)
+	}
+
+	tenantLookup := createTenantLookup(tenants)
 
 	iter, err := q.index.Search(ctx, query, opts)
 	if err != nil {
@@ -116,6 +123,11 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 		if err != nil {
 			q.log.Error(err, "error getting row from iterator")
 			continue
+		}
+
+		tenantID := fmt.Sprintf("%s/%s", obj.Cluster, obj.Namespace)
+		if tenantName, ok := tenantLookup[tenantID]; ok {
+			obj.Tenant = tenantName
 		}
 
 		cluster := obj.Cluster
@@ -149,4 +161,12 @@ func (q *qs) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
 
 func (q *qs) ListFacets(ctx context.Context, cat configuration.ObjectCategory) (store.Facets, error) {
 	return q.index.ListFacets(ctx, cat)
+}
+
+func createTenantLookup(tenants []models.Tenant) map[string]string {
+	lookup := map[string]string{}
+	for _, t := range tenants {
+		lookup[t.GetClusterNamespacePair()] = t.Name
+	}
+	return lookup
 }

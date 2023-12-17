@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -58,16 +59,8 @@ func TestRunQuery(t *testing.T) {
 					APIGroup:   "example.com",
 					APIVersion: "v1",
 				},
-				{
-					Cluster:    "test-cluster",
-					Name:       "otherName",
-					Namespace:  "namespace",
-					Kind:       "ValidKind",
-					APIGroup:   "example.com",
-					APIVersion: "v1",
-				},
 			},
-			want: []string{"someName", "otherName"},
+			want: []string{"someName"},
 		},
 		{
 			name:  "get objects by cluster",
@@ -713,35 +706,170 @@ func TestQueryOrdering_Realistic(t *testing.T) {
 		authorizer: allowAll,
 	}
 
-	qy := &query{
-		orderBy: "name",
-	}
+	t.Run("query by name", func(t *testing.T) {
 
-	got, err := q.RunQuery(ctx, qy, qy)
+		qy := &query{
+			orderBy: "name",
+		}
+
+		got, err := q.RunQuery(ctx, qy, qy)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		expected := []string{
+			"flux-dashboards",
+			"flux-system",
+			"flux-system",
+			"kube-prometheus-stack",
+			"kube-prometheus-stack",
+			"monitoring-config",
+			"podinfo",
+			"podinfo",
+			"podinfo",
+			"podinfo",
+		}
+
+		actual := []string{}
+		for _, o := range got {
+			actual = append(actual, o.Name)
+		}
+
+		diff := cmp.Diff(expected, actual)
+
+		if diff != "" {
+			t.Fatalf("unexpected result (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("query by score if order selected", func(t *testing.T) {
+
+		qy := &query{
+			terms: "flux-system",
+		}
+
+		got, err := q.RunQuery(ctx, qy, qy)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		expected := []string{
+			"flux-system",
+			"flux-system",
+			"monitoring-config",
+			"kube-prometheus-stack",
+		}
+
+		actual := []string{}
+		for _, o := range got {
+			actual = append(actual, o.Name)
+		}
+
+		diff := cmp.Diff(expected, actual)
+
+		if diff != "" {
+			t.Fatalf("unexpected result (-want +got):\n%s", diff)
+		}
+	})
+
+}
+
+func TestQuery_Tenants(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	dir, err := os.MkdirTemp("", "test")
 	g.Expect(err).NotTo(HaveOccurred())
 
-	expected := []string{
-		"flux-dashboards",
-		"flux-system",
-		"kube-prometheus-stack",
-		"kube-prometheus-stack",
-		"monitoring-config",
-		"podinfo",
-		"podinfo",
-		"podinfo",
-		"podinfo",
+	db, err := store.CreateSQLiteDB(dir)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, err := store.NewSQLiteStore(db, logr.Discard())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	idx, err := store.NewIndexer(s, dir, logr.Discard())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{
+		ID: "test",
+	})
+
+	objects := []models.Object{
+		{
+			Cluster:    "test-cluster-1",
+			Name:       "obj-1",
+			Namespace:  "namespace-a",
+			Kind:       "Deployment",
+			APIGroup:   "apps",
+			APIVersion: "v1",
+		},
+		{
+			Cluster:    "test-cluster-1",
+			Name:       "obj-2",
+			Namespace:  "namespace-b",
+			Kind:       "Deployment",
+			APIGroup:   "apps",
+			APIVersion: "v1",
+		},
 	}
 
-	actual := []string{}
-	for _, o := range got {
-		actual = append(actual, o.Name)
+	tenants := []models.Tenant{
+		{
+			ID:          "tenant-a",
+			Name:        "Tenant A",
+			Namespace:   objects[0].Namespace,
+			ClusterName: objects[0].Cluster,
+		},
 	}
 
-	diff := cmp.Diff(expected, actual)
+	g.Expect(idx.Add(context.Background(), objects)).To(Succeed())
+	g.Expect(store.SeedObjects(db, objects)).To(Succeed())
+
+	result := db.Create(&tenants)
+	g.Expect(result.Error).NotTo(HaveOccurred())
+
+	q := &qs{
+		log:        logr.Discard(),
+		debug:      logr.Discard(),
+		r:          s,
+		index:      idx,
+		authorizer: allowAll,
+	}
+
+	res, err := q.RunQuery(ctx, &query{terms: "", descending: true}, nil)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	expected := []models.Object{
+		{
+			Cluster:    "test-cluster-1",
+			Name:       "obj-2",
+			Namespace:  "namespace-b",
+			Kind:       "Deployment",
+			APIGroup:   "apps",
+			APIVersion: "v1",
+			Tenant:     "",
+		},
+		{
+			Cluster:    "test-cluster-1",
+			Name:       "obj-1",
+			Namespace:  "namespace-a",
+			Kind:       "Deployment",
+			APIGroup:   "apps",
+			APIVersion: "v1",
+			Tenant:     tenants[0].Name,
+		},
+	}
+
+	opts := []cmp.Option{
+		cmpopts.SortSlices(func(a, b models.Object) bool {
+			return a.Name < b.Name
+		}),
+		cmpopts.IgnoreFields(models.Object{}, "ID"),
+		cmpopts.IgnoreFields(models.Object{}, "CreatedAt"),
+		cmpopts.IgnoreFields(models.Object{}, "UpdatedAt"),
+	}
+
+	diff := cmp.Diff(expected, res, opts...)
 
 	if diff != "" {
 		t.Fatalf("unexpected result (-want +got):\n%s", diff)
 	}
+
 }
 
 type query struct {

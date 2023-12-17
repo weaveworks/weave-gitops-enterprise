@@ -89,7 +89,7 @@ func TestCreateGitRepositoryConfig(t *testing.T) {
 			},
 			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
 				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "unsupported repository scheme: ssl")
+				assert.Contains(t, err.Error(), "invalid repository scheme")
 				return true
 			},
 		},
@@ -110,26 +110,27 @@ func TestCreateGitRepositoryConfig(t *testing.T) {
 				},
 			},
 			config: &Config{
-				GitRepository: GitRepositoryConfig{},
+				GitRepository: GitRepositoryConfig{
+					Url:    "ssh://git@github.com/my-org-name/my-repo-name",
+					Path:   "test/test",
+					Branch: "main",
+					Scheme: sshScheme,
+				},
 			},
-			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), "repository scheme cannot be empty")
-				return true
-			},
+			wantErr: assert.NoError,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config := makeTestConfig(t, Config{})
+			config := MakeTestConfig(t, Config{})
 			_, err := createGitRepositoryConfig(tt.input, &config)
 			if !tt.wantErr(t, err, "createGitRepositoryConfig") {
 				return
 			}
-			assert.Equal(t, tt.config.RepoURL, config.RepoURL, "wrong repo url")
-			assert.Equal(t, tt.config.RepoPath, config.RepoPath, "wrong repo path")
-			assert.Equal(t, tt.config.Branch, config.Branch, "wrong repo branch")
-			assert.Equal(t, tt.config.GitScheme, config.GitScheme, "wrong git scheme")
+			assert.Equal(t, tt.config.GitRepository.Url, config.GitRepository.Url, "wrong repo url")
+			assert.Equal(t, tt.config.GitRepository.Path, config.GitRepository.Path, "wrong repo path")
+			assert.Equal(t, tt.config.GitRepository.Branch, config.GitRepository.Branch, "wrong repo branch")
+			assert.Equal(t, tt.config.GitRepository.Scheme, config.GitRepository.Scheme, "wrong git scheme")
 		})
 	}
 }

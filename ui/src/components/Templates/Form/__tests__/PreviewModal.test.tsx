@@ -1,5 +1,5 @@
 import { act, render, screen } from '@testing-library/react';
-import EnterpriseClientProvider from '../../../../contexts/EnterpriseClient/Provider';
+import { EnterpriseClientContext } from '../../../../contexts/API';
 import {
   ClustersServiceClientMock,
   defaultContexts,
@@ -34,7 +34,7 @@ describe('PR Preview when creating resources', () => {
     api = new ClustersServiceClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientProvider, { api }],
+      [EnterpriseClientContext.Provider, { value: { clustersService: api } }],
     ]);
   });
 

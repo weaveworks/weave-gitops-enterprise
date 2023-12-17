@@ -7,19 +7,18 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
+	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
 	adminPasswordMsg                = "dashboard admin password (minimum characters: 6)"
 	secretConfirmationMsg           = "admin login credentials has been created successfully!"
-	adminSecretExistsErrorMsgFormat = "admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s'."
-	useExistingMessageFormat        = "using existing admin login credentials from secret '%s' in namespace '%s'. To reset admin credentials please remove the secret."
+	adminSecretExistsErrorMsgFormat = "admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s'"
+	useExistingMessageFormat        = " using existing admin login credentials from secret '%s' in namespace '%s'. To reset admin credentials please remove the secret"
 )
 
 const (
 	adminSecretName      = "cluster-user-auth"
-	confirmYes           = "y"
 	defaultAdminUsername = "wego-admin"
 )
 
@@ -47,7 +46,7 @@ type ClusterUserAuthConfig struct {
 }
 
 // NewClusterUserAuthConfig creates new configuration out of the user input and discovered state
-func NewClusterUserAuthConfig(password string, client k8s_client.Client) (ClusterUserAuthConfig, error) {
+func NewClusterUserAuthConfig(password string, client k8sclient.Client) (ClusterUserAuthConfig, error) {
 	if password != "" && len(password) < 6 {
 		return ClusterUserAuthConfig{}, fmt.Errorf("password minimum characters should be >= 6")
 	}
@@ -61,13 +60,13 @@ func NewClusterUserAuthConfig(password string, client k8s_client.Client) (Cluste
 // NewAskAdminCredsSecretStep asks user about admin password.
 // Admin password are you used for accessing WGE Dashboard for emergency access.
 // Users will be asked to continue with the current creds or overriding existing credentials during bootstrapping.
-func NewAskAdminCredsSecretStep(config ClusterUserAuthConfig, silent bool) (BootstrapStep, error) {
+func NewAskAdminCredsSecretStep(config ClusterUserAuthConfig, modes ModesConfig) (BootstrapStep, error) {
 	inputs := []StepInput{}
 	// UPDATE: this logic should return that `given a specific configuration when we want to aks the user`
 	// these are usually:
 	// interactive session that a) involves updates or b) creates that we require value
 	// non-interactive sessions should always take an action which in case of conflict should be the safest for the user
-	if !silent {
+	if !modes.Silent {
 		if !config.ExistCredentials {
 			if config.Password == "" {
 				inputs = append(inputs, createPasswordInput)
@@ -122,6 +121,10 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 	c.Logger.Actionf("dashboard admin username: %s is configured", defaultAdminUsername)
 
 	secret := corev1.Secret{
+		TypeMeta: v1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Secret",
+		},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      adminSecretName,
 			Namespace: WGEDefaultNamespace,
@@ -143,7 +146,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 // isExistingAdminSecret checks for admin secret on management cluster
 // returns true if admin secret is already on the cluster
 // returns false if no admin secret on the cluster
-func isExistingAdminSecret(client k8s_client.Client) bool {
+func isExistingAdminSecret(client k8sclient.Client) bool {
 	_, err := utils.GetSecret(client, adminSecretName, WGEDefaultNamespace)
 	return err == nil
 }

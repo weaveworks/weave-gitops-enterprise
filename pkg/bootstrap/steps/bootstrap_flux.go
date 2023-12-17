@@ -14,8 +14,8 @@ const (
 	privateKeyPasswordMsg = "private key password"
 
 	// https authentication
-	gitUserNameMsg = "please enter your git username"
-	gitPasswordMsg = "please enter your git authentication password/token with valid creds"
+	gitUserNameMsg = "please enter your Git username"
+	gitPasswordMsg = "please enter your Git password"
 )
 const (
 	bootstrapFluxStepName = "git credentials"
@@ -134,14 +134,14 @@ func bootstrapFlux(c *Config) error {
 	var out []byte
 	var err error
 
-	switch c.GitScheme {
+	switch c.GitRepository.Scheme {
 	case sshScheme:
 		out, err = runner.Run("flux",
 			"bootstrap",
 			"git",
-			"--url", c.RepoURL,
-			"--branch", c.Branch,
-			"--path", c.RepoPath,
+			"--url", c.GitRepository.Url,
+			"--branch", c.GitRepository.Branch,
+			"--path", c.GitRepository.Path,
 			"--private-key-file", c.PrivateKeyPath,
 			"--password", c.PrivateKeyPassword,
 			"-s",
@@ -150,9 +150,9 @@ func bootstrapFlux(c *Config) error {
 		out, err = runner.Run("flux",
 			"bootstrap",
 			"git",
-			"--url", c.RepoURL,
-			"--branch", c.Branch,
-			"--path", c.RepoPath,
+			"--url", c.GitRepository.Url,
+			"--branch", c.GitRepository.Branch,
+			"--path", c.GitRepository.Path,
 			"--username", c.GitUsername,
 			"--password", c.GitToken,
 			"--token-auth", "true",
@@ -169,11 +169,11 @@ func bootstrapFlux(c *Config) error {
 
 // canAskForSSHGitConfig check when ask for gitconfig when ssh scheme is enabled
 func canAskForSSHGitConfig(input []StepInput, c *Config) bool {
-	return c.GitScheme == sshScheme
+	return c.GitRepository.Scheme == sshScheme
 }
 
 // canAskForHTTPSGitConfig check when ask for gitconfig when https scheme is enabled
 func canAskForHTTPSGitConfig(input []StepInput, c *Config) bool {
-	return c.GitScheme == httpsScheme
+	return c.GitRepository.Scheme == httpsScheme
 
 }

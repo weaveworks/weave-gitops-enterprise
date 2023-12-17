@@ -81,6 +81,10 @@ func addFieldMappings(index *mapping.IndexMappingImpl, fields []string) {
 	nameFieldMapping.Analyzer = "keyword"
 	objMapping.AddFieldMappingsAt("name", nameFieldMapping)
 
+	// do not index unstructured as for of the main index to get more realistic score
+	unstructuredMapping := bleve.NewDocumentDisabledMapping()
+	objMapping.AddSubDocumentMapping("unstructured", unstructuredMapping)
+
 	for _, field := range commonFields {
 		// This mapping allows us to do query-string queries on the field.
 		// For example, we can do `cluster:foo` to get all objects in the `foo` cluster.
@@ -184,7 +188,7 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 	defer recordIndexerMetrics(metrics.SearchAction, time.Now(), err)
 
 	// Match all by default.
-	// Conjunction queries will return results that match all of the subqueries.
+	// Conjunction queries will return results that match all the sub-queries.
 	query := bleve.NewConjunctionQuery(bleve.NewMatchAllQuery())
 
 	terms := q.GetTerms()
@@ -238,21 +242,11 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 		if opts.GetOffset() > 0 {
 			req.From = int(opts.GetOffset())
 		}
-	} else {
-		// Sort by name by default
-		sf := &search.SortField{
-			Field: "name",
-			Type:  search.SortFieldAsString,
-			Desc:  true,
-		}
-
-		orders = append(orders, sf)
 	}
 
 	// We order by score here so that we can get the most relevant results first.
-	orders = append(orders, &search.SortField{
-		Field: "_score",
-		Type:  search.SortFieldAuto,
+	orders = append(orders, &search.SortScore{
+		Desc: true,
 	})
 
 	req.SortByCustom(orders)

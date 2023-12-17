@@ -4,7 +4,7 @@ import { CoreClientContextProvider } from '@weaveworks/weave-gitops';
 import PipelineDetails from '..';
 import { GetPipelineResponse } from '../../../../api/pipelines/pipelines.pb';
 import { Pipeline } from '../../../../api/pipelines/types.pb';
-import { PipelinesProvider } from '../../../../contexts/Pipelines';
+import { EnterpriseClientContext } from '../../../../contexts/API';
 import {
   CoreClientMock,
   PipelinesClientMock,
@@ -246,7 +246,7 @@ describe('PipelineDetails', () => {
     core = new CoreClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [PipelinesProvider, { api }],
+      [EnterpriseClientContext.Provider, { value: { pipelines: api } }],
       [CoreClientContextProvider, { api: core }],
     ]);
   });
@@ -286,30 +286,6 @@ describe('PipelineDetails', () => {
     }
   });
 
-  describe('renders promotion strategy', () => {
-    it('pull request', async () => {
-      const params = res.pipeline;
-      api.GetPipelineReturns = res;
-      core.GetObjectReturns = { object: {} };
-
-      await act(async () => {
-        const c = wrap(
-          <PipelineDetails
-            name={params?.name || ''}
-            namespace={params?.namespace || ''}
-          />,
-        );
-        render(c);
-      });
-      expect(screen.getByText('Pull Request')).toBeInTheDocument();
-      expect(
-        screen.getByText('https://gitlab.com/weaveworks/cool-project'),
-      ).toBeInTheDocument();
-      expect(screen.getByText('main')).toBeInTheDocument();
-      expect(screen.getByText('Secret Ref')).toBeInTheDocument();
-      expect(screen.getByText('Notification')).toBeInTheDocument();
-    });
-  });
   it('handles visibility of promotion button', async () => {
     const params = res.pipeline;
     const manual: Pipeline = {

@@ -72,15 +72,17 @@ import {
 import {
   DebugGetAccessRulesRequest,
   DebugGetAccessRulesResponse,
-  ListFacetsRequest,
-  ListFacetsResponse,
   DoQueryRequest,
   DoQueryResponse,
+  ListEnabledComponentsRequest,
+  ListEnabledComponentsResponse,
+  ListFacetsRequest,
+  ListFacetsResponse,
+  Query,
 } from '../api/query/query.pb';
 
 import Compose from '../components/ProvidersCompose';
-import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
-import { GitAuthProvider } from '../contexts/GitAuth';
+import { EnterpriseClientProvider } from '../contexts/API';
 import NotificationProvider from '../contexts/Notifications/Provider';
 import RequestContextProvider from '../contexts/Request';
 import { muiTheme } from '../muiTheme';
@@ -168,7 +170,7 @@ export const defaultContexts = () => {
     ],
     [MemoryRouter],
     [NotificationProvider],
-    [GitAuthProvider, { api: new ApplicationsClientMock() }],
+    [EnterpriseClientProvider, { api: new ApplicationsClientMock() }],
   ];
 };
 
@@ -440,28 +442,51 @@ export class SecretsClientMock {
   }
 }
 
-export class MockQueryService {
-  DoQueryReturns: DoQueryResponse = {};
-  DebugGetAccessRulesReturns: DebugGetAccessRulesResponse = {};
-  ListFacetsReturns: ListFacetsResponse = {};
+export type MockQueryService = typeof Query & {
+  DoQueryReturns: DoQueryResponse;
+  DebugGetAccessRulesReturns: DebugGetAccessRulesResponse;
+  ListFacetsReturns: ListFacetsResponse;
+  ListEnabledComponentsReturns: ListEnabledComponentsResponse;
+};
 
-  DoQuery(req: DoQueryRequest, initReq?: any): Promise<DoQueryResponse> {
-    return promisify(this.DoQueryReturns);
-  }
+// Our Query service is a class with static methods.
+// The mock will be mutated between tests, so to keep the tests
+// consistent we need to create a new class instance for each test.
+export function newMockQueryService(): MockQueryService {
+  return class {
+    static DoQueryReturns: DoQueryResponse = {};
+    static DebugGetAccessRulesReturns: DebugGetAccessRulesResponse = {};
+    static ListFacetsReturns: ListFacetsResponse = {};
+    static ListEnabledComponentsReturns: ListEnabledComponentsResponse = {};
 
-  DebugGetAccessRules(
-    req: DebugGetAccessRulesRequest,
-    initReq?: any,
-  ): Promise<DebugGetAccessRulesResponse> {
-    return promisify(this.DebugGetAccessRulesReturns);
-  }
+    static ListEnabledComponents(
+      req: ListEnabledComponentsRequest,
+      initReq?: any,
+    ): Promise<ListEnabledComponentsResponse> {
+      return promisify(this.ListEnabledComponentsReturns);
+    }
 
-  ListFacets(
-    req: ListFacetsRequest,
-    initReq?: any,
-  ): Promise<ListFacetsResponse> {
-    return promisify(this.ListFacetsReturns);
-  }
+    static DoQuery(
+      req: DoQueryRequest,
+      initReq?: any,
+    ): Promise<DoQueryResponse> {
+      return promisify(this.DoQueryReturns);
+    }
+
+    static DebugGetAccessRules(
+      req: DebugGetAccessRulesRequest,
+      initReq?: any,
+    ): Promise<DebugGetAccessRulesResponse> {
+      return promisify(this.DebugGetAccessRulesReturns);
+    }
+
+    static ListFacets(
+      req: ListFacetsRequest,
+      initReq?: any,
+    ): Promise<ListFacetsResponse> {
+      return promisify(this.ListFacetsReturns);
+    }
+  };
 }
 
 export function findCellInCol(cell: string, tableSelector: string) {

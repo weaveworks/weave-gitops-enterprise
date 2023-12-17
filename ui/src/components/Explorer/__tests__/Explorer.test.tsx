@@ -4,10 +4,11 @@ import {
   render,
   RenderResult,
 } from '@testing-library/react';
-import QueryServiceProvider from '../../../contexts/QueryService';
+import { EnterpriseClientContext } from '../../../contexts/API';
 import {
   defaultContexts,
   MockQueryService,
+  newMockQueryService,
   withContext,
 } from '../../../utils/test-utils';
 import Explorer from '../Explorer';
@@ -49,8 +50,11 @@ describe('Explorer', () => {
   let api: MockQueryService;
 
   beforeEach(() => {
-    api = new MockQueryService();
-    wrap = withContext([...defaultContexts(), [QueryServiceProvider, { api }]]);
+    api = newMockQueryService();
+    wrap = withContext([
+      ...defaultContexts(),
+      [EnterpriseClientContext.Provider, { value: { query: api } }],
+    ]);
   });
 
   it('renders rows', async () => {

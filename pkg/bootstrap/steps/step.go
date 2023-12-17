@@ -1,12 +1,13 @@
 package steps
 
 import (
+	"bytes"
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	v1 "k8s.io/api/core/v1"
+	k8syaml "sigs.k8s.io/yaml"
 )
 
 // BootstrapStep struct that defines the contract of a bootstrapping step.
@@ -16,7 +17,6 @@ type BootstrapStep struct {
 	Name  string
 	Input []StepInput
 	Step  func(input []StepInput, c *Config) ([]StepOutput, error)
-	Stdin io.ReadCloser
 }
 
 // StepInput represents an input a step requires to execute it. for example user needs to introduce a string or a password.
@@ -60,9 +60,68 @@ type StepOutput struct {
 	Value any
 }
 
+func (o StepOutput) Export(writer io.Writer) error {
+	switch o.Type {
+	case typeSecret:
+		secret, ok := o.Value.(v1.Secret)
+		if !ok {
+			return fmt.Errorf("unexpected internal error casting secret")
+		}
+		err := printResource(writer, secret)
+		if err != nil {
+			return fmt.Errorf("error printing resource: %v", err)
+		}
+	case typeFile:
+		file, ok := o.Value.(fileContent)
+		if !ok {
+			panic("unexpected internal error casting file")
+		}
+		err := printByteArray(writer, []byte(file.Content))
+		if err != nil {
+			return fmt.Errorf("error printing string: %v", err)
+		}
+	default:
+		return fmt.Errorf("unsupported param type: %s", o.Type)
+	}
+	return nil
+}
+
+func printResource(writer io.Writer, resource interface{}) error {
+	resourceAsBytes, err := k8syaml.Marshal(resource)
+	if err != nil {
+		return fmt.Errorf("error marshalling resource: %v", err)
+	}
+	err2 := printByteArray(writer, resourceAsBytes)
+	if err2 != nil {
+		return err2
+	}
+
+	return nil
+}
+
+func printByteArray(writer io.Writer, resourceAsBytes []byte) error {
+	_, err := fmt.Fprintln(writer, "---")
+	if err != nil {
+		return fmt.Errorf("error printing resource: %v", err)
+	}
+
+	_, err = fmt.Fprintln(writer, resourceToString(resourceAsBytes))
+	if err != nil {
+		return fmt.Errorf("error printing resource: %v", err)
+	}
+	return nil
+}
+
+func resourceToString(data []byte) string {
+	data = bytes.Replace(data, []byte("  creationTimestamp: null\n"), []byte(""), 1)
+	data = bytes.Replace(data, []byte("status: {}\n"), []byte(""), 1)
+	data = bytes.TrimSpace(data)
+	return string(data)
+}
+
 // Execute contains the business logic for executing an step.
 func (s BootstrapStep) Execute(c *Config) ([]StepOutput, error) {
-	inputValues, err := defaultInputStep(s.Input, c, s.Stdin)
+	inputValues, err := defaultInputStep(s.Input, c, c.InReader)
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("cannot process input '%s': %v", s.Name, err)
 	}
@@ -80,7 +139,7 @@ func (s BootstrapStep) Execute(c *Config) ([]StepOutput, error) {
 }
 
 // defaultInputStep default input processing
-func defaultInputStep(inputs []StepInput, c *Config, stdin io.ReadCloser) ([]StepInput, error) {
+func defaultInputStep(inputs []StepInput, c *Config, stdin io.Reader) ([]StepInput, error) {
 	processedInputs := []StepInput{}
 	for _, input := range inputs {
 		// process updates
@@ -147,14 +206,20 @@ func defaultInputStep(inputs []StepInput, c *Config, stdin io.ReadCloser) ([]Ste
 			if input.StepInformation != "" {
 				c.Logger.Warningf(input.StepInformation)
 			}
-			// if silent mode is enabled, select yes
-			if c.Silent {
-				input.Value = confirmYes
+			// if silent mode is enabled, select the default value
+			// if no default value an error will be returned
+			if c.ModesConfig.Silent {
+				defaultVal, ok := input.DefaultValue.(string)
+				if ok {
+					input.Value = defaultVal
+				} else {
+					return []StepInput{}, fmt.Errorf("invalid default value: %v", input.DefaultValue)
+				}
 			}
 
 			// get the value from user otherwise
 			if input.Value == nil {
-				input.Value = utils.GetConfirmInput(input.Msg, os.Stdin)
+				input.Value = utils.GetConfirmInput(input.Msg, stdin)
 			}
 		case multiSelectionChoice:
 			if input.Enabled != nil && !input.Enabled(inputs, c) {
@@ -186,6 +251,12 @@ func defaultInputStep(inputs []StepInput, c *Config, stdin io.ReadCloser) ([]Ste
 }
 
 func defaultOutputStep(params []StepOutput, c *Config) error {
+
+	// if export we dont process at the level of the step but at the end of the workflow
+	if c.ModesConfig.Export {
+		return nil
+	}
+
 	for _, param := range params {
 		switch param.Type {
 		case typeSecret:
@@ -208,7 +279,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 				panic("unexpected internal error casting file")
 			}
 			c.Logger.Actionf("cloning flux git repo: %s/%s", WGEDefaultNamespace, WGEDefaultRepoName)
-			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.GitScheme, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
+			pathInRepo, err := c.GitClient.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.GitRepository.Scheme, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
 			if err != nil {
 				return fmt.Errorf("cannot clone repo: %v", err)
 			}
@@ -220,14 +291,14 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 			}()
 			c.Logger.Successf("cloned flux git repo: %s/%s", WGEDefaultRepoName, WGEDefaultRepoName)
 
-			err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg, c.GitScheme, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
+			err = c.GitClient.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg, c.GitRepository.Scheme, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
 			if err != nil {
 				return err
 			}
 			c.Logger.Successf("file committed to repo: %s", file.Name)
 
 			c.Logger.Waitingf("reconciling changes")
-			if err := utils.ReconcileFlux(); err != nil {
+			if err := c.FluxClient.ReconcileFlux(); err != nil {
 				return err
 			}
 			c.Logger.Successf("changes are reconciled successfully!")
@@ -236,4 +307,9 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 		}
 	}
 	return nil
+}
+
+// doNothingStep is a step without logic to be used for not required steps
+func doNothingStep(input []StepInput, c *Config) ([]StepOutput, error) {
+	return []StepOutput{}, nil
 }

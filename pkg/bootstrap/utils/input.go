@@ -5,6 +5,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/chzyer/readline"
 	"github.com/manifoldco/promptui"
 )
 
@@ -14,18 +15,21 @@ const (
 )
 
 // GetPasswordInput prompt to enter password.
-func GetPasswordInput(msg string, required bool, stdin io.ReadCloser) (string, error) {
+func GetPasswordInput(msg string, required bool, stdin io.Reader) (string, error) {
 	validate := func(input string) error {
 		if required && len(input) < 6 {
 			return errors.New("password must have more than 6 characters")
 		}
 		return nil
 	}
+
+	fillableStdin, _ := readline.NewFillableStdin(stdin)
+
 	prompt := promptui.Prompt{
 		Label:    msg,
 		Validate: validate,
 		Mask:     '*',
-		Stdin:    stdin,
+		Stdin:    fillableStdin,
 	}
 
 	result, err := prompt.Run()
@@ -64,7 +68,7 @@ func GetSelectInput(msg string, items []string) (string, error) {
 }
 
 // GetStringInput prompt to get string input.
-func GetStringInput(msg string, defaultValue string, stdin io.ReadCloser) (string, error) {
+func GetStringInput(msg string, defaultValue string, stdin io.Reader) (string, error) {
 	validate := func(input string) error {
 		if input == "" {
 			return errors.New(inputStringErrMsg)
@@ -72,11 +76,13 @@ func GetStringInput(msg string, defaultValue string, stdin io.ReadCloser) (strin
 		return nil
 	}
 
+	fillableStdin, _ := readline.NewFillableStdin(stdin)
+
 	prompt := promptui.Prompt{
 		Label:    msg,
 		Validate: validate,
 		Default:  defaultValue,
-		Stdin:    stdin,
+		Stdin:    fillableStdin,
 	}
 
 	result, err := prompt.Run()
@@ -88,11 +94,13 @@ func GetStringInput(msg string, defaultValue string, stdin io.ReadCloser) (strin
 }
 
 // GetConfirmInput prompt to get yes or no input.
-func GetConfirmInput(msg string, stdin io.ReadCloser) string {
+func GetConfirmInput(msg string, stdin io.Reader) string {
+	fillableStdin, _ := readline.NewFillableStdin(stdin)
+
 	prompt := promptui.Prompt{
 		Label:     msg,
 		IsConfirm: true,
-		Stdin:     stdin,
+		Stdin:     fillableStdin,
 	}
 
 	result, err := prompt.Run()

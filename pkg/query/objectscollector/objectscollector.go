@@ -17,10 +17,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/logger"
 )
 
-// Flux label for tenant
-// https://github.com/fluxcd/flux2/blob/1730f3c46bddf0a29787d8d4fa5ace283f298e49/cmd/flux/create_tenant.go#L56
-var tenantLabel = "toolkit.fluxcd.io/tenant"
-
 func NewObjectsCollector(w store.Store, idx store.IndexWriter, mgr clusters.Subscriber, sa collector.ImpersonateServiceAccount, kinds []configuration.ObjectKind, log logr.Logger) (collector.Collector, error) {
 	incoming := make(chan []models.ObjectTransaction)
 	go func() {
@@ -123,7 +119,6 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			Category:            cat,
 			KubernetesDeletedAt: modelTs,
 			Unstructured:        raw,
-			Tenant:              o.GetLabels()[tenantLabel],
 			Labels:              o.GetRelevantLabels(),
 		}
 
