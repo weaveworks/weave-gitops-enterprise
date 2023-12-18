@@ -31,23 +31,28 @@ type ComponentsExtraConfig struct {
 }
 
 // NewInstallExtraComponentsConfig handles the extra components configurations
-func NewInstallExtraComponentsConfig(components []string, client client.Client) (ComponentsExtraConfig, error) {
+func NewInstallExtraComponentsConfig(components []string, client client.Client, fluxInstalled bool) (ComponentsExtraConfig, error) {
 	// validate requested components against pre-defined ComponentsExtra
 	config := ComponentsExtraConfig{
 		Requested: components,
 	}
+
 	for _, component := range config.Requested {
 		if !slices.Contains(ComponentsExtra, component) {
 			return ComponentsExtraConfig{}, fmt.Errorf("unsupported component selected: %s", component)
 		}
 	}
-	// check existing components
-	for _, component := range ComponentsExtra {
-		version, err := utils.GetHelmReleaseProperty(client, component, WGEDefaultNamespace, utils.HelmVersionProperty)
-		if err == nil && version != "" {
-			config.Existing = append(config.Existing, component)
+
+	if fluxInstalled {
+		// check existing components
+		for _, component := range ComponentsExtra {
+			version, err := utils.GetHelmReleaseProperty(client, component, WGEDefaultNamespace, utils.HelmVersionProperty)
+			if err == nil && version != "" {
+				config.Existing = append(config.Existing, component)
+			}
 		}
 	}
+
 	return config, nil
 }
 

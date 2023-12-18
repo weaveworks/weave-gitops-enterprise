@@ -104,6 +104,7 @@ status: {}
 )
 
 func TestInstallWge_Execute(t *testing.T) {
+
 	tests := []struct {
 		name       string
 		config     Config
@@ -113,7 +114,11 @@ func TestInstallWge_Execute(t *testing.T) {
 		{
 			name: "should install weave gitops enterprise",
 			config: MakeTestConfig(t, Config{
-				WGEVersion:  "1.0.0",
+				WgeConfig: WgeConfig{
+					ExistingVersion:  "",
+					RequestedVersion: "1.0.0",
+					AllowedVersions:  []string{"1.0.0", "1.1.0", "1.2.0"},
+				},
 				GitUsername: "test",
 				GitToken:    "abc",
 				GitRepository: GitRepositoryConfig{
@@ -144,10 +149,31 @@ func TestInstallWge_Execute(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "should not install weave gitops enterprise if it already exists",
+			config: MakeTestConfig(t, Config{
+				WgeConfig: WgeConfig{
+					ExistingVersion:  "1.0.0",
+					RequestedVersion: "1.1.0",
+					AllowedVersions:  []string{"1.0.0", "1.1.0", "1.2.0"},
+				},
+				GitUsername: "test",
+				GitToken:    "abc",
+				GitRepository: GitRepositoryConfig{
+					Url:    "https://test.com.git",
+					Branch: "main",
+					Path:   "/",
+					Scheme: "https",
+				},
+			}, fluxSystemGitRepository(), fluxSystemKustomization()),
+			wantOutput: []StepOutput{},
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			step := NewInstallWGEStep()
+			step, err := NewInstallWGEStep(tt.config.WgeConfig, tt.config.Logger)
+			assert.NoError(t, err)
 			gotOutputs, err := step.Execute(&tt.config)
 			if tt.wantErr != "" {
 				if msg := err.Error(); msg != tt.wantErr {
@@ -155,7 +181,6 @@ func TestInstallWge_Execute(t *testing.T) {
 				}
 				return
 			}
-
 			assert.NoError(t, err)
 			if diff := cmp.Diff(tt.wantOutput, gotOutputs); diff != "" {
 				t.Fatalf("unexpected wge outputs:\n%s", diff)

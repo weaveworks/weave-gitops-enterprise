@@ -24,19 +24,14 @@ func BootstrapAuth(config steps.Config) error {
 
 func bootstrapOIDC(config steps.Config) error {
 	var steps = []steps.BootstrapStep{
+		// FIXE: remove this steps after checking for WGE as it is our only dependency
 		steps.VerifyFluxInstallation,
 		steps.CheckEntitlementSecret,
 		steps.NewBootstrapFlux(config),
+
 		steps.NewInstallOIDCStep(config),
 		steps.NewOIDCConfigStep(config),
 	}
 
-	for _, step := range steps {
-		config.Logger.Waitingf(step.Name)
-		_, err := step.Execute(&config)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return execute(config, steps)
 }

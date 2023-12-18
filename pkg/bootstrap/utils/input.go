@@ -42,15 +42,18 @@ func GetPasswordInput(msg string, required bool, stdin io.Reader) (string, error
 }
 
 // GetSelectInput get option from multiple choices.
-func GetSelectInput(msg string, items []string) (string, error) {
+func GetSelectInput(msg string, items []string, stdin io.Reader) (string, error) {
 	index := -1
 	var result string
 	var err error
+
+	fillableStdin, _ := readline.NewFillableStdin(stdin)
 
 	for index < 0 {
 		prompt := promptui.Select{
 			Label: msg,
 			Items: items,
+			Stdin: fillableStdin,
 		}
 
 		index, result, err = prompt.Run()

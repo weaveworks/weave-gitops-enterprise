@@ -58,7 +58,7 @@ func installTerraform(input []StepInput, c *Config) ([]StepOutput, error) {
 	}
 	wgeValues.EnableTerraformUI = true
 
-	wgeHelmRelease, err := constructWGEhelmRelease(wgeValues, c.WGEVersion)
+	wgeHelmRelease, err := constructWGEhelmRelease(wgeValues, c.WgeConfig.RequestedVersion)
 	if err != nil {
 		return []StepOutput{}, err
 	}

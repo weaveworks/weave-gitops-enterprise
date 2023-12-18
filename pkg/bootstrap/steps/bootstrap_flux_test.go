@@ -29,7 +29,9 @@ func TestConfigureFluxCreds(t *testing.T) {
 				},
 			},
 			config: &Config{
-				FluxInstalled: true,
+				FluxConfig: FluxConfig{
+					IsInstalled: true,
+				},
 				GitRepository: GitRepositoryConfig{
 					Scheme: sshScheme,
 				},
@@ -51,7 +53,9 @@ func TestConfigureFluxCreds(t *testing.T) {
 				},
 			},
 			config: &Config{
-				FluxInstalled: true,
+				FluxConfig: FluxConfig{
+					IsInstalled: true,
+				},
 				GitRepository: GitRepositoryConfig{
 					Scheme: httpsScheme,
 				},

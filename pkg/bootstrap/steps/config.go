@@ -175,20 +175,17 @@ type Config struct {
 	GitClient utils.GitClient
 	// TODO move me to a better package
 	FluxClient utils.FluxClient
-
-	Logger logger.Logger
-
+	Logger     logger.Logger
 	// InReader holds the stream to read input from
 	InReader io.Reader
-
 	// OutWriter holds the output to write to
-	OutWriter io.Writer
+	OutWriter  io.Writer
+	FluxConfig FluxConfig
+	WgeConfig  WgeConfig
 
-	WGEVersion      string // user want this version in the cluster
 	ClusterUserAuth ClusterUserAuthConfig
 	ModesConfig     ModesConfig
 
-	FluxInstalled      bool
 	PrivateKeyPath     string
 	PrivateKeyPassword string
 
@@ -240,12 +237,22 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		return Config{}, fmt.Errorf("error creating cluster user auth configuration: %v", err)
 	}
 
-	gitRepositoryConfig, err := NewGitRepositoryConfig(cb.repoURL, cb.repoBranch, cb.repoPath)
+	fluxConfig, err := NewFluxConfig(cb.logger, kubeHttp.Client)
+	if err != nil {
+		return Config{}, fmt.Errorf("error creating flux configuration: %v", err)
+	}
+
+	gitRepositoryConfig, err := NewGitRepositoryConfig(cb.repoURL, cb.repoBranch, cb.repoPath, fluxConfig)
 	if err != nil {
 		return Config{}, fmt.Errorf("error creating git repository configuration: %v", err)
 	}
 
-	componentsExtraConfig, err := NewInstallExtraComponentsConfig(cb.componentsExtra, kubeHttp.Client)
+	wgeConfig, err := NewWgeConfig(cb.wgeVersion, kubeHttp.Client, fluxConfig.IsInstalled)
+	if err != nil {
+		return Config{}, fmt.Errorf("cannot create WGE configuration: %v", err)
+	}
+
+	componentsExtraConfig, err := NewInstallExtraComponentsConfig(cb.componentsExtra, kubeHttp.Client, fluxConfig.IsInstalled)
 	if err != nil {
 		return Config{}, fmt.Errorf("cannot create components extra configuration: %v", err)
 	}
@@ -257,7 +264,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		FluxClient:       &utils.CmdFluxClient{},
 		InReader:         cb.inReader,
 		OutWriter:        cb.outWriter,
-		WGEVersion:       cb.wgeVersion,
+		WgeConfig:        wgeConfig,
 		ClusterUserAuth:  clusterUserAuthConfig,
 		GitRepository:    gitRepositoryConfig,
 		Logger:           cb.logger,
@@ -276,6 +283,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		ClientSecret:            cb.clientSecret,
 		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
 		ComponentsExtra:         componentsExtraConfig,
+		FluxConfig:              fluxConfig,
 		BootstrapFlux:           cb.bootstrapFlux,
 	}, nil
 
