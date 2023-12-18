@@ -34,7 +34,7 @@ var (
 		Enabled:      canAskForFluxBootstrap,
 	}
 
-	getRepoPath = StepInput{
+	getRepoPathIn = StepInput{
 		Name:         inRepoPath,
 		Type:         stringInput,
 		Msg:          gitRepoPathMsg,
@@ -67,8 +67,7 @@ func NewGitRepositoryConfig(url string, branch string, path string, fluxConfig F
 			Url:    fluxConfig.Url,
 			Scheme: fluxConfig.Scheme,
 			Branch: fluxConfig.Branch,
-			// TODO we should use the existing flux configuration
-			Path: path,
+			Path:   fluxConfig.Path,
 		}, nil
 	}
 
@@ -126,7 +125,7 @@ func NewGitRepositoryConfigStep(config GitRepositoryConfig) BootstrapStep {
 	}
 
 	if config.Path == "" {
-		inputs = append(inputs, getRepoPath)
+		inputs = append(inputs, getRepoPathIn)
 	}
 
 	return BootstrapStep{
