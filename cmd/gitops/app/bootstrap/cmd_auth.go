@@ -69,11 +69,13 @@ func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
 			).
 			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, false).
 			WithSilent(flags.silent).
+			WithExport(flags.export).
+			WithInReader(cmd.InOrStdin()).
+			WithOutWriter(cmd.OutOrStdout()).
 			Build()
 
 		if err != nil {
 			return fmt.Errorf("cannot config bootstrap auth: %v", err)
-
 		}
 
 		err = BootstrapAuth(c)
