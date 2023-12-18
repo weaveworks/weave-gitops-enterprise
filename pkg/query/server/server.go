@@ -8,6 +8,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/cleaner"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/tenantscollector"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/client-go/discovery"
 
@@ -27,7 +28,6 @@ import (
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	v1 "k8s.io/api/core/v1"
 )
 
 type server struct {
@@ -80,18 +80,6 @@ func (s *server) DoQuery(ctx context.Context, msg *pb.DoQueryRequest) (*pb.DoQue
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %w", err)
 	}
-
-	user := auth.Principal(ctx)
-	// Force update the cluster manager cache
-	// It appears this gets called every request by the GetImpersonatedClient call,
-	// which does not get called in the Query code path.
-	// It should be safe to call on every request here.
-	s.clustersManager.UpdateUserNamespaces(ctx, user)
-
-	// Existing tenants machinery requires that we know the user's available namespaces.
-	// We check those tenant namespaces against the object's namespace.
-	userNamespaces := s.clustersManager.GetUserNamespaces(user)
-	objs = withTenants(objs, userNamespaces)
 
 	return &pb.DoQueryResponse{
 		Objects: convertToPbObject(objs),
@@ -271,6 +259,11 @@ func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, retErr error)
 			return nil, nil, fmt.Errorf("failed to create applications collector: %w", err)
 		}
 
+		tenantsCollector, err := tenantscollector.NewTenantsCollector(s, clusters.MakeSubscriber(opts.ClustersManager), opts.ServiceAccount, opts.Logger)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create tenants collector: %w", err)
+		}
+
 		go func() {
 			if err := rulesCollector.Start(ctx); err != nil {
 				opts.Logger.Error(err, "roles collector failed")
@@ -280,6 +273,12 @@ func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, retErr error)
 		go func() {
 			if err := objsCollector.Start(ctx); err != nil {
 				opts.Logger.Error(err, "applications collector failed")
+			}
+		}()
+
+		go func() {
+			if err := tenantsCollector.Start(ctx); err != nil {
+				opts.Logger.Error(err, "tenants collector failed")
 			}
 		}()
 
@@ -385,22 +384,4 @@ func convertToPbFacet(facets store.Facets) []*pb.Facet {
 	}
 
 	return pbFacets
-}
-
-// Replicating the logic from here:
-// https://github.com/weaveworks/weave-gitops/blob/8b293044e6afec872453fee40923da3d2f066f12/core/server/utils.go#L13
-func withTenants(objs []models.Object, nsList map[string][]v1.Namespace) []models.Object {
-	out := []models.Object{}
-	for _, obj := range objs {
-		namespaces := nsList[obj.Cluster]
-		for _, ns := range namespaces {
-			if ns.GetName() == obj.Namespace {
-				obj.Tenant = ns.Labels["toolkit.fluxcd.io/tenant"]
-				break
-			}
-		}
-		out = append(out, obj)
-	}
-
-	return out
 }
