@@ -123,6 +123,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			).
 			WithGitAuthentication(flags.privateKeyPath,
 				flags.privateKeyPassword,
+				cmd.Flag("private-key-password").Changed,
 				flags.gitUsername,
 				flags.gitPassword,
 			).

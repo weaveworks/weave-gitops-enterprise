@@ -246,6 +246,7 @@ Note: If you find yourself adding common behaviour in this function think on whe
 **Inputs**
 
 - We usually prefix input names with `in` prefix (short for input) to distinguish these constants from everything else.
+- Check the usage of `PrivateKeyPassword` and `PrivateKeyPasswordChanged` as example of how to handle flags with empty strings as default values.
 
 ## How configuration works ?
 
