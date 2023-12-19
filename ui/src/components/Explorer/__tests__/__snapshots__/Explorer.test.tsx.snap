@@ -1148,3 +1148,1731 @@ exports[`Explorer snapshots renders 1`] = `
   </div>
 </div>
 `;
+
+exports[`Explorer snapshots renders status indicators 1`] = `
+.c31 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  width: 100%;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.c1 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  -webkit-box-pack: end;
+  -webkit-justify-content: flex-end;
+  -ms-flex-pack: end;
+  justify-content: flex-end;
+}
+
+.c3 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c5 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c8 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  width: 100%;
+}
+
+.c9 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  height: 100%;
+  width: 100%;
+}
+
+.c14 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  height: 100%;
+  width: 100%;
+}
+
+.c15 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 4px;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c18 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+}
+
+.c20 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
+.c7 svg {
+  fill: #737373;
+}
+
+.c7 svg path.path-fill,
+.c7 svg line.path-fill,
+.c7 svg polygon.path-fill,
+.c7 svg rect.path-fill,
+.c7 svg circle.path-fill,
+.c7 svg polyline.path-fill {
+  fill: #737373 !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c7 svg path.stroke-fill,
+.c7 svg line.stroke-fill,
+.c7 svg polygon.stroke-fill,
+.c7 svg rect.stroke-fill,
+.c7 svg circle.stroke-fill,
+.c7 svg polyline.stroke-fill {
+  stroke: #737373 !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c7.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c7.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c7 .c17 {
+  margin-left: 4px;
+  color: #737373;
+}
+
+.c21 svg {
+  fill: #27AE60;
+}
+
+.c21 svg path.path-fill,
+.c21 svg line.path-fill,
+.c21 svg polygon.path-fill,
+.c21 svg rect.path-fill,
+.c21 svg circle.path-fill,
+.c21 svg polyline.path-fill {
+  fill: #27AE60 !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c21 svg path.stroke-fill,
+.c21 svg line.stroke-fill,
+.c21 svg polygon.stroke-fill,
+.c21 svg rect.stroke-fill,
+.c21 svg circle.stroke-fill,
+.c21 svg polyline.stroke-fill {
+  stroke: #27AE60 !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c21.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c21.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c21 .c17 {
+  margin-left: 4px;
+  color: #27AE60;
+}
+
+.c22 svg {
+  fill: #BC3B1D;
+}
+
+.c22 svg path.path-fill,
+.c22 svg line.path-fill,
+.c22 svg polygon.path-fill,
+.c22 svg rect.path-fill,
+.c22 svg circle.path-fill,
+.c22 svg polyline.path-fill {
+  fill: #BC3B1D !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c22 svg path.stroke-fill,
+.c22 svg line.stroke-fill,
+.c22 svg polygon.stroke-fill,
+.c22 svg rect.stroke-fill,
+.c22 svg circle.stroke-fill,
+.c22 svg polyline.stroke-fill {
+  stroke: #BC3B1D !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c22.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c22.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c22 .c17 {
+  margin-left: 4px;
+  color: #BC3B1D;
+}
+
+.c23 svg {
+  fill: #00b3ec;
+}
+
+.c23 svg path.path-fill,
+.c23 svg line.path-fill,
+.c23 svg polygon.path-fill,
+.c23 svg rect.path-fill,
+.c23 svg circle.path-fill,
+.c23 svg polyline.path-fill {
+  fill: #00b3ec !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c23 svg path.stroke-fill,
+.c23 svg line.stroke-fill,
+.c23 svg polygon.stroke-fill,
+.c23 svg rect.stroke-fill,
+.c23 svg circle.stroke-fill,
+.c23 svg polyline.stroke-fill {
+  stroke: #00b3ec !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c23.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c23.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c23 .c17 {
+  margin-left: 4px;
+  color: #00b3ec;
+}
+
+.c24 svg {
+  fill: #F2994A;
+}
+
+.c24 svg path.path-fill,
+.c24 svg line.path-fill,
+.c24 svg polygon.path-fill,
+.c24 svg rect.path-fill,
+.c24 svg circle.path-fill,
+.c24 svg polyline.path-fill {
+  fill: #F2994A !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c24 svg path.stroke-fill,
+.c24 svg line.stroke-fill,
+.c24 svg polygon.stroke-fill,
+.c24 svg rect.stroke-fill,
+.c24 svg circle.stroke-fill,
+.c24 svg polyline.stroke-fill {
+  stroke: #F2994A !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c24.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c24.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c24 .c17 {
+  margin-left: 4px;
+  color: #F2994A;
+}
+
+.c29 svg path.path-fill,
+.c29 svg line.path-fill,
+.c29 svg polygon.path-fill,
+.c29 svg rect.path-fill,
+.c29 svg circle.path-fill,
+.c29 svg polyline.path-fill {
+  fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c29 svg path.stroke-fill,
+.c29 svg line.stroke-fill,
+.c29 svg polygon.stroke-fill,
+.c29 svg rect.stroke-fill,
+.c29 svg circle.stroke-fill,
+.c29 svg polyline.stroke-fill {
+  stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c29.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c29.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c29 .c17 {
+  margin-left: 4px;
+}
+
+.c19 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
+.c4 {
+  height: 40px;
+  padding: 4px 0px;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.c4 .MuiChip-root {
+  color: #1a1a1a;
+  margin-right: 4px;
+  background-color: #F6F7F9;
+  -webkit-transition: none;
+  transition: none;
+}
+
+.c16.MuiButton-root {
+  margin: 0;
+  text-transform: none;
+  -webkit-letter-spacing: 0;
+  -moz-letter-spacing: 0;
+  -ms-letter-spacing: 0;
+  letter-spacing: 0;
+}
+
+.c16.MuiButton-text {
+  min-width: 0px;
+}
+
+.c16.MuiButton-text .selected {
+  color: #1a1a1a;
+}
+
+.c16.arrow {
+  min-width: 0px;
+}
+
+.c13 {
+  max-width: 100%;
+}
+
+.c10 {
+  width: 100%;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  overflow-x: hidden;
+}
+
+.c10 h2 {
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #737373;
+  margin: 0px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  -webkit-letter-spacing: 1px;
+  -moz-letter-spacing: 1px;
+  -ms-letter-spacing: 1px;
+  letter-spacing: 1px;
+}
+
+.c10 .MuiTableRow-root {
+  -webkit-transition: background 0.5s ease-in-out;
+  transition: background 0.5s ease-in-out;
+}
+
+.c10 .MuiTableRow-root:not(.MuiTableRow-head):hover {
+  background: #f5f5f5;
+  -webkit-transition: background 0.5s ease-in-out;
+  transition: background 0.5s ease-in-out;
+}
+
+.c10 .MuiTableCell-root {
+  border-color: #d8d8d8;
+}
+
+.c10 table {
+  margin-top: 12px;
+}
+
+.c10 th {
+  padding: 0;
+  background: #F6F7F9;
+}
+
+.c10 th .MuiCheckbox-root {
+  padding: 4px 9px;
+}
+
+.c10 th:first-child {
+  border-top-left-radius: 4px;
+}
+
+.c10 th:last-child {
+  border-top-right-radius: 4px;
+}
+
+.c10 td {
+  padding-left: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.c11 {
+  width: 100%;
+}
+
+.c11 > div:first-child {
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c26 {
+  position: relative;
+  height: 100%;
+  -webkit-transition-property: width,left;
+  transition-property: width,left;
+  -webkit-transition-duration: 0.5s;
+  transition-duration: 0.5s;
+  -webkit-transition-timing-function: linear;
+  transition-timing-function: linear;
+  overflow: hidden;
+  width: 0px;
+  -webkit-flex: 2;
+  -ms-flex: 2;
+  flex: 2;
+  left: 24px;
+}
+
+.c26.open {
+  left: 0;
+  width: 360px;
+}
+
+.c27 {
+  height: 100%;
+  width: 100%;
+  border-left: 2px solid #d8d8d8;
+  padding-left: 32px;
+}
+
+.c25 {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.c30 ul {
+  padding: 0px 8px;
+}
+
+.c30 h2 {
+  margin-top: 0;
+}
+
+.c30 h3 {
+  margin-bottom: 0;
+}
+
+.c32 .c6 .MuiSvgIcon-root {
+  color: unset;
+}
+
+.c28 {
+  position: relative;
+}
+
+.c0 {
+  width: 100%;
+}
+
+.c12 table tbody {
+  opacity: 1;
+}
+
+<div>
+  <div
+    class="c0 Explorer"
+  >
+    <div
+      class="c1"
+    >
+      <div
+        style="width: 80px;"
+      >
+        <div
+          class="MuiCircularProgress-root MuiCircularProgress-colorPrimary MuiCircularProgress-indeterminate"
+          role="progressbar"
+          style="width: 24px; height: 24px; display: none;"
+        >
+          <svg
+            class="MuiCircularProgress-svg"
+            viewBox="22 22 44 44"
+          >
+            <circle
+              class="MuiCircularProgress-circle MuiCircularProgress-circleIndeterminate"
+              cx="44"
+              cy="44"
+              fill="none"
+              r="20.2"
+              stroke-width="3.6"
+            />
+          </svg>
+        </div>
+      </div>
+      <div
+        class="c2"
+      >
+        <div
+          class="QueryStateChips"
+        >
+          <div
+            class="c3 c4 $9121bed0097d59fd$var$ChipGroup"
+          />
+        </div>
+        <button
+          class="MuiButtonBase-root MuiIconButton-root"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label"
+          >
+            <div
+              class="c5 c6 c7"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"
+                />
+              </svg>
+            </div>
+          </span>
+          <span
+            class="MuiTouchRipple-root"
+          />
+        </button>
+      </div>
+    </div>
+    <div
+      class="c8"
+    >
+      <div
+        class="c9 c10 c11 c12 ExplorerTable"
+      >
+        <div
+          class="c2 c13"
+        />
+        <div
+          class="c14"
+        >
+          <div
+            class="MuiTableContainer-root"
+          >
+            <table
+              class="MuiTable-root"
+            >
+              <thead
+                class="MuiTableHead-root"
+              >
+                <tr
+                  class="MuiTableRow-root MuiTableRow-head"
+                >
+                  <th
+                    class="MuiTableCell-root MuiTableCell-head"
+                    scope="col"
+                  >
+                    <div
+                      class="c15"
+                    >
+                      <button
+                        class="MuiButtonBase-root MuiButton-root MuiButton-text c16 MuiButton-colorInherit"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label"
+                        >
+                          <h2
+                            class=""
+                          >
+                            Name
+                          </h2>
+                        </span>
+                        <span
+                          class="MuiTouchRipple-root"
+                        />
+                      </button>
+                      <div
+                        style="width: 16px;"
+                      />
+                    </div>
+                  </th>
+                  <th
+                    class="MuiTableCell-root MuiTableCell-head"
+                    scope="col"
+                  >
+                    <div
+                      class="c15"
+                    >
+                      <button
+                        class="MuiButtonBase-root MuiButton-root MuiButton-text c16 MuiButton-colorInherit"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label"
+                        >
+                          <h2
+                            class=""
+                          >
+                            Kind
+                          </h2>
+                        </span>
+                        <span
+                          class="MuiTouchRipple-root"
+                        />
+                      </button>
+                      <div
+                        style="width: 16px;"
+                      />
+                    </div>
+                  </th>
+                  <th
+                    class="MuiTableCell-root MuiTableCell-head"
+                    scope="col"
+                  >
+                    <div
+                      class="c15"
+                    >
+                      <button
+                        class="MuiButtonBase-root MuiButton-root MuiButton-text c16 MuiButton-colorInherit"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label"
+                        >
+                          <h2
+                            class=""
+                          >
+                            Namespace
+                          </h2>
+                        </span>
+                        <span
+                          class="MuiTouchRipple-root"
+                        />
+                      </button>
+                      <div
+                        style="width: 16px;"
+                      />
+                    </div>
+                  </th>
+                  <th
+                    class="MuiTableCell-root MuiTableCell-head"
+                    scope="col"
+                  >
+                    <div
+                      class="c15"
+                    >
+                      <button
+                        class="MuiButtonBase-root MuiButton-root MuiButton-text c16 MuiButton-colorInherit"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label"
+                        >
+                          <h2
+                            class=""
+                          >
+                            Cluster
+                          </h2>
+                        </span>
+                        <span
+                          class="MuiTouchRipple-root"
+                        />
+                      </button>
+                      <div
+                        style="width: 16px;"
+                      />
+                    </div>
+                  </th>
+                  <th
+                    class="MuiTableCell-root MuiTableCell-head"
+                    scope="col"
+                  >
+                    <div
+                      class="c15"
+                    >
+                      <button
+                        class="MuiButtonBase-root MuiButton-root MuiButton-text c16 MuiButton-colorInherit"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label"
+                        >
+                          <h2
+                            class=""
+                          >
+                            Tenant
+                          </h2>
+                        </span>
+                        <span
+                          class="MuiTouchRipple-root"
+                        />
+                      </button>
+                      <div
+                        style="width: 16px;"
+                      />
+                    </div>
+                  </th>
+                  <th
+                    class="MuiTableCell-root MuiTableCell-head"
+                    scope="col"
+                  >
+                    <div
+                      class="c15"
+                    >
+                      <button
+                        class="MuiButtonBase-root MuiButton-root MuiButton-text c16 MuiButton-colorInherit"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label"
+                        >
+                          <h2
+                            class=""
+                          >
+                            Status
+                          </h2>
+                        </span>
+                        <span
+                          class="MuiTouchRipple-root"
+                        />
+                      </button>
+                      <div
+                        style="width: 16px;"
+                      />
+                    </div>
+                  </th>
+                  <th
+                    class="MuiTableCell-root MuiTableCell-head"
+                    scope="col"
+                  >
+                    <div
+                      class="c15"
+                    >
+                      <button
+                        class="MuiButtonBase-root MuiButton-root MuiButton-text c16 MuiButton-colorInherit"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label"
+                        >
+                          <h2
+                            class=""
+                          >
+                            Message
+                          </h2>
+                        </span>
+                        <span
+                          class="MuiTouchRipple-root"
+                        />
+                      </button>
+                      <div
+                        style="width: 16px;"
+                      />
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                class="MuiTableBody-root"
+              >
+                <tr
+                  class="MuiTableRow-root"
+                >
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      <a
+                        class="c19 $8405a4f7caf64b1d$var$Link"
+                        href="/kustomization?name=flux-system&namespace=flux-system"
+                      >
+                        <span
+                          class="c17 c20"
+                          color="primary"
+                        >
+                          flux-system
+                        </span>
+                      </a>
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      Kustomization
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      flux-system
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      <div
+                        class="c5"
+                      >
+                        <div
+                          class="MuiBox-root MuiBox-root-26"
+                        >
+                          <div
+                            class="c5 c6 c21"
+                          >
+                            <img
+                              src="data:image/svg+xml,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%20%20%20%3Cpath%20d%3D%22M10%2017L5%2012L6.41%2010.58L10%2014.17L17.59%206.58L19%208L10%2017ZM12%202C10.6868%202%209.38642%202.25866%208.17317%202.7612C6.95991%203.26375%205.85752%204.00035%204.92893%204.92893C3.05357%206.8043%202%209.34784%202%2012C2%2014.6522%203.05357%2017.1957%204.92893%2019.0711C5.85752%2019.9997%206.95991%2020.7362%208.17317%2021.2388C9.38642%2021.7413%2010.6868%2022%2012%2022C14.6522%2022%2017.1957%2020.9464%2019.0711%2019.0711C20.9464%2017.1957%2022%2014.6522%2022%2012C22%2010.6868%2021.7413%209.38642%2021.2388%208.17317C20.7362%206.95991%2019.9997%205.85752%2019.0711%204.92893C18.1425%204.00035%2017.0401%203.26375%2015.8268%202.7612C14.6136%202.25866%2013.3132%202%2012%202Z%22%20fill%3D%22%2327AE60%22%3E%3C%2Fpath%3E%0A%3C%2Fsvg%3E%0A"
+                            />
+                          </div>
+                        </div>
+                        Success
+                      </div>
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                    style="max-width: 600px;"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root"
+                >
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      <a
+                        class="c19 $8405a4f7caf64b1d$var$Link"
+                        href="/helm_release?name=flux-system&namespace=flux-system"
+                      >
+                        <span
+                          class="c17 c20"
+                          color="primary"
+                        >
+                          flux-system
+                        </span>
+                      </a>
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      HelmRelease
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      flux-system
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      <div
+                        class="c5"
+                      >
+                        <div
+                          class="MuiBox-root MuiBox-root-27"
+                        >
+                          <div
+                            class="c5 c6 c22"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                        Failed
+                      </div>
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                    style="max-width: 600px;"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root"
+                >
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      <a
+                        class="c19 $8405a4f7caf64b1d$var$Link"
+                        href="/kustomization?name=flux-system&namespace=flux-system"
+                      >
+                        <span
+                          class="c17 c20"
+                          color="primary"
+                        >
+                          flux-system
+                        </span>
+                      </a>
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      Kustomization
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      flux-system
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      <div
+                        class="c5"
+                      >
+                        <div
+                          class="MuiBox-root MuiBox-root-28"
+                        >
+                          <div
+                            class="c5 c6 c23"
+                          >
+                            <img
+                              src="data:image/svg+xml,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%2210%22%20fill%3D%22%2300B3EC%22%3E%3C%2Fcircle%3E%0A%3Cpath%20fill-rule%3D%22evenodd%22%20clip-rule%3D%22evenodd%22%20d%3D%22M5.33337%2014.0002C5.33337%2013.632%205.63185%2013.3335%206.00004%2013.3335H9.33337C9.70156%2013.3335%2010%2013.632%2010%2014.0002C10%2014.3684%209.70156%2014.6668%209.33337%2014.6668H6.66671V17.3335C6.66671%2017.7017%206.36823%2018.0002%206.00004%2018.0002C5.63185%2018.0002%205.33337%2017.7017%205.33337%2017.3335V14.0002Z%22%20fill%3D%22white%22%3E%3C%2Fpath%3E%0A%3Cpath%20fill-rule%3D%22evenodd%22%20clip-rule%3D%22evenodd%22%20d%3D%22M18.0028%2012.6838C18.3617%2012.7664%2018.5856%2013.1242%2018.503%2013.483C18.0511%2015.4464%2016.7406%2017.0745%2014.9935%2017.9554L14.9934%2017.9555C14.0967%2018.4076%2013.0742%2018.6668%2012%2018.6668C9.04102%2018.6668%207.14701%2016.7936%205.4544%2014.3833C5.2428%2014.082%205.31553%2013.6662%205.61684%2013.4546C5.91816%2013.243%206.33395%2013.3158%206.54555%2013.617C8.18627%2015.9534%209.73226%2017.3335%2012%2017.3335C12.859%2017.3335%2013.6766%2017.1262%2014.3932%2016.7649C15.7927%2016.0592%2016.8422%2014.754%2017.2036%2013.184C17.2862%2012.8252%2017.644%2012.6012%2018.0028%2012.6838Z%22%20fill%3D%22white%22%3E%3C%2Fpath%3E%0A%3Cpath%20fill-rule%3D%22evenodd%22%20clip-rule%3D%22evenodd%22%20d%3D%22M18.6667%209.99982C18.6667%2010.368%2018.3682%2010.6665%2018%2010.6665H14.6667C14.2985%2010.6665%2014%2010.368%2014%209.99982C14%209.63162%2014.2985%209.33315%2014.6667%209.33315H17.3333V6.66648C17.3333%206.29829%2017.6318%205.99982%2018%205.99982C18.3682%205.99982%2018.6667%206.29829%2018.6667%206.66648V9.99982Z%22%20fill%3D%22white%22%3E%3C%2Fpath%3E%0A%3Cpath%20fill-rule%3D%22evenodd%22%20clip-rule%3D%22evenodd%22%20d%3D%22M5.99712%2011.3162C5.63832%2011.2336%205.4144%2010.8758%205.497%2010.517C5.94892%208.5537%207.25942%206.92554%209.00652%206.04458L9.00656%206.04456C9.90329%205.59249%2010.9258%205.33319%2012%205.33319C14.959%205.33319%2016.853%207.20644%2018.5456%209.61672C18.7572%209.91804%2018.6844%2010.3338%2018.3832%2010.5454C18.0818%2010.757%2017.666%2010.6843%2017.4544%2010.383C15.8137%208.0466%2014.2677%206.66652%2012%206.66652C11.141%206.66652%2010.3234%206.87388%209.60683%207.23513C8.20727%207.94084%207.15776%209.24602%206.79635%2010.8161C6.71376%2011.1749%206.35593%2011.3988%205.99712%2011.3162Z%22%20fill%3D%22white%22%3E%3C%2Fpath%3E%0A%3C%2Fsvg%3E%0A"
+                            />
+                          </div>
+                        </div>
+                        Reconciling
+                      </div>
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                    style="max-width: 600px;"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root"
+                >
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      <a
+                        class="c19 $8405a4f7caf64b1d$var$Link"
+                        href="/git_repo?name=flux-system&namespace=flux-system"
+                      >
+                        <span
+                          class="c17 c20"
+                          color="primary"
+                        >
+                          flux-system
+                        </span>
+                      </a>
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      GitRepository
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      flux-system
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      <div
+                        class="c5"
+                      >
+                        <div
+                          class="MuiBox-root MuiBox-root-29"
+                        >
+                          <div
+                            class="c5 c6 c24"
+                          >
+                            <img
+                              src="data:image/svg+xml,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%20%20%20%3Cpath%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20d%3D%22M12%202C6.48%202%202%206.48%202%2012C2%2017.52%206.48%2022%2012%2022C17.52%2022%2022%2017.52%2022%2012C22%206.48%2017.52%202%2012%202ZM17%2013H7V11H17V13Z%22%20fill%3D%22%23F2994A%22%3E%3C%2Fpath%3E%0A%3C%2Fsvg%3E%0A"
+                            />
+                          </div>
+                        </div>
+                        Suspended
+                      </div>
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                    style="max-width: 600px;"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root"
+                >
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      <a
+                        class="c19 $8405a4f7caf64b1d$var$Link"
+                        href="/kustomization?name=flux-system&namespace=flux-system"
+                      >
+                        <span
+                          class="c17 c20"
+                          color="primary"
+                        >
+                          flux-system
+                        </span>
+                      </a>
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      Kustomization
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      flux-system
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      <div
+                        class="c5"
+                      >
+                        <div
+                          class="MuiBox-root MuiBox-root-30"
+                        >
+                          <div
+                            class="c5 c6 c24"
+                          >
+                            <img
+                              src="data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%3F%3E%3Csvg%20id%3D%22Capa_1_copia%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3Cstyle%3E.cls-1%20%7B%0A%20%20fill%3A%20%23f2994a%3B%0A%7D%0A%0A.cls-2%20%7B%0A%20%20fill%3A%20%23fff%3B%0A%7D%0A%0A%3C%2Fstyle%3E%3C%2Fdefs%3E%3Ccircle%20class%3D%22cls-1%22%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%2210%22%3E%3C%2Fcircle%3E%3Cg%20id%3D%22Capa_2_copia%22%3E%3Cpath%20class%3D%22cls-2%22%20d%3D%22m11.59%2C15.35h-1.59c-1.49%2C0-2.52-.1-3.06-.19v-1.03c.3-.21.96-.59%2C1.91-.96.55-.22%2C1.33-.35%2C2.15-.35.02%2C0%2C.03%2C0%2C.05%2C0%2C.04-.32.11-.64.22-.93-.09%2C0-.18-.01-.27-.01-.91%2C0-1.81.14-2.5.41-1.38.55-2.5%2C1.22-2.5%2C1.5v2c0%2C.27%2C1.8.5%2C4%2C.5h2c.13%2C0%2C.25%2C0%2C.37%2C0-.31-.27-.57-.58-.79-.94Z%22%3E%3C%2Fpath%3E%3Cpath%20class%3D%22cls-2%22%20d%3D%22m11%2C7.29c.83%2C0%2C1.5.67%2C1.5%2C1.5s-.67%2C1.5-1.5%2C1.5-1.5-.67-1.5-1.5.67-1.5%2C1.5-1.5m0-1c-1.38%2C0-2.5%2C1.12-2.5%2C2.5s1.12%2C2.5%2C2.5%2C2.5%2C2.5-1.12%2C2.5-2.5-1.12-2.5-2.5-2.5h0Z%22%3E%3C%2Fpath%3E%3Cpath%20class%3D%22cls-2%22%20d%3D%22m15%2C16.5c-.83%2C0-1.54-.29-2.12-.88-.58-.59-.88-1.29-.88-2.12s.29-1.54.88-2.12c.59-.58%2C1.29-.88%2C2.12-.88s1.54.29%2C2.12.88c.58.59.88%2C1.29.88%2C2.12s-.29%2C1.54-.88%2C2.12c-.59.58-1.29.88-2.12.88Zm.92-1.4l.44-.44-1.19-1.19v-1.78h-.62v2l1.37%2C1.41Z%22%3E%3C%2Fpath%3E%3C%2Fg%3E%3C%2Fsvg%3E%0A"
+                            />
+                          </div>
+                        </div>
+                        PendingAction
+                      </div>
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                    style="max-width: 600px;"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                </tr>
+                <tr
+                  class="MuiTableRow-root"
+                >
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      <a
+                        class="c19 $8405a4f7caf64b1d$var$Link"
+                        href="/git_repo?name=flux-system&namespace=flux-system"
+                      >
+                        <span
+                          class="c17 c20"
+                          color="primary"
+                        >
+                          flux-system
+                        </span>
+                      </a>
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      GitRepository
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      flux-system
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                    style="max-width: 600px;"
+                  >
+                    <span
+                      class="c17 c18"
+                    >
+                      -
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div
+        class="c25 FilterDrawer"
+      >
+        <div
+          class="c26"
+        >
+          <div
+            class="c27"
+          >
+            <div
+              class="MuiBox-root MuiBox-root-31"
+            >
+              <div>
+                <h2>
+                  Filters
+                </h2>
+              </div>
+              <div>
+                <div
+                  class="c8 c28 QueryInput"
+                >
+                  <div
+                    class="c5"
+                  >
+                    <div
+                      class="c5 c6 c29"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                        />
+                      </svg>
+                    </div>
+                    <div
+                      class="MuiFormControl-root"
+                    >
+                      <div
+                        class="MuiFormControl-root MuiTextField-root $66a683f19021b9f2$var$Input"
+                      >
+                        <div
+                          class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input MuiInput-input"
+                            placeholder="Search"
+                            type="text"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="c30 Filters"
+                >
+                  <div>
+                    <h3>
+                      Kind
+                    </h3>
+                    <ul
+                      style="list-style: none;"
+                    >
+                      <li>
+                        <label
+                          class="MuiFormControlLabel-root"
+                        >
+                          <span
+                            aria-disabled="false"
+                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-32 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                          >
+                            <span
+                              class="MuiIconButton-label"
+                            >
+                              <input
+                                class="PrivateSwitchBase-input-35"
+                                data-indeterminate="false"
+                                type="checkbox"
+                                value=""
+                              />
+                              <svg
+                                aria-hidden="true"
+                                class="MuiSvgIcon-root"
+                                focusable="false"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                                />
+                              </svg>
+                            </span>
+                            <span
+                              class="MuiTouchRipple-root"
+                            />
+                          </span>
+                          <span
+                            class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"
+                          >
+                            Kustomization
+                          </span>
+                        </label>
+                      </li>
+                      <li>
+                        <label
+                          class="MuiFormControlLabel-root"
+                        >
+                          <span
+                            aria-disabled="false"
+                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-32 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                          >
+                            <span
+                              class="MuiIconButton-label"
+                            >
+                              <input
+                                class="PrivateSwitchBase-input-35"
+                                data-indeterminate="false"
+                                type="checkbox"
+                                value=""
+                              />
+                              <svg
+                                aria-hidden="true"
+                                class="MuiSvgIcon-root"
+                                focusable="false"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                                />
+                              </svg>
+                            </span>
+                            <span
+                              class="MuiTouchRipple-root"
+                            />
+                          </span>
+                          <span
+                            class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"
+                          >
+                            HelmRelease
+                          </span>
+                        </label>
+                      </li>
+                      <li>
+                        <label
+                          class="MuiFormControlLabel-root"
+                        >
+                          <span
+                            aria-disabled="false"
+                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-32 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                          >
+                            <span
+                              class="MuiIconButton-label"
+                            >
+                              <input
+                                class="PrivateSwitchBase-input-35"
+                                data-indeterminate="false"
+                                type="checkbox"
+                                value=""
+                              />
+                              <svg
+                                aria-hidden="true"
+                                class="MuiSvgIcon-root"
+                                focusable="false"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                                />
+                              </svg>
+                            </span>
+                            <span
+                              class="MuiTouchRipple-root"
+                            />
+                          </span>
+                          <span
+                            class="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"
+                          >
+                            GitRepository
+                          </span>
+                        </label>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="c31 c32 PaginationControls"
+    >
+      <div
+        class="MuiBox-root MuiBox-root-36"
+      >
+        <button
+          class="MuiButtonBase-root MuiIconButton-root Mui-disabled Mui-disabled"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label"
+          >
+            <div
+              class="c5 c6 c29"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"
+                />
+              </svg>
+            </div>
+          </span>
+        </button>
+        <button
+          class="MuiButtonBase-root MuiIconButton-root Mui-disabled Mui-disabled"
+          disabled=""
+          tabindex="-1"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label"
+          >
+            <div
+              class="c5 c6 c29"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+                />
+              </svg>
+            </div>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
