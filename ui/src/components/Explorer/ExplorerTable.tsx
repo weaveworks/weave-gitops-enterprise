@@ -4,7 +4,6 @@ import {
   Flex,
   formatURL,
   Icon,
-  IconType,
   Link,
   V2Routes,
 } from '@weaveworks/weave-gitops';
@@ -13,6 +12,7 @@ import _ from 'lodash';
 import styled from 'styled-components';
 import { Object } from '../../api/query/query.pb';
 import { getKindRoute, Routes } from '../../utils/nav';
+import { getIndicatorInfo } from '../../utils/status';
 import { QueryState } from './hooks';
 
 export type ExplorerField = Field & {
@@ -93,17 +93,9 @@ export const defaultExplorerFields: ExplorerField[] = [
           <Box marginRight={1}>
             <Icon
               size={24}
-              color={
-                o?.status === 'Success' ? 'successOriginal' : 'alertOriginal'
-              }
-              type={
-                o?.status === 'Success'
-                  ? IconType.SuccessIcon
-                  : IconType.ErrorIcon
-              }
+              {...getIndicatorInfo(o?.status)}
             />
           </Box>
-
           {o?.status}
         </Flex>
       );

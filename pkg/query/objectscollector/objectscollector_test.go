@@ -148,7 +148,7 @@ func TestObjectsCollector_retention(t *testing.T) {
 	// ACD don't have finalizers, and we don't get a deletionTimestamp.
 	obj3 := models.NewNormalizedObject(
 		testutils.NewAutomatedClusterDiscovery("anyACD", "default"),
-		configuration.AutomatedClusterDiscoveryKind,
+		configuration.AutomatedClusterDiscoveryObjectKind,
 	)
 
 	tx := []models.ObjectTransaction{
