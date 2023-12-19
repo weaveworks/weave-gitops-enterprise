@@ -59,29 +59,32 @@ const (
 
 // ConfigBuilder contains all the different configuration options that a user can introduce
 type ConfigBuilder struct {
-	logger                  logger.Logger
-	kubeconfig              string
-	password                string
-	wgeVersion              string
-	privateKeyPath          string
-	privateKeyPassword      string
-	silent                  bool
-	export                  bool
-	gitUsername             string
-	gitToken                string
-	repoURL                 string
-	repoBranch              string
-	repoPath                string
-	authType                string
-	installOIDC             string
-	discoveryURL            string
-	clientID                string
-	clientSecret            string
-	PromptedForDiscoveryURL bool
-	bootstrapFlux           bool
-	componentsExtra         []string
-	outWriter               io.Writer
-	inReader                io.Reader
+	logger             logger.Logger
+	kubeconfig         string
+	password           string
+	wgeVersion         string
+	privateKeyPath     string
+	privateKeyPassword string
+	// privateKeyPasswordChanged indicates true when the value privateKeyPassword
+	// comes from the user input. false otherwise.
+	privateKeyPasswordChanged bool
+	silent                    bool
+	export                    bool
+	gitUsername               string
+	gitToken                  string
+	repoURL                   string
+	repoBranch                string
+	repoPath                  string
+	authType                  string
+	installOIDC               string
+	discoveryURL              string
+	clientID                  string
+	clientSecret              string
+	PromptedForDiscoveryURL   bool
+	bootstrapFlux             bool
+	componentsExtra           []string
+	outWriter                 io.Writer
+	inReader                  io.Reader
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -108,9 +111,11 @@ func (c *ConfigBuilder) WithVersion(version string) *ConfigBuilder {
 	return c
 }
 
-func (c *ConfigBuilder) WithGitAuthentication(privateKeyPath, privateKeyPassword, gitUsername, gitToken string) *ConfigBuilder {
+func (c *ConfigBuilder) WithGitAuthentication(privateKeyPath, privateKeyPassword string, privateKeyPasswordChanged bool,
+	gitUsername, gitToken string) *ConfigBuilder {
 	c.privateKeyPath = privateKeyPath
 	c.privateKeyPassword = privateKeyPassword
+	c.privateKeyPasswordChanged = privateKeyPasswordChanged
 	c.gitUsername = gitUsername
 	c.gitToken = gitToken
 
@@ -186,9 +191,12 @@ type Config struct {
 	ClusterUserAuth ClusterUserAuthConfig
 	ModesConfig     ModesConfig
 
-	PrivateKeyPath     string
-	PrivateKeyPassword string
+	// TODO refactor me to git ssh auth config type
+	PrivateKeyPath            string
+	PrivateKeyPassword        string
+	PrivateKeyPasswordChanged bool
 
+	// TODO refactor me to git https auth config type
 	GitUsername string
 	GitToken    string
 
@@ -272,19 +280,20 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 			Silent: cb.silent,
 			Export: cb.export,
 		},
-		PrivateKeyPath:          cb.privateKeyPath,
-		PrivateKeyPassword:      cb.privateKeyPassword,
-		GitUsername:             cb.gitUsername,
-		GitToken:                cb.gitToken,
-		AuthType:                cb.authType,
-		InstallOIDC:             cb.installOIDC,
-		DiscoveryURL:            cb.discoveryURL,
-		ClientID:                cb.clientID,
-		ClientSecret:            cb.clientSecret,
-		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
-		ComponentsExtra:         componentsExtraConfig,
-		FluxConfig:              fluxConfig,
-		BootstrapFlux:           cb.bootstrapFlux,
+		PrivateKeyPath:            cb.privateKeyPath,
+		PrivateKeyPassword:        cb.privateKeyPassword,
+		PrivateKeyPasswordChanged: cb.privateKeyPasswordChanged,
+		GitUsername:               cb.gitUsername,
+		GitToken:                  cb.gitToken,
+		AuthType:                  cb.authType,
+		InstallOIDC:               cb.installOIDC,
+		DiscoveryURL:              cb.discoveryURL,
+		ClientID:                  cb.clientID,
+		ClientSecret:              cb.clientSecret,
+		PromptedForDiscoveryURL:   cb.PromptedForDiscoveryURL,
+		ComponentsExtra:           componentsExtraConfig,
+		FluxConfig:                fluxConfig,
+		BootstrapFlux:             cb.bootstrapFlux,
 	}, nil
 
 }

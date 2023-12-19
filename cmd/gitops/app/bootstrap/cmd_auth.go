@@ -64,6 +64,7 @@ func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
 			).
 			WithGitAuthentication(flags.privateKeyPath,
 				flags.privateKeyPassword,
+				cmd.Flag("privateKeyPassword").Changed,
 				flags.gitUsername,
 				flags.gitPassword,
 			).

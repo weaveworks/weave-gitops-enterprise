@@ -68,7 +68,9 @@ func NewBootstrapFlux(config Config) BootstrapStep {
 	if config.PrivateKeyPath == "" {
 		inputs = append(inputs, getKeyPath)
 	}
-	if config.PrivateKeyPassword == "" {
+
+	// we need to ask if empty password comes by default
+	if config.PrivateKeyPassword == "" && config.PrivateKeyPasswordChanged == false {
 		inputs = append(inputs, getKeyPassword)
 	}
 
