@@ -8,6 +8,7 @@ Pull requests require exactly one label from the allowed labels:
 
  1. `ui`: New feature or request in the UI
  2. `enhancement`: New feature or request in the BE
- 3. `bug`: Bug fixes
- 4. `test`: Mark a PR as being about tests
- 5. `exclude from release notes`: Use this label to exclude a PR from the release notes ex: doc changes
+ 3. `dependencies`: Use this label for dependency management PRs (i.e. dependabot). 
+ 4. `bug`: Bug fixes
+ 5. `test`: Mark a PR as being about tests
+ 6. `exclude from release notes`: Use this label to exclude a PR from the release notes ex: doc changes
