@@ -12,4 +12,4 @@ jobs:
         with:
           mode: exactly
           count: 1
-          labels: "bug, enhancement, ui, test, exclude from release notes"
+          labels: "bug, enhancement, dependencies, ui, test, exclude from release notes"

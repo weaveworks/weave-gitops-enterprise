@@ -84,6 +84,8 @@ func (c *GoGitClient) CloneRepo(kubeClient k8s_client.Client, repoName string,
 		return "", err
 	}
 
+	// TODO we could remove looking into the cluster as we have or could have done it when we create the configuration
+
 	gitRepo, err := GetGitRepositoryObject(kubeClient, repoName, namespace)
 	if err != nil {
 		return "", err

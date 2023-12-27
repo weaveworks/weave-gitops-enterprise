@@ -1,75 +1,18 @@
 package steps
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"gopkg.in/yaml.v2"
-	"k8s.io/utils/strings/slices"
+	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// user messages
-const (
-	versionStepName = "select WGE version"
-	versionMsg      = "select one of the following"
-)
-
-var getVersionInput = StepInput{
-	Name:         inWGEVersion,
-	Type:         multiSelectionChoice,
-	Msg:          versionMsg,
-	Valuesfn:     getWgeVersions,
-	DefaultValue: "",
-}
-
-func NewSelectWgeVersionStep(config Config) BootstrapStep {
-	inputs := []StepInput{}
-
-	// validate value by user
-	if config.WGEVersion != "" {
-		versions, err := getWgeVersions(inputs, &config)
-		if err != nil {
-			config.Logger.Failuref("couldn't get WGE helm chart: %v", err)
-			os.Exit(1)
-		}
-		if versions, ok := versions.([]string); !ok || !slices.Contains(versions, config.WGEVersion) {
-			config.Logger.Failuref("invalid version: %v. available versions: %s", config.WGEVersion, versions)
-			os.Exit(1)
-		}
-	}
-
-	if config.WGEVersion == "" {
-		inputs = append(inputs, getVersionInput)
-	}
-	return BootstrapStep{
-		Name:  versionStepName,
-		Input: inputs,
-		Step:  selectWgeVersion,
-	}
-}
-
-// selectWgeVersion step ask user to select wge version from the latest 3 versions.
-func selectWgeVersion(input []StepInput, c *Config) ([]StepOutput, error) {
-	for _, param := range input {
-		if param.Name == inWGEVersion {
-			version, ok := param.Value.(string)
-			if !ok {
-				return []StepOutput{}, errors.New("unexpected error occurred. WGEVersion is not found")
-			}
-			c.WGEVersion = version
-		}
-	}
-
-	c.Logger.Successf("selected version %s", c.WGEVersion)
-	return []StepOutput{}, nil
-}
-
-func getWgeVersions(input []StepInput, c *Config) (interface{}, error) {
-	entitlementSecret, err := utils.GetSecret(c.KubernetesClient, entitlementSecretName, WGEDefaultNamespace)
+// getWgeVersions gets the latest 3 available WGE versions from the helm repository
+func getWgeVersions(client k8s_client.Client) ([]string, error) {
+	entitlementSecret, err := utils.GetSecret(client, entitlementSecretName, WGEDefaultNamespace)
 	if err != nil {
 		return []string{}, err
 	}

@@ -59,5 +59,5 @@ func askBootstrapFlux(input []StepInput, c *Config) ([]StepOutput, error) {
 
 // canAskForGitConfig if fluxInstallation is false, then can ask for git config
 func canAskForFluxBootstrap(input []StepInput, c *Config) bool {
-	return !c.FluxInstalled
+	return !c.FluxConfig.IsInstalled
 }

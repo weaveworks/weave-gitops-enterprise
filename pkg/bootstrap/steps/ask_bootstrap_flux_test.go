@@ -18,7 +18,9 @@ func TestAskBootstrapFlux(t *testing.T) {
 			name:  "check with flux installed",
 			input: []StepInput{},
 			config: &Config{
-				FluxInstalled: true,
+				FluxConfig: FluxConfig{
+					IsInstalled: true,
+				},
 			},
 			err:    false,
 			canAsk: false,
@@ -32,7 +34,9 @@ func TestAskBootstrapFlux(t *testing.T) {
 				},
 			},
 			config: &Config{
-				FluxInstalled: false,
+				FluxConfig: FluxConfig{
+					IsInstalled: false,
+				},
 			},
 			err:    true,
 			canAsk: true,
@@ -46,7 +50,9 @@ func TestAskBootstrapFlux(t *testing.T) {
 				},
 			},
 			config: &Config{
-				FluxInstalled: false,
+				FluxConfig: FluxConfig{
+					IsInstalled: false,
+				},
 			},
 			err:    false,
 			canAsk: true,
@@ -55,7 +61,9 @@ func TestAskBootstrapFlux(t *testing.T) {
 			name:  "check with silent mode and bootstrap flux flag available",
 			input: []StepInput{},
 			config: &Config{
-				FluxInstalled: false,
+				FluxConfig: FluxConfig{
+					IsInstalled: false,
+				},
 				BootstrapFlux: true,
 				ModesConfig: ModesConfig{
 					Silent: true,
@@ -73,7 +81,9 @@ func TestAskBootstrapFlux(t *testing.T) {
 				},
 			},
 			config: &Config{
-				FluxInstalled: false,
+				FluxConfig: FluxConfig{
+					IsInstalled: false,
+				},
 				ModesConfig: ModesConfig{
 					Export: true,
 				},

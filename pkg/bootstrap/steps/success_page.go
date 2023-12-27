@@ -32,7 +32,7 @@ func checkUIDomain(input []StepInput, c *Config) ([]StepOutput, error) {
 	if err := c.FluxClient.ReconcileHelmRelease(WgeHelmReleaseName); err != nil {
 		return []StepOutput{}, err
 	}
-	c.Logger.Successf(portforwardMsg, c.WGEVersion)
+	c.Logger.Successf(portforwardMsg, c.WgeConfig.RequestedVersion)
 	c.Logger.Actionf(credsMsg)
 	c.Logger.Println(portforwardCmdMsg, WGEDefaultNamespace)
 	return []StepOutput{}, nil
