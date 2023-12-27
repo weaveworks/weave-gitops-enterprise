@@ -258,11 +258,11 @@ func TestReconciler_Reconcile(t *testing.T) {
 				FilterFunc: func(object client.Object) bool {
 					return false
 				},
-				StatusFunc: func(obj client.Object) configuration.ObjectStatus {
-					return configuration.NoStatus
+				StatusFunc: func(_ client.Object, _ configuration.ObjectKind) (configuration.ObjectStatus, error) {
+					return configuration.NoStatus, nil
 				},
-				MessageFunc: func(obj client.Object) string {
-					return ""
+				MessageFunc: func(_ client.Object, _ configuration.ObjectKind) (string, error) {
+					return "", nil
 				},
 				Category: "test",
 			},

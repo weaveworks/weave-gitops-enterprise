@@ -114,11 +114,11 @@ type defaultNormalizedObject struct {
 }
 
 func (n defaultNormalizedObject) GetStatus() (configuration.ObjectStatus, error) {
-	return n.config.StatusFunc(n.Object), nil
+	return n.config.StatusFunc(n.Object, n.config)
 }
 
 func (n defaultNormalizedObject) GetMessage() (string, error) {
-	return n.config.MessageFunc(n.Object), nil
+	return n.config.MessageFunc(n.Object, n.config)
 }
 
 // GetRelevantLabels returns the object labels that have been configured to be selected.

@@ -12,7 +12,6 @@ if [ ! -x "${GOPATH}/bin/golangci-lint" ]; then
 fi
 
 "${GOPATH}/bin/golangci-lint" run \
-    --verbose \
     --enable=misspell \
     --enable=gofmt \
     --timeout=15m \

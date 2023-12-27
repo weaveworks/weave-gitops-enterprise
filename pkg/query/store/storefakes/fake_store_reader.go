@@ -91,6 +91,19 @@ type FakeStoreReader struct {
 		result1 []models.Role
 		result2 error
 	}
+	GetTenantsStub        func(context.Context) ([]models.Tenant, error)
+	getTenantsMutex       sync.RWMutex
+	getTenantsArgsForCall []struct {
+		arg1 context.Context
+	}
+	getTenantsReturns struct {
+		result1 []models.Tenant
+		result2 error
+	}
+	getTenantsReturnsOnCall map[int]struct {
+		result1 []models.Tenant
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -487,6 +500,70 @@ func (fake *FakeStoreReader) GetRolesReturnsOnCall(i int, result1 []models.Role,
 	}{result1, result2}
 }
 
+func (fake *FakeStoreReader) GetTenants(arg1 context.Context) ([]models.Tenant, error) {
+	fake.getTenantsMutex.Lock()
+	ret, specificReturn := fake.getTenantsReturnsOnCall[len(fake.getTenantsArgsForCall)]
+	fake.getTenantsArgsForCall = append(fake.getTenantsArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.GetTenantsStub
+	fakeReturns := fake.getTenantsReturns
+	fake.recordInvocation("GetTenants", []interface{}{arg1})
+	fake.getTenantsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStoreReader) GetTenantsCallCount() int {
+	fake.getTenantsMutex.RLock()
+	defer fake.getTenantsMutex.RUnlock()
+	return len(fake.getTenantsArgsForCall)
+}
+
+func (fake *FakeStoreReader) GetTenantsCalls(stub func(context.Context) ([]models.Tenant, error)) {
+	fake.getTenantsMutex.Lock()
+	defer fake.getTenantsMutex.Unlock()
+	fake.GetTenantsStub = stub
+}
+
+func (fake *FakeStoreReader) GetTenantsArgsForCall(i int) context.Context {
+	fake.getTenantsMutex.RLock()
+	defer fake.getTenantsMutex.RUnlock()
+	argsForCall := fake.getTenantsArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeStoreReader) GetTenantsReturns(result1 []models.Tenant, result2 error) {
+	fake.getTenantsMutex.Lock()
+	defer fake.getTenantsMutex.Unlock()
+	fake.GetTenantsStub = nil
+	fake.getTenantsReturns = struct {
+		result1 []models.Tenant
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStoreReader) GetTenantsReturnsOnCall(i int, result1 []models.Tenant, result2 error) {
+	fake.getTenantsMutex.Lock()
+	defer fake.getTenantsMutex.Unlock()
+	fake.GetTenantsStub = nil
+	if fake.getTenantsReturnsOnCall == nil {
+		fake.getTenantsReturnsOnCall = make(map[int]struct {
+			result1 []models.Tenant
+			result2 error
+		})
+	}
+	fake.getTenantsReturnsOnCall[i] = struct {
+		result1 []models.Tenant
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeStoreReader) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -502,6 +579,8 @@ func (fake *FakeStoreReader) Invocations() map[string][][]interface{} {
 	defer fake.getRoleBindingsMutex.RUnlock()
 	fake.getRolesMutex.RLock()
 	defer fake.getRolesMutex.RUnlock()
+	fake.getTenantsMutex.RLock()
+	defer fake.getTenantsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

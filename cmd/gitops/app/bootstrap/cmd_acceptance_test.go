@@ -110,6 +110,10 @@ func TestBootstrapCmd(t *testing.T) {
 	gitBranchFlag := fmt.Sprintf("--branch=%s", gitBranch)
 	gitRepoPathFlag := fmt.Sprintf("--repo-path=%s", gitRepoPath)
 
+	// wge version
+	wgeVersion := "0.37.0"
+	wgeVersionFlag := fmt.Sprintf("--version=%s", wgeVersion)
+
 	// oidc configuration
 	oidcClientSecret := os.Getenv("OIDC_CLIENT_SECRET")
 	g.Expect(oidcClientSecret).NotTo(BeEmpty())
@@ -131,7 +135,7 @@ func TestBootstrapCmd(t *testing.T) {
 		{
 			name: "journey flux exists: should bootstrap with valid arguments",
 			flags: []string{kubeconfigFlag,
-				"--version=0.37.0",
+				wgeVersionFlag,
 				privateKeyFlag, privateKeyPasswordFlag,
 				"--password=admin123",
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
@@ -153,7 +157,7 @@ func TestBootstrapCmd(t *testing.T) {
 		{
 			name: "journey flux does not exist: should bootstrap with valid arguments",
 			flags: []string{kubeconfigFlag,
-				"--version=0.37.0",
+				wgeVersionFlag,
 				"--password=admin123",
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
 				"--client-id=weave-gitops-enterprise",
@@ -176,7 +180,6 @@ func TestBootstrapCmd(t *testing.T) {
 		{
 			name: "journey flux does not exist interactive",
 			flags: []string{kubeconfigFlag,
-				"--version=0.37.0",
 				"--password=admin123",
 				"--components-extra=none",
 			},
@@ -187,6 +190,7 @@ func TestBootstrapCmd(t *testing.T) {
 				fmt.Sprintf("%s\n", gitRepoPath),  // please enter your flux path for your cluster
 				fmt.Sprintf("%s\n", gitUsername),  // please enter your git username
 				fmt.Sprintf("%s\n", gitPassword),  // please enter your git password
+				fmt.Sprintf("%s\n", wgeVersion),   // please select your wge version
 				"N\n",                             // Do you want to setup OIDC to access Weave GitOps Dashboards?
 			},
 			setup: func(t *testing.T) {

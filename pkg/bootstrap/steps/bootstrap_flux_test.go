@@ -3,8 +3,53 @@ package steps
 import (
 	"testing"
 
-	"github.com/alecthomas/assert"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/stretchr/testify/assert"
 )
+
+func TestNewBootstrapFlux(t *testing.T) {
+	tests := []struct {
+		name      string
+		config    Config
+		wantInput []StepInput
+	}{
+		{
+			name: "should not ask for key password if user introduced empty flag",
+			config: MakeTestConfig(t, Config{
+				PrivateKeyPassword:        "",
+				PrivateKeyPasswordChanged: true,
+			}),
+			wantInput: []StepInput{
+				getKeyPath,
+				getGitUsername,
+				getGitPassword,
+			},
+		},
+		{
+			name: "should ask for key password if user not introduced",
+			config: MakeTestConfig(t, Config{
+				PrivateKeyPassword:        "",
+				PrivateKeyPasswordChanged: false,
+			}),
+			wantInput: []StepInput{
+				getKeyPath,
+				getKeyPassword,
+				getGitUsername,
+				getGitPassword,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NewBootstrapFlux(tt.config)
+			opts := cmpopts.IgnoreFields(StepInput{}, "Enabled")
+			if diff := cmp.Diff(tt.wantInput, got.Input, opts); diff != "" {
+				t.Fatalf("unpected step inputs:\n%s", diff)
+			}
+		})
+	}
+}
 
 func TestConfigureFluxCreds(t *testing.T) {
 
@@ -29,7 +74,9 @@ func TestConfigureFluxCreds(t *testing.T) {
 				},
 			},
 			config: &Config{
-				FluxInstalled: true,
+				FluxConfig: FluxConfig{
+					IsInstalled: true,
+				},
 				GitRepository: GitRepositoryConfig{
 					Scheme: sshScheme,
 				},
@@ -51,7 +98,9 @@ func TestConfigureFluxCreds(t *testing.T) {
 				},
 			},
 			config: &Config{
-				FluxInstalled: true,
+				FluxConfig: FluxConfig{
+					IsInstalled: true,
+				},
 				GitRepository: GitRepositoryConfig{
 					Scheme: httpsScheme,
 				},

@@ -59,29 +59,32 @@ const (
 
 // ConfigBuilder contains all the different configuration options that a user can introduce
 type ConfigBuilder struct {
-	logger                  logger.Logger
-	kubeconfig              string
-	password                string
-	wgeVersion              string
-	privateKeyPath          string
-	privateKeyPassword      string
-	silent                  bool
-	export                  bool
-	gitUsername             string
-	gitToken                string
-	repoURL                 string
-	repoBranch              string
-	repoPath                string
-	authType                string
-	installOIDC             string
-	discoveryURL            string
-	clientID                string
-	clientSecret            string
-	PromptedForDiscoveryURL bool
-	bootstrapFlux           bool
-	componentsExtra         []string
-	outWriter               io.Writer
-	inReader                io.Reader
+	logger             logger.Logger
+	kubeconfig         string
+	password           string
+	wgeVersion         string
+	privateKeyPath     string
+	privateKeyPassword string
+	// privateKeyPasswordChanged indicates true when the value privateKeyPassword
+	// comes from the user input. false otherwise.
+	privateKeyPasswordChanged bool
+	silent                    bool
+	export                    bool
+	gitUsername               string
+	gitToken                  string
+	repoURL                   string
+	repoBranch                string
+	repoPath                  string
+	authType                  string
+	installOIDC               string
+	discoveryURL              string
+	clientID                  string
+	clientSecret              string
+	PromptedForDiscoveryURL   bool
+	bootstrapFlux             bool
+	componentsExtra           []string
+	outWriter                 io.Writer
+	inReader                  io.Reader
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -108,9 +111,11 @@ func (c *ConfigBuilder) WithVersion(version string) *ConfigBuilder {
 	return c
 }
 
-func (c *ConfigBuilder) WithGitAuthentication(privateKeyPath, privateKeyPassword, gitUsername, gitToken string) *ConfigBuilder {
+func (c *ConfigBuilder) WithGitAuthentication(privateKeyPath, privateKeyPassword string, privateKeyPasswordChanged bool,
+	gitUsername, gitToken string) *ConfigBuilder {
 	c.privateKeyPath = privateKeyPath
 	c.privateKeyPassword = privateKeyPassword
+	c.privateKeyPasswordChanged = privateKeyPasswordChanged
 	c.gitUsername = gitUsername
 	c.gitToken = gitToken
 
@@ -175,23 +180,23 @@ type Config struct {
 	GitClient utils.GitClient
 	// TODO move me to a better package
 	FluxClient utils.FluxClient
-
-	Logger logger.Logger
-
+	Logger     logger.Logger
 	// InReader holds the stream to read input from
 	InReader io.Reader
-
 	// OutWriter holds the output to write to
-	OutWriter io.Writer
+	OutWriter  io.Writer
+	FluxConfig FluxConfig
+	WgeConfig  WgeConfig
 
-	WGEVersion      string // user want this version in the cluster
 	ClusterUserAuth ClusterUserAuthConfig
 	ModesConfig     ModesConfig
 
-	FluxInstalled      bool
-	PrivateKeyPath     string
-	PrivateKeyPassword string
+	// TODO refactor me to git ssh auth config type
+	PrivateKeyPath            string
+	PrivateKeyPassword        string
+	PrivateKeyPasswordChanged bool
 
+	// TODO refactor me to git https auth config type
 	GitUsername string
 	GitToken    string
 
@@ -240,12 +245,22 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		return Config{}, fmt.Errorf("error creating cluster user auth configuration: %v", err)
 	}
 
-	gitRepositoryConfig, err := NewGitRepositoryConfig(cb.repoURL, cb.repoBranch, cb.repoPath)
+	fluxConfig, err := NewFluxConfig(cb.logger, kubeHttp.Client)
+	if err != nil {
+		return Config{}, fmt.Errorf("error creating flux configuration: %v", err)
+	}
+
+	gitRepositoryConfig, err := NewGitRepositoryConfig(cb.repoURL, cb.repoBranch, cb.repoPath, fluxConfig)
 	if err != nil {
 		return Config{}, fmt.Errorf("error creating git repository configuration: %v", err)
 	}
 
-	componentsExtraConfig, err := NewInstallExtraComponentsConfig(cb.componentsExtra, kubeHttp.Client)
+	wgeConfig, err := NewWgeConfig(cb.wgeVersion, kubeHttp.Client, fluxConfig.IsInstalled)
+	if err != nil {
+		return Config{}, fmt.Errorf("cannot create WGE configuration: %v", err)
+	}
+
+	componentsExtraConfig, err := NewInstallExtraComponentsConfig(cb.componentsExtra, kubeHttp.Client, fluxConfig.IsInstalled)
 	if err != nil {
 		return Config{}, fmt.Errorf("cannot create components extra configuration: %v", err)
 	}
@@ -257,7 +272,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		FluxClient:       &utils.CmdFluxClient{},
 		InReader:         cb.inReader,
 		OutWriter:        cb.outWriter,
-		WGEVersion:       cb.wgeVersion,
+		WgeConfig:        wgeConfig,
 		ClusterUserAuth:  clusterUserAuthConfig,
 		GitRepository:    gitRepositoryConfig,
 		Logger:           cb.logger,
@@ -265,18 +280,20 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 			Silent: cb.silent,
 			Export: cb.export,
 		},
-		PrivateKeyPath:          cb.privateKeyPath,
-		PrivateKeyPassword:      cb.privateKeyPassword,
-		GitUsername:             cb.gitUsername,
-		GitToken:                cb.gitToken,
-		AuthType:                cb.authType,
-		InstallOIDC:             cb.installOIDC,
-		DiscoveryURL:            cb.discoveryURL,
-		ClientID:                cb.clientID,
-		ClientSecret:            cb.clientSecret,
-		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
-		ComponentsExtra:         componentsExtraConfig,
-		BootstrapFlux:           cb.bootstrapFlux,
+		PrivateKeyPath:            cb.privateKeyPath,
+		PrivateKeyPassword:        cb.privateKeyPassword,
+		PrivateKeyPasswordChanged: cb.privateKeyPasswordChanged,
+		GitUsername:               cb.gitUsername,
+		GitToken:                  cb.gitToken,
+		AuthType:                  cb.authType,
+		InstallOIDC:               cb.installOIDC,
+		DiscoveryURL:              cb.discoveryURL,
+		ClientID:                  cb.clientID,
+		ClientSecret:              cb.clientSecret,
+		PromptedForDiscoveryURL:   cb.PromptedForDiscoveryURL,
+		ComponentsExtra:           componentsExtraConfig,
+		FluxConfig:                fluxConfig,
+		BootstrapFlux:             cb.bootstrapFlux,
 	}, nil
 
 }

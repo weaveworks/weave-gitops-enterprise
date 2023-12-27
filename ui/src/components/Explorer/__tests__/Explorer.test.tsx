@@ -229,5 +229,65 @@ describe('Explorer', () => {
       //   @ts-ignore
       expect(result.container).toMatchSnapshot();
     });
+    it('renders status indicators', async () => {
+      let result: RenderResult;
+
+      api.DoQueryReturns = {
+        objects: [
+          {
+            kind: 'Kustomization',
+            name: 'flux-system',
+            namespace: 'flux-system',
+            status: 'Success',
+          },
+          {
+            kind: 'HelmRelease',
+            name: 'flux-system',
+            namespace: 'flux-system',
+            status: 'Failed',
+          },
+          {
+            kind: 'Kustomization',
+            name: 'flux-system',
+            namespace: 'flux-system',
+            status: 'Reconciling',
+          },
+          {
+            kind: 'GitRepository',
+            name: 'flux-system',
+            namespace: 'flux-system',
+            status: 'Suspended',
+          },
+          {
+            kind: 'Kustomization',
+            name: 'flux-system',
+            namespace: 'flux-system',
+            status: 'PendingAction',
+          },
+          {
+            kind: 'GitRepository',
+            name: 'flux-system',
+            namespace: 'flux-system',
+            status: '-',
+          },
+        ],
+      };
+      api.ListFacetsReturns = {
+        facets: [
+          {
+            field: 'Kind',
+            values: ['Kustomization', 'HelmRelease', 'GitRepository'],
+          },
+        ],
+      };
+
+      await act(async () => {
+        const c = wrap(<Explorer />);
+        result = await render(c);
+      });
+
+      //   @ts-ignore
+      expect(result.container).toMatchSnapshot();
+    });
   });
 });

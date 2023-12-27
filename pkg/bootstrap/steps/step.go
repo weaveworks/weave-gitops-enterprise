@@ -236,7 +236,7 @@ func defaultInputStep(inputs []StepInput, c *Config, stdin io.Reader) ([]StepInp
 			}
 			// get the values from user
 			if input.Value == nil {
-				paramValue, err := utils.GetSelectInput(input.Msg, values)
+				paramValue, err := utils.GetSelectInput(input.Msg, values, stdin)
 				if err != nil {
 					return []StepInput{}, err
 				}

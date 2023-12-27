@@ -90,7 +90,9 @@ func TestInstallTerraform(t *testing.T) {
 				ModesConfig: ModesConfig{
 					Silent: true,
 				},
-				WGEVersion: "1.0.0",
+				WgeConfig: WgeConfig{
+					RequestedVersion: "1.0.0",
+				},
 			},
 			err: false,
 		},
@@ -104,7 +106,9 @@ func TestInstallTerraform(t *testing.T) {
 				ModesConfig: ModesConfig{
 					Silent: true,
 				},
-				WGEVersion: "1.0.0",
+				WgeConfig: WgeConfig{
+					RequestedVersion: "1.0.0",
+				},
 			},
 			err: false,
 		},

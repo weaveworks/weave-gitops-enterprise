@@ -34,7 +34,7 @@ var (
 		Enabled:      canAskForFluxBootstrap,
 	}
 
-	getRepoPath = StepInput{
+	getRepoPathIn = StepInput{
 		Name:         inRepoPath,
 		Type:         stringInput,
 		Msg:          gitRepoPathMsg,
@@ -56,10 +56,20 @@ type GitRepositoryConfig struct {
 }
 
 // NewGitRepositoryConfig creates new Git repository configuration from valid input parameters.
-func NewGitRepositoryConfig(url string, branch string, path string) (GitRepositoryConfig, error) {
+func NewGitRepositoryConfig(url string, branch string, path string, fluxConfig FluxConfig) (GitRepositoryConfig, error) {
 	var scheme string
 	var err error
 	var normalisedUrl string
+
+	// using flux config as we dont support updates
+	if fluxConfig.IsInstalled {
+		return GitRepositoryConfig{
+			Url:    fluxConfig.Url,
+			Scheme: fluxConfig.Scheme,
+			Branch: fluxConfig.Branch,
+			Path:   fluxConfig.Path,
+		}, nil
+	}
 
 	if url != "" {
 		normalisedUrl, scheme, err = normaliseUrl(url)
@@ -115,7 +125,7 @@ func NewGitRepositoryConfigStep(config GitRepositoryConfig) BootstrapStep {
 	}
 
 	if config.Path == "" {
-		inputs = append(inputs, getRepoPath)
+		inputs = append(inputs, getRepoPathIn)
 	}
 
 	return BootstrapStep{
@@ -127,7 +137,7 @@ func NewGitRepositoryConfigStep(config GitRepositoryConfig) BootstrapStep {
 
 func createGitRepositoryConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 
-	if c.FluxInstalled {
+	if c.FluxConfig.IsInstalled {
 		return []StepOutput{}, nil
 	}
 
@@ -157,7 +167,7 @@ func createGitRepositoryConfig(input []StepInput, c *Config) ([]StepOutput, erro
 		}
 	}
 
-	repoConfig, err := NewGitRepositoryConfig(repoURL, repoBranch, repoPath)
+	repoConfig, err := NewGitRepositoryConfig(repoURL, repoBranch, repoPath, c.FluxConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error creating git repository configuration: %v", err)
 	}

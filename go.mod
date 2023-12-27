@@ -71,7 +71,7 @@ require (
 	github.com/weaveworks/templates-controller v0.2.0
 	github.com/xanzy/go-gitlab v0.90.0
 	go.mozilla.org/sops/v3 v3.7.3
-	golang.org/x/crypto v0.16.0
+	golang.org/x/crypto v0.17.0
 	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb
 	golang.org/x/oauth2 v0.13.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d
