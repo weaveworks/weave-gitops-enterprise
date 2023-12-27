@@ -155,7 +155,7 @@ const CreateSOPS = () => {
                 label="SECRET NAME"
                 value={formData.secretName}
                 handleFormData={val => handleFormData(val, 'secretName')}
-                error={formError === 'secretName' && !formData.secretName}
+                formError={formError}
               />
               <InputDebounced
                 required
@@ -163,9 +163,7 @@ const CreateSOPS = () => {
                 label="SECRET NAMESPACE"
                 value={formData.secretNamespace}
                 handleFormData={val => handleFormData(val, 'secretNamespace')}
-                error={
-                  formError === 'secretNamespace' && !formData.secretNamespace
-                }
+                formError={formError}
               />
             </Flex>
             <h2>Encryption</h2>

@@ -146,7 +146,7 @@ const CreateExternalSecret = () => {
               label="EXTERNAL SECRET NAME"
               value={formData.secretName}
               handleFormData={val => handleFormData(val, 'secretName')}
-              error={formError === 'secretName' && !formData.secretName}
+              formError={formError}
             />
             <InputDebounced
               required
@@ -154,7 +154,7 @@ const CreateExternalSecret = () => {
               label="TARGET K8s SECRET NAME"
               value={formData.dataSecretKey}
               handleFormData={val => handleFormData(val, 'dataSecretKey')}
-              error={formError === 'dataSecretKey' && !formData.dataSecretKey}
+              formError={formError}
             />
             <Flex column>
               <ListClusters
@@ -187,9 +187,7 @@ const CreateExternalSecret = () => {
                     return;
                   }}
                   disabled={true}
-                  error={
-                    formError === 'secretStoreType' && !formData.secretStoreType
-                  }
+                  formError={formError}
                 />
                 <InputDebounced
                   required
@@ -201,9 +199,7 @@ const CreateExternalSecret = () => {
                     !!formData.secretNamespace &&
                     formData.defaultSecretNamespace === formData.secretNamespace
                   }
-                  error={
-                    formError === 'secretNamespace' && !formData.secretNamespace
-                  }
+                  formError={formError}
                 />
               </Flex>
             )}
@@ -213,7 +209,7 @@ const CreateExternalSecret = () => {
               label="SECRET PATH"
               value={formData.secretPath}
               handleFormData={val => handleFormData(val, 'secretPath')}
-              error={formError === 'secretPath' && !formData.secretPath}
+              formError={formError}
             />
             <SecretProperty
               formData={formData}
