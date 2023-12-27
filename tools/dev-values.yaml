@@ -48,6 +48,8 @@ extraEnvVars:
   # un-comment when running under weave-gitops-enterprise under a subpath e.g /weave-gitops-enterprise
   # - name: ROUTE_PREFIX
   #   value: /weave-gitops-enterprise
+  - name: WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME
+    value: "true"
 
 extraEnvVarsSecret: ""
 
