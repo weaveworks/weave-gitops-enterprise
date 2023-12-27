@@ -6,11 +6,11 @@ import { Select } from '../../../utils/form';
 
 const ListClusters = ({
   value,
-  error,
+  hasError,
   handleFormData,
 }: {
   value: string;
-  error: boolean;
+  hasError: boolean;
   handleFormData: (value: any) => void;
 }) => {
   const { isLoading, data, error: listError } = useListCluster();
@@ -22,7 +22,7 @@ const ListClusters = ({
         label="CLUSTER"
         onChange={event => handleFormData(event.target.value)}
         value={value}
-        error={error}
+        error={hasError}
       >
         {data?.gitopsClusters
           ?.filter(e =>

@@ -147,7 +147,7 @@ const CreateSOPS = () => {
                   handleFormData(val, 'clusterName');
                   handleFormData('', 'kustomization');
                 }}
-                error={formError === 'clusterName' && !formData.clusterName}
+                hasError={formError === 'clusterName' && !formData.clusterName}
               />
               <InputDebounced
                 required
@@ -187,7 +187,9 @@ const CreateSOPS = () => {
                   handleFormData(val, 'kustomization')
                 }
                 clusterName={formData.clusterName}
-                error={formError === 'kustomization' && !formData.kustomization}
+                hasError={
+                  formError === 'kustomization' && !formData.kustomization
+                }
               />
             )}
             <h2>Secret Data</h2>

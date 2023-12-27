@@ -6,12 +6,12 @@ import { Select } from '../../../utils/form';
 
 const ListSecretsStore = ({
   value,
-  error,
+  hasError,
   handleFormData,
   clusterName,
 }: {
   value: string;
-  error: boolean;
+  hasError: boolean;
   handleFormData: (value: any) => void;
   clusterName: string;
 }) => {
@@ -30,7 +30,7 @@ const ListSecretsStore = ({
         label="SECRET STORE"
         onChange={event => handleFormData(event.target.value)}
         value={value}
-        error={error}
+        error={hasError}
       >
         {data?.stores?.length ? (
           data?.stores?.map((s, index: number) => {

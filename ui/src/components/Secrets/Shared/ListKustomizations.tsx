@@ -6,12 +6,12 @@ import { Select } from '../../../utils/form';
 
 const ListKustomizations = ({
   value,
-  error,
+  hasError,
   handleFormData,
   clusterName,
 }: {
   value: string;
-  error: boolean;
+  hasError: boolean;
   handleFormData: (value: any) => void;
   clusterName: string;
 }) => {
@@ -36,7 +36,7 @@ const ListKustomizations = ({
         description="Choose the kustomization that will be used by SOPS to decrypt the secret."
         onChange={event => handleFormData(event.target.value)}
         value={value}
-        error={error}
+        error={hasError}
       >
         {data?.kustomizations?.length ? (
           data?.kustomizations?.map((k, index: number) => {
