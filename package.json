@@ -34,7 +34,7 @@
     "@types/styled-components": "^5.1.9",
     "@types/urijs": "^1.19.19",
     "@weaveworks/progressive-delivery": "0.0.0-rc13",
-    "@weaveworks/weave-gitops": "npm:@weaveworks/weave-gitops-main@0.38.0-11-g0af2f4ff",
+    "@weaveworks/weave-gitops": "npm:@weaveworks/weave-gitops-main@0.38.0-12-ga38fbeca",
     "babel-jest": "^27.4.2",
     "babel-plugin-named-asset-import": "^0.3.8",
     "babel-preset-react-app": "^10.0.1",
