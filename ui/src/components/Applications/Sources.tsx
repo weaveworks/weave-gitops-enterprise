@@ -21,6 +21,7 @@ const WGApplicationsSources: FC = ({ className }: any) => {
     retry: false,
     refetchInterval: 5000,
   });
+
   const { setNotifications } = useNotifications();
 
   useEffect(() => {
