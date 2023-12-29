@@ -30,7 +30,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
   );
 
   const { data: automations, isLoading } = useListAutomations('', {
-    enabled: isExplorerEnabled,
+    enabled: !isExplorerEnabled,
     retry: false,
     refetchInterval: 5000,
   });
