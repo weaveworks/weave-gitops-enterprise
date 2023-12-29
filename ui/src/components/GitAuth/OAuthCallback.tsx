@@ -1,10 +1,6 @@
 import { CircularProgress } from '@material-ui/core';
 import { Alert, AlertTitle } from '@material-ui/lab';
-import {
-  Flex,
-  useLinkResolver,
-  useRequestState,
-} from '@weaveworks/weave-gitops';
+import { Flex, useLinkResolver } from '@weaveworks/weave-gitops';
 import qs from 'query-string';
 import * as React from 'react';
 import { useHistory } from 'react-router-dom';
@@ -23,6 +19,7 @@ import {
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { getCallbackState, storeProviderToken } from './utils';
+import { useAsyncFn } from 'react-use';
 
 type Props = {
   code: string;
@@ -49,52 +46,54 @@ function OAuthCallback({
   errorDescription,
 }: Props) {
   const history = useHistory();
-  const [res, loading, error, req] = useRequestState<AuthorizeGitlabResponse>();
+  const [{ loading, value, error }, req] = useAsyncFn(() => {
+    let redirectUri = '';
+    if (provider === GitProvider.GitLab) {
+      redirectUri = gitlabOAuthRedirectURI();
+    }
+
+    return gitAuth.AuthorizeGitlab({
+      redirectUri,
+      code,
+    });
+  }, []);
+  // const [res, loading, error, req] = useRequestState<AuthorizeGitlabResponse>();
   const linkResolver = useLinkResolver();
   const { setNotifications } = useNotifications();
   const { gitAuth } = useEnterpriseClient();
   const params = qs.parse(history.location.search);
 
   React.useEffect(() => {
-    if (provider === GitProvider.GitLab) {
-      const redirectUri = gitlabOAuthRedirectURI();
+    req();
 
-      req(
-        gitAuth.AuthorizeGitlab({
-          redirectUri,
-          code,
-        }),
-      );
-    }
+    // if (provider === GitProvider.BitBucketServer) {
+    //   req(
+    //     gitAuth.AuthorizeBitbucketServer({
+    //       code,
+    //       state,
+    //       redirectUri: bitbucketServerOAuthRedirectURI(),
+    //     }),
+    //   );
+    // }
 
-    if (provider === GitProvider.BitBucketServer) {
-      req(
-        gitAuth.AuthorizeBitbucketServer({
-          code,
-          state,
-          redirectUri: bitbucketServerOAuthRedirectURI(),
-        }),
-      );
-    }
-
-    if (provider === GitProvider.AzureDevOps) {
-      req(
-        gitAuth.AuthorizeAzureDevOps({
-          code,
-          state,
-          redirectUri: azureDevOpsOAuthRedirectURI(),
-        }),
-      );
-    }
+    // if (provider === GitProvider.AzureDevOps) {
+    //   req(
+    //     gitAuth.AuthorizeAzureDevOps({
+    //       code,
+    //       state,
+    //       redirectUri: azureDevOpsOAuthRedirectURI(),
+    //     }),
+    //   );
+    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code, gitAuth, provider]);
+  }, [req]);
 
   React.useEffect(() => {
-    if (!res) {
+    if (!value) {
       return;
     }
 
-    storeProviderToken(provider, res.token || '');
+    storeProviderToken(provider, value.token || '');
 
     const state = getCallbackState();
 
@@ -102,7 +101,7 @@ function OAuthCallback({
       history.push(linkResolver(state?.page || ''));
       return;
     }
-  }, [res, history, linkResolver, params.error, provider]);
+  }, [value, history, linkResolver, params.error, provider]);
 
   React.useEffect(() => {
     if (error) {
