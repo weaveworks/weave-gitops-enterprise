@@ -154,6 +154,13 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
       label: 'Flux Runtime',
       link: { value: V2Routes.FluxRuntime },
       icon: IconType.FluxIcon,
+      disabled: isFlagEnabled('WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME'),
+    },
+    {
+      label: 'Runtime',
+      link: { value: V2Routes.Runtime },
+      icon: IconType.FluxIcon,
+      disabled: !isFlagEnabled('WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME'),
     },
     {
       label: 'Explorer',

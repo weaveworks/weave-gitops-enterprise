@@ -21,6 +21,7 @@ import WGApplicationsKustomization from './components/Applications/Kustomization
 import WGNotifications from './components/Applications/Notifications';
 import WGNotificationsProvider from './components/Applications/NotificationsProvider';
 import WGApplicationsOCIRepository from './components/Applications/OCIRepository';
+import WGApplicationsRuntime from './components/Applications/Runtime';
 import WGApplicationsSources from './components/Applications/Sources';
 import ClusterDiscovery from './components/ClusterDiscovery';
 import ClusterDiscoveryDetails from './components/ClusterDiscovery/ClusterDiscoveryDetails';
@@ -171,6 +172,10 @@ const AppRoutes = () => {
       <Route
         component={() => <WGApplicationsFluxRuntime />}
         path={V2Routes.FluxRuntime}
+      />
+      <Route
+        component={() => <WGApplicationsRuntime />}
+        path={V2Routes.Runtime}
       />
       <Route
         component={withSearchParams((props: any) => (

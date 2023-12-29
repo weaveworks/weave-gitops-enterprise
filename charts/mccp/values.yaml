@@ -170,6 +170,10 @@ envVars:
     value: "true"
   - name: WEAVE_GITOPS_USERS_CLIENTS_TTL
     value: "30s"
+  # -- Enable this feature flag if you want to expand Flux Runtime UI with other Weave GitOps components like Policy Agent or TF-Controller.
+  # Ensure that Weave GitOps Deployment and CRDs have the label 'app.kubernetes.io/part-of=weave-gitops'. See https://docs.gitops.weave.works/docs/open-source/getting-started/install-OSS for more info.
+  - name: WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME
+    value: "false"
 
 # extraEnvVars is a list of extra environment variables to set on the
 # deployment. These are in addition to the envVars above.
