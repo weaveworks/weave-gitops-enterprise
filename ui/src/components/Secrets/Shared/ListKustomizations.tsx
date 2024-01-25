@@ -6,16 +6,20 @@ import { Select } from '../../../utils/form';
 
 const ListKustomizations = ({
   value,
-  validateForm,
+  hasError,
   handleFormData,
   clusterName,
 }: {
   value: string;
-  validateForm: boolean;
+  hasError: boolean;
   handleFormData: (value: any) => void;
   clusterName: string;
 }) => {
-  const { isLoading, error, data } = useListKustomizationSOPS(
+  const {
+    isLoading,
+    error: listError,
+    data,
+  } = useListKustomizationSOPS(
     { clusterName },
     {
       retry: false,
@@ -23,7 +27,7 @@ const ListKustomizations = ({
   );
 
   return (
-    <RequestStateHandler loading={isLoading} error={error as RequestError}>
+    <RequestStateHandler loading={isLoading} error={listError as RequestError}>
       <Select
         className="form-section"
         required
@@ -32,7 +36,7 @@ const ListKustomizations = ({
         description="Choose the kustomization that will be used by SOPS to decrypt the secret."
         onChange={event => handleFormData(event.target.value)}
         value={value}
-        error={validateForm && !value}
+        error={hasError}
       >
         {data?.kustomizations?.length ? (
           data?.kustomizations?.map((k, index: number) => {
