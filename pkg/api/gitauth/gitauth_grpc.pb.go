@@ -41,7 +41,13 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GitAuthClient interface {
 	//
-	// Wrap a git provider token in a JWT
+	// Wrap an existing git provider token in a JWT
+	//
+	// If you already have an OAuth token, or a Personal Access Token, it can be
+	// manually wrapped in a JWT using this endpoint.
+	//
+	// The resulting JWT can be included in requests to other API endpoint
+	// that interact with the Git provider (e.g. creating a pull request from a template).
 	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 	//
 	// Get a temporary device code for Github authentication
@@ -60,7 +66,7 @@ type GitAuthClient interface {
 	// Get the URL to initiate a GitLab OAuth flow.
 	//
 	// The user must browse to the returned URL to authorize the OAuth callback
-	// to the GitOps UI.
+	// to the Weave GitOps UI.
 	// See the GitLab OAuth docs for more more information:
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	GetGitlabAuthURL(ctx context.Context, in *GetGitlabAuthURLRequest, opts ...grpc.CallOption) (*GetGitlabAuthURLResponse, error)
@@ -70,12 +76,12 @@ type GitAuthClient interface {
 	//
 	// Exchange a Bitbucket Server code obtained via OAuth callback.
 	//
-	// The returned token is useable for authentication with the GitOps server only.
+	// The returned token is useable for authentication with the Weave GitOps server only.
 	AuthorizeBitbucketServer(ctx context.Context, in *AuthorizeBitbucketServerRequest, opts ...grpc.CallOption) (*AuthorizeBitbucketServerResponse, error)
 	//
 	// Exchange a GitLab code obtained via OAuth callback.
 	//
-	// The returned token is useable for authentication with the GitOps server only.
+	// The returned token is useable for authentication with the Weave GitOps server only.
 	// See the GitLab OAuth docs for more more information:
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error)
@@ -208,7 +214,13 @@ func (c *gitAuthClient) ValidateProviderToken(ctx context.Context, in *ValidateP
 // for forward compatibility
 type GitAuthServer interface {
 	//
-	// Wrap a git provider token in a JWT
+	// Wrap an existing git provider token in a JWT
+	//
+	// If you already have an OAuth token, or a Personal Access Token, it can be
+	// manually wrapped in a JWT using this endpoint.
+	//
+	// The resulting JWT can be included in requests to other API endpoint
+	// that interact with the Git provider (e.g. creating a pull request from a template).
 	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
 	//
 	// Get a temporary device code for Github authentication
@@ -227,7 +239,7 @@ type GitAuthServer interface {
 	// Get the URL to initiate a GitLab OAuth flow.
 	//
 	// The user must browse to the returned URL to authorize the OAuth callback
-	// to the GitOps UI.
+	// to the Weave GitOps UI.
 	// See the GitLab OAuth docs for more more information:
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	GetGitlabAuthURL(context.Context, *GetGitlabAuthURLRequest) (*GetGitlabAuthURLResponse, error)
@@ -237,12 +249,12 @@ type GitAuthServer interface {
 	//
 	// Exchange a Bitbucket Server code obtained via OAuth callback.
 	//
-	// The returned token is useable for authentication with the GitOps server only.
+	// The returned token is useable for authentication with the Weave GitOps server only.
 	AuthorizeBitbucketServer(context.Context, *AuthorizeBitbucketServerRequest) (*AuthorizeBitbucketServerResponse, error)
 	//
 	// Exchange a GitLab code obtained via OAuth callback.
 	//
-	// The returned token is useable for authentication with the GitOps server only.
+	// The returned token is useable for authentication with the Weave GitOps server only.
 	// See the GitLab OAuth docs for more more information:
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error)

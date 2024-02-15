@@ -11,6 +11,8 @@ plugins:
     opt: paths=source_relative,allow_delete_body=true
   - name: openapiv2
     out: api
-    opt: allow_delete_body=true
+    opt:
+      - allow_delete_body=true
+      - disable_service_tags=true
   - name: grpc-gateway-ts
     out: ../../ui/src/cluster-services

@@ -15,6 +15,7 @@ plugins:
     out: ./
     opt:
       - allow_delete_body=true
+      - disable_service_tags=true
   - name: grpc-gateway-ts
     out: ./ui/src
     opt: []

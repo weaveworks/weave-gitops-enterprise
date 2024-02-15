@@ -89,13 +89,13 @@ func (s *server) listExternalSecrets(ctx context.Context, cl clustersmngr.Client
 			}
 			for _, item := range obj.Items {
 				secret := capiv1_proto.ExternalSecretItem{
-					ClusterName:        clusterName,
-					SecretName:         item.Spec.Target.Name,
-					ExternalSecretName: item.GetName(),
-					SecretStore:        item.Spec.SecretStoreRef.Name,
-					Namespace:          item.GetNamespace(),
-					Status:             getExternalSecretStatus(&item),
-					Timestamp:          item.CreationTimestamp.Format(time.RFC3339),
+					ClusterName: clusterName,
+					SecretName:  item.Spec.Target.Name,
+					Name:        item.GetName(),
+					SecretStore: item.Spec.SecretStoreRef.Name,
+					Namespace:   item.GetNamespace(),
+					Status:      getExternalSecretStatus(&item),
+					Timestamp:   item.CreationTimestamp.Format(time.RFC3339),
 				}
 
 				secrets = append(secrets, &secret)
@@ -124,8 +124,8 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 
 	} else {
 		var externalSecret esv1beta1.ExternalSecret
-		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.ExternalSecretName, Namespace: req.Namespace}, &externalSecret); err != nil {
-			return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", req.ExternalSecretName, req.ClusterName, err)
+		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.Name, Namespace: req.Namespace}, &externalSecret); err != nil {
+			return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", req.Name, req.ClusterName, err)
 		}
 
 		externalSecret.GetObjectKind().SetGroupVersionKind(esv1beta1.SchemeGroupVersion.WithKind("ExternalSecret"))
@@ -138,14 +138,14 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 		}
 
 		response := capiv1_proto.GetExternalSecretResponse{
-			SecretName:         externalSecret.Spec.Target.Name,
-			ExternalSecretName: externalSecret.GetName(),
-			ClusterName:        req.ClusterName,
-			Namespace:          req.Namespace,
-			SecretStore:        externalSecret.Spec.SecretStoreRef.Name,
-			Status:             getExternalSecretStatus(&externalSecret),
-			Timestamp:          externalSecret.CreationTimestamp.Format(time.RFC3339),
-			Yaml:               buf.String(),
+			SecretName:  externalSecret.Spec.Target.Name,
+			Name:        externalSecret.GetName(),
+			ClusterName: req.ClusterName,
+			Namespace:   req.Namespace,
+			SecretStore: externalSecret.Spec.SecretStoreRef.Name,
+			Status:      getExternalSecretStatus(&externalSecret),
+			Timestamp:   externalSecret.CreationTimestamp.Format(time.RFC3339),
+			Yaml:        buf.String(),
 		}
 
 		if externalSecret.Spec.DataFrom != nil {
@@ -189,7 +189,7 @@ func validateReq(req *capiv1_proto.GetExternalSecretRequest) error {
 	if req.ClusterName == "" {
 		return errors.New("cluster name is required")
 	}
-	if req.ExternalSecretName == "" {
+	if req.Name == "" {
 		return errors.New("external secret name is required")
 	}
 	if req.Namespace == "" {
@@ -297,8 +297,8 @@ func (s *server) SyncExternalSecrets(ctx context.Context, req *capiv1_proto.Sync
 	}
 
 	var externalSecret esv1beta1.ExternalSecret
-	if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.ExternalSecretName, Namespace: req.Namespace}, &externalSecret); err != nil {
-		return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", req.ExternalSecretName, req.ClusterName, err)
+	if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.Name, Namespace: req.Namespace}, &externalSecret); err != nil {
+		return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", req.Name, req.ClusterName, err)
 	} else {
 
 		if _, ok := externalSecret.Annotations["force-sync"]; ok {
@@ -308,7 +308,7 @@ func (s *server) SyncExternalSecrets(ctx context.Context, req *capiv1_proto.Sync
 		}
 
 		if err := clustersClient.Update(ctx, req.ClusterName, &externalSecret); err != nil {
-			return nil, fmt.Errorf("error updating external secret %s from cluster %s: %w", req.ExternalSecretName, req.ClusterName, err)
+			return nil, fmt.Errorf("error updating external secret %s from cluster %s: %w", req.Name, req.ClusterName, err)
 		}
 	}
 

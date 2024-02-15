@@ -41,7 +41,7 @@ export const Preview = ({
     return renderTemplate({
       name: template.name,
       namespace: template.namespace,
-      values: parameterValues,
+      parameterValues,
       profiles,
       credentials,
       kustomizations,

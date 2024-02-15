@@ -495,119 +495,6 @@ func TestGetTemplate(t *testing.T) {
 	}
 }
 
-func TestListTemplateParams(t *testing.T) {
-	testCases := []struct {
-		name             string
-		clusterState     []runtime.Object
-		expected         []*capiv1_protos.Parameter
-		err              error
-		expectedErrorStr string
-	}{
-		{
-			name: "1 parameter err",
-			err:  errors.New("error looking up template cluster-template-1: error getting capitemplate default/cluster-template-1: capitemplates.capi.weave.works \"cluster-template-1\" not found"),
-		},
-		{
-			name: "1 parameter",
-			clusterState: []runtime.Object{
-				makeCAPITemplate(t),
-			},
-			expected: []*capiv1_protos.Parameter{
-				{
-					Name:        "CLUSTER_NAME",
-					Description: "This is used for the cluster naming.",
-				},
-			},
-		},
-	}
-
-	for _, tt := range testCases {
-		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(t, serverOptions{
-				clusterState: tt.clusterState,
-				namespace:    "default",
-			})
-
-			listTemplateParamsRequest := new(capiv1_protos.ListTemplateParamsRequest)
-			listTemplateParamsRequest.Name = "cluster-template-1"
-			listTemplateParamsRequest.Namespace = "default"
-
-			listTemplateParamsResponse, err := s.ListTemplateParams(context.Background(), listTemplateParamsRequest)
-			if err != nil {
-				if tt.err == nil {
-					t.Fatalf("failed to read the templates:\n%s", err)
-				}
-				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
-					t.Fatalf("got the wrong error:\n%s", diff)
-				}
-			} else {
-				if diff := cmp.Diff(tt.expected, listTemplateParamsResponse.Parameters, protocmp.Transform()); diff != "" {
-					t.Fatalf("templates didn't match expected:\n%s", diff)
-				}
-			}
-		})
-	}
-}
-
-func TestListTemplateProfiles(t *testing.T) {
-	testCases := []struct {
-		name             string
-		clusterState     []runtime.Object
-		expected         []*capiv1_protos.TemplateProfile
-		err              error
-		expectedErrorStr string
-	}{
-		{
-			name: "1 profile err",
-			err:  errors.New("error looking up template cluster-template-1: error getting capitemplate default/cluster-template-1: capitemplates.capi.weave.works \"cluster-template-1\" not found"),
-		},
-		{
-			name: "1 profile",
-			clusterState: []runtime.Object{
-				makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
-					c.Annotations = map[string]string{
-						"capi.weave.works/profile-0": "{\"name\": \"profile-a\", \"version\": \"v0.0.1\" }",
-					}
-				}),
-			},
-			expected: []*capiv1_protos.TemplateProfile{
-				{
-					Name:     "profile-a",
-					Version:  "v0.0.1",
-					Required: true,
-				},
-			},
-		},
-	}
-
-	for _, tt := range testCases {
-		t.Run(tt.name, func(t *testing.T) {
-			s := createServer(t, serverOptions{
-				clusterState: tt.clusterState,
-				namespace:    "default",
-			})
-
-			listTemplateProfilesRequest := new(capiv1_protos.ListTemplateProfilesRequest)
-			listTemplateProfilesRequest.Name = "cluster-template-1"
-			listTemplateProfilesRequest.Namespace = "default"
-
-			listTemplateProfilesResponse, err := s.ListTemplateProfiles(context.Background(), listTemplateProfilesRequest)
-			if err != nil {
-				if tt.err == nil {
-					t.Fatalf("failed to read the profiles:\n%s", err)
-				}
-				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
-					t.Fatalf("got the wrong error:\n%s", diff)
-				}
-			} else {
-				if diff := cmp.Diff(tt.expected, listTemplateProfilesResponse.Profiles, protocmp.Transform()); diff != "" {
-					t.Fatalf("profiles didn't match expected:\n%s", diff)
-				}
-			}
-		})
-	}
-}
-
 func TestRenderTemplate(t *testing.T) {
 	u := &unstructured.Unstructured{}
 	u.Object = map[string]interface{}{
@@ -968,7 +855,7 @@ metadata:
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
 				Name: "cluster-template-1",
-				Values: map[string]string{
+				ParameterValues: map[string]string{
 					"CLUSTER_NAME": "test-cluster",
 				},
 				Credentials:  tt.credentials,
@@ -1074,7 +961,7 @@ func TestCostEstimation(t *testing.T) {
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
 				Name: "cluster-template-1",
-				Values: map[string]string{
+				ParameterValues: map[string]string{
 					"CLUSTER_NAME": "test-cluster",
 				},
 				TemplateKind: "CAPITemplate",
@@ -1125,7 +1012,7 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 			},
 			req: &capiv1_protos.RenderTemplateRequest{
 				Name: "cluster-template-1",
-				Values: map[string]string{
+				ParameterValues: map[string]string{
 					"CLUSTER_NAME": "dev",
 					"NAMESPACE":    "clusters-namespace",
 				},
@@ -1219,7 +1106,7 @@ status: {}
 			},
 			req: &capiv1_protos.RenderTemplateRequest{
 				Name: "cluster-template-1",
-				Values: map[string]string{
+				ParameterValues: map[string]string{
 					"CLUSTER_NAME": "dev",
 					"NAMESPACE":    "clusters-namespace",
 				},
@@ -1324,7 +1211,7 @@ status: {}
 			},
 			req: &capiv1_protos.RenderTemplateRequest{
 				Name: "cluster-template-1",
-				Values: map[string]string{
+				ParameterValues: map[string]string{
 					"CLUSTER_NAME": "dev",
 					"NAMESPACE":    "clusters-namespace",
 				},
@@ -1507,7 +1394,7 @@ metadata:
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
 				Name: "cluster-template-1",
-				Values: map[string]string{
+				ParameterValues: map[string]string{
 					"CLUSTER_NAME": tt.clusterName,
 				},
 				Namespace: "default",

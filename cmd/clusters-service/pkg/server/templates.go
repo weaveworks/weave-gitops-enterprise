@@ -152,7 +152,6 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 }
 
 func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateRequest) (*capiv1_proto.GetTemplateResponse, error) {
-	// Default to CAPI kind to ease transition
 	if msg.TemplateKind == "" {
 		msg.TemplateKind = capiv1.Kind
 	}
@@ -165,45 +164,6 @@ func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateR
 		return nil, fmt.Errorf("error reading template %v, %v", msg.Name, t.Error)
 	}
 	return &capiv1_proto.GetTemplateResponse{Template: t}, err
-}
-
-func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListTemplateParamsRequest) (*capiv1_proto.ListTemplateParamsResponse, error) {
-	// Default to CAPI kind to ease transition
-	if msg.TemplateKind == "" {
-		msg.TemplateKind = capiv1.Kind
-	}
-	tm, err := s.getTemplate(ctx, msg.Name, msg.Namespace, msg.TemplateKind)
-	if err != nil {
-		return nil, fmt.Errorf("error looking up template %v: %v", msg.Name, err)
-	}
-	t := ToTemplateResponse(tm)
-	if t.Error != "" {
-		return nil, fmt.Errorf("error looking up template params for %v, %v", msg.Name, t.Error)
-	}
-
-	return &capiv1_proto.ListTemplateParamsResponse{Parameters: t.Parameters, Objects: t.Objects}, err
-}
-
-func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.ListTemplateProfilesRequest) (*capiv1_proto.ListTemplateProfilesResponse, error) {
-	// Default to CAPI kind to ease transition
-	if msg.TemplateKind == "" {
-		msg.TemplateKind = capiv1.Kind
-	}
-	tm, err := s.getTemplate(ctx, msg.Name, msg.Namespace, msg.TemplateKind)
-	if err != nil {
-		return nil, fmt.Errorf("error looking up template %v: %v", msg.Name, err)
-	}
-	t := ToTemplateResponse(tm)
-	if t.Error != "" {
-		return nil, fmt.Errorf("error looking up template annotations for %v, %v", msg.Name, t.Error)
-	}
-
-	profiles, err := templates.GetProfilesFromTemplate(tm)
-	if err != nil {
-		return nil, fmt.Errorf("error getting profiles from template %v, %v", msg.Name, err)
-	}
-
-	return &capiv1_proto.ListTemplateProfilesResponse{Profiles: profiles, Objects: t.Objects}, err
 }
 
 func toCommitFileProtos(file []git.CommitFile) []*capiv1_proto.CommitFile {
@@ -224,7 +184,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		msg.TemplateKind = capiv1.Kind
 	}
 
-	s.log.WithValues("request_values", msg.Values, "request_credentials", msg.Credentials).Info("Received message")
+	s.log.WithValues("request_values", msg.ParameterValues, "request_credentials", msg.Credentials).Info("Received message")
 	tm, err := s.getTemplate(ctx, msg.Name, msg.Namespace, msg.TemplateKind)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.Name, err)
@@ -248,7 +208,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		GetFilesRequest{
 			ClusterNamespace: msg.ClusterNamespace,
 			TemplateName:     msg.Name,
-			ParameterValues:  msg.Values,
+			ParameterValues:  msg.ParameterValues,
 			Credentials:      msg.Credentials,
 			Profiles:         msg.Profiles,
 			Kustomizations:   msg.Kustomizations,

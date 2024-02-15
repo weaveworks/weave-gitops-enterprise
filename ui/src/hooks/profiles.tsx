@@ -113,8 +113,8 @@ const setVersionAndValuesFromCluster = (
   const profilesIndex = _.keyBy(profiles, 'name');
 
   const clusterProfiles: ProfilesIndex = {};
-  if (clusterData?.values) {
-    for (const clusterDataProfile of clusterData.values) {
+  if (clusterData?.profiles) {
+    for (const clusterDataProfile of clusterData.profiles) {
       const profile = profilesIndex[clusterDataProfile.name || ''];
       if (profile) {
         clusterProfiles[clusterDataProfile.name || ''] = {

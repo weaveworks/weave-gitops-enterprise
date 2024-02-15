@@ -63,7 +63,7 @@ export type ListTemplateProfilesResponse = {
 
 export type RenderTemplateRequest = {
   name?: string
-  values?: {[key: string]: string}
+  parameterValues?: {[key: string]: string}
   credentials?: Credential
   templateKind?: string
   clusterNamespace?: string
@@ -135,7 +135,7 @@ export type CreatePullRequestRequest = {
   parameterValues?: {[key: string]: string}
   commitMessage?: string
   credentials?: Credential
-  values?: ProfileValues[]
+  profiles?: ProfileValues[]
   repositoryApiUrl?: string
   clusterNamespace?: string
   kustomizations?: Kustomization[]
@@ -664,7 +664,7 @@ export type GetWorkspacePoliciesResponse = {
 
 export type ExternalSecretItem = {
   secretName?: string
-  externalSecretName?: string
+  name?: string
   namespace?: string
   clusterName?: string
   secretStore?: string
@@ -684,12 +684,12 @@ export type ListExternalSecretsResponse = {
 export type GetExternalSecretRequest = {
   clusterName?: string
   namespace?: string
-  externalSecretName?: string
+  name?: string
 }
 
 export type GetExternalSecretResponse = {
   secretName?: string
-  externalSecretName?: string
+  name?: string
   clusterName?: string
   namespace?: string
   secretStore?: string
@@ -721,7 +721,7 @@ export type ListExternalSecretStoresResponse = {
 export type SyncExternalSecretsRequest = {
   clusterName?: string
   namespace?: string
-  externalSecretName?: string
+  name?: string
 }
 
 export type SyncExternalSecretsResponse = {
@@ -858,12 +858,6 @@ export class ClustersService {
   static GetTemplate(req: GetTemplateRequest, initReq?: fm.InitReq): Promise<GetTemplateResponse> {
     return fm.fetchReq<GetTemplateRequest, GetTemplateResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
-  static ListTemplateParams(req: ListTemplateParamsRequest, initReq?: fm.InitReq): Promise<ListTemplateParamsResponse> {
-    return fm.fetchReq<ListTemplateParamsRequest, ListTemplateParamsResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}/params?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
-  }
-  static ListTemplateProfiles(req: ListTemplateProfilesRequest, initReq?: fm.InitReq): Promise<ListTemplateProfilesResponse> {
-    return fm.fetchReq<ListTemplateProfilesRequest, ListTemplateProfilesResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}/profiles?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
-  }
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
     return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
@@ -931,7 +925,7 @@ export class ClustersService {
     return fm.fetchReq<ListExternalSecretsRequest, ListExternalSecretsResponse>(`/v1/external-secrets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetExternalSecret(req: GetExternalSecretRequest, initReq?: fm.InitReq): Promise<GetExternalSecretResponse> {
-    return fm.fetchReq<GetExternalSecretRequest, GetExternalSecretResponse>(`/v1/namespaces/${req["namespace"]}/external-secrets/${req["externalSecretName"]}?${fm.renderURLSearchParams(req, ["namespace", "externalSecretName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetExternalSecretRequest, GetExternalSecretResponse>(`/v1/namespaces/${req["namespace"]}/external-secrets/${req["name"]}?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static ListExternalSecretStores(req: ListExternalSecretStoresRequest, initReq?: fm.InitReq): Promise<ListExternalSecretStoresResponse> {
     return fm.fetchReq<ListExternalSecretStoresRequest, ListExternalSecretStoresResponse>(`/v1/external-secrets-stores?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
