@@ -33,7 +33,6 @@ func Bootstrap(config steps.Config) error {
 		steps.NewAskBootstrapFluxStep(config),
 		repositoryConfig,
 		steps.NewBootstrapFlux(config),
-		steps.CheckEntitlementSecret,
 		adminCredentials,
 		installWge,
 		steps.NewInstallOIDCStep(config),

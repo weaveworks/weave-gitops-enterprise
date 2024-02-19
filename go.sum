@@ -1228,8 +1228,6 @@ github.com/weaveworks/tf-controller/api v0.0.0-20231101110059-994a65055198 h1:lx
 github.com/weaveworks/tf-controller/api v0.0.0-20231101110059-994a65055198/go.mod h1:201u5xXY+YI7+ggWljE0VvqMxa+zP1Y1lyRXc1RlXBc=
 github.com/weaveworks/weave-gitops v0.38.1-0.20231228113211-a38fbeca6a75 h1:+udUl2vbhDBaRUhnpJd+hukDUv+iDCkBrk7hFWJwhpw=
 github.com/weaveworks/weave-gitops v0.38.1-0.20231228113211-a38fbeca6a75/go.mod h1:rJL3PRaPIaWY4Nduss4Ws6H2zTNWw15sd1z8OSCqYBs=
-github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
-github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.90.0 h1:j8ZUHfLfXdnC+B8njeNaW/kM44c1zw8fiuNj7D+qQN8=
 github.com/xanzy/go-gitlab v0.90.0/go.mod h1:5ryv+MnpZStBH8I/77HuQBsMbBGANtVpLWC15qOjWAw=
 github.com/xanzy/ssh-agent v0.3.3 h1:+/15pJfg/RsTxqYcX6fHqOXZwwMP+2VyYWJeWM2qQFM=

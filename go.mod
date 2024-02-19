@@ -16,7 +16,6 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
 	github.com/weaveworks/weave-gitops v0.38.1-0.20231228113211-a38fbeca6a75
-	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.27.7
