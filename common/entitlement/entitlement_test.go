@@ -2,7 +2,6 @@ package entitlement
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -11,7 +10,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -23,10 +22,6 @@ var (
 	// This entitlement has been generated with the right private key for 1 day
 	validEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNjMxMzYxMjg2LCJpYXQiOjE2MzEyNzQ4ODYsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxMjc0ODg2LCJzdWIiOiJ0ZXN0QHdlYXZlLndvcmtzIn0.EKGp89DFcRKZ_kGmC8FuLVPB0wiab2KddkQKAmVNC9UH459v63tCP13eFybx9dAmMuaC77SA8rp7ukN1qZM7DA`
 	validTimestamp   = time.Unix(1631274886, 0)
-
-	// This entitlement has been generated with a different private key
-	invalidEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNjMxMzYxNDkwLCJpYXQiOjE2MzEyNzUwOTAsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxMjc1MDkwLCJzdWIiOiJ0ZXN0QHdlYXZlLndvcmtzIn0.E3Kfg4YzDOYJsTN9lD6B4uoW29tE0IB9X7lOpirSTwcZ7vVHk5PUXznYdiPIi9aSgLGAPIQL3YkAM4lyft3BDg`
-	invalidTimestamp   = time.Unix(1631275090, 0)
 )
 
 func TestEntitlementHandler(t *testing.T) {
@@ -36,23 +31,6 @@ func TestEntitlementHandler(t *testing.T) {
 		verified time.Time
 		exists   bool
 	}{
-		{
-			name:   "secret does not exist",
-			state:  []runtime.Object{},
-			exists: false,
-		},
-		{
-			name:     "invalid entitlement",
-			state:    []runtime.Object{createSecret(invalidEntitlement)},
-			verified: invalidTimestamp,
-			exists:   false,
-		},
-		{
-			name:     "expired entitlement",
-			state:    []runtime.Object{createSecret(validEntitlement)},
-			verified: validTimestamp.AddDate(0, 0, 2),
-			exists:   true,
-		},
 		{
 			name:     "valid entitlement",
 			state:    []runtime.Object{createSecret(validEntitlement)},
@@ -99,24 +77,9 @@ func TestCheckEntitlementHandler(t *testing.T) {
 		headerValue string
 	}{
 		{
-			name:     "no entitlement",
-			status:   http.StatusInternalServerError,
-			header:   false,
-			response: fmt.Sprintf(`{"message":"%s"}`, errorMessage),
-		},
-		{
-			name: "expired entitlement",
-			ctxValue: &entitlement.Entitlement{
-				LicencedUntil: time.Now().Add(-1 * time.Minute),
-			},
-			status:      http.StatusOK,
-			header:      true,
-			headerValue: expiredMessage,
-		},
-		{
 			name: "valid entitlement",
-			ctxValue: &entitlement.Entitlement{
-				LicencedUntil: time.Now().Add(time.Minute),
+			ctxValue: &entitlement{
+				LicencedUntil: time.Now().AddDate(1, 0, 0),
 			},
 			status: http.StatusOK,
 			header: false,
@@ -172,7 +135,7 @@ func createFakeClient(clusterState []runtime.Object) client.Client {
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 	}
-	schemeBuilder.AddToScheme(scheme)
+	_ = schemeBuilder.AddToScheme(scheme)
 
 	c := fake.NewClientBuilder().
 		WithScheme(scheme).

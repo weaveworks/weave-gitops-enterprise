@@ -6,16 +6,18 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	v1 "k8s.io/api/core/v1"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type contextKey string
+
+type entitlement struct {
+	LicencedUntil time.Time `json:"licencedUntil"`
+}
 
 func (c contextKey) String() string {
 	return "entitlement context key " + string(c)
@@ -28,8 +30,6 @@ const (
 )
 
 var (
-	//go:embed public.pem
-	public                string
 	contextKeyEntitlement = contextKey("entitlement")
 )
 
@@ -41,16 +41,8 @@ type response struct {
 // LoadEntitlementIntoContextHandler retrieves the entitlement from Kubernetes
 // and adds it to the request context.
 func EntitlementHandler(ctx context.Context, log logr.Logger, c client.Client, key client.ObjectKey, next http.Handler) http.Handler {
-	var sec v1.Secret
-	if err := c.Get(ctx, key, &sec); err != nil {
-		log.Error(err, "Entitlement cannot be retrieved")
-		return next
-	}
-
-	ent, err := entitlement.VerifyEntitlement(strings.NewReader(public), string(sec.Data["entitlement"]))
-	if err != nil {
-		log.Error(err, "Entitlement was not verified successfully")
-		return next
+	var ent *entitlement = &entitlement{
+		LicencedUntil: time.Now().AddDate(1, 0, 0),
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +60,7 @@ func CheckEntitlementHandler(log logr.Logger, next http.Handler, publicRoutes []
 			return
 		}
 		ent, ok := entitlementFromContext(r.Context())
-		if ent == nil {
+		if !ok {
 			log.Info("Entitlement was not found.")
 			w.WriteHeader(http.StatusInternalServerError)
 			response, err := json.Marshal(
@@ -79,21 +71,22 @@ func CheckEntitlementHandler(log logr.Logger, next http.Handler, publicRoutes []
 			if err != nil {
 				log.Error(err, "unexpected error while handling entitlement not found response")
 			}
-			w.Write(response)
+			if _, err := w.Write(response); err != nil {
+				log.Error(err, "unexpected error while writing entitlement not found response")
+			}
 			return
 		}
-		if ok {
-			if time.Now().After(ent.LicencedUntil) {
-				log.Info("Entitlement expired.", "licencedUntil", ent.LicencedUntil.Format("Mon 02 January, 2006"))
-				w.Header().Add(entitlementExpiredMessageHeader, expiredMessage)
-			}
+
+		if time.Now().After(ent.LicencedUntil) {
+			log.Info("Entitlement expired.", "licencedUntil", ent.LicencedUntil.Format("Mon 02 January, 2006"))
+			w.Header().Add(entitlementExpiredMessageHeader, expiredMessage)
 		}
 		next.ServeHTTP(w, r)
 	})
 }
 
-func entitlementFromContext(ctx context.Context) (*entitlement.Entitlement, bool) {
-	ent, ok := ctx.Value(contextKeyEntitlement).(*entitlement.Entitlement)
+func entitlementFromContext(ctx context.Context) (*entitlement, bool) {
+	ent, ok := ctx.Value(contextKeyEntitlement).(*entitlement)
 	return ent, ok
 }
 

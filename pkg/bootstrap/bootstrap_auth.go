@@ -26,7 +26,6 @@ func bootstrapOIDC(config steps.Config) error {
 	var steps = []steps.BootstrapStep{
 		// FIXE: remove this steps after checking for WGE as it is our only dependency
 		steps.VerifyFluxInstallation,
-		steps.CheckEntitlementSecret,
 		steps.NewBootstrapFlux(config),
 
 		steps.NewInstallOIDCStep(config),
