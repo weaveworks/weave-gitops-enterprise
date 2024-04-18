@@ -45,7 +45,6 @@ import (
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
-	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	csgit "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -121,8 +120,6 @@ func EnterprisePublicRoutes() []string {
 
 // Options contains all the options for the `ui run` command.
 type Params struct {
-	EntitlementSecretName             string                    `mapstructure:"entitlement-secret-name"`
-	EntitlementSecretNamespace        string                    `mapstructure:"entitlement-secret-namespace"`
 	HelmRepoNamespace                 string                    `mapstructure:"helm-repo-namespace"`
 	HelmRepoName                      string                    `mapstructure:"helm-repo-name"`
 	ProfileCacheLocation              string                    `mapstructure:"profile-cache-location"`
@@ -214,8 +211,6 @@ func NewAPIServerCommand() *cobra.Command {
 	// Have to declare a flag for viper to correctly read and then bind environment variables too
 	// FIXME: why? We don't actually use the flags in helm templates etc.
 	//
-	cmdFlags.String("entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
-	cmdFlags.String("entitlement-secret-namespace", "flux-system", "The namespace of the entitlement secret")
 	cmdFlags.String("helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
 	cmdFlags.String("helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
 	cmdFlags.String("profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
@@ -556,10 +551,6 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
 		WithProfileHelmRepository(types.NamespacedName{Name: p.HelmRepoName, Namespace: p.HelmRepoNamespace}),
-		WithEntitlementSecretKey(client.ObjectKey{
-			Name:      p.EntitlementSecretName,
-			Namespace: p.EntitlementSecretNamespace,
-		}),
 		WithKubernetesClient(kubeClient),
 		WithDiscoveryClient(discoveryClient),
 		WithGitProvider(csgit.NewGitProviderService(log)),
