@@ -183,17 +183,13 @@ networkPolicy:
   enabled: true
 
 global:
-  capiEnabled: true
+  capiEnabled: false
   useK8sCachedClients: false
 
 clustersService:
   args: []
 
-templates-controller:
-  enabled: true
-
 gitopssets-controller:
-  enabled: true
   controllerManager:
     manager:
       args:
@@ -204,7 +200,6 @@ gitopssets-controller:
         - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix,Config
 
 cluster-controller:
-  enabled: true
   # cluster-controller-manager etc
   fullnameOverride: cluster
   controllerManager:
@@ -217,7 +212,6 @@ cluster-reflector-controller:
   enabled: false
 
 cluster-bootstrap-controller:
-  enabled: true
   manager:
     resources:
       limits:
@@ -238,8 +232,8 @@ explorer:
   cleaner:
     disabled: false
   enabledFor:
-#    - applications
-#    - sources
+    # - applications
+    # - sources
     - gitopssets
     - templates
-#    - clusterdiscovery
+    # - clusterdiscovery
