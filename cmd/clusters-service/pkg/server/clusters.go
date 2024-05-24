@@ -212,7 +212,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			TemplateName:     msg.Name,
 			ParameterValues:  msg.ParameterValues,
 			Credentials:      msg.Credentials,
-			Profiles:         msg.Values,
+			Profiles:         msg.Profiles,
 			Kustomizations:   msg.Kustomizations,
 			ExternalSecrets:  msg.ExternalSecrets,
 		},
@@ -864,8 +864,8 @@ func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 		err = multierror.Append(err, invalidNamespaceErr)
 	}
 
-	for i := range msg.Values {
-		invalidNamespaceErr := validateNamespace(msg.Values[i].Namespace)
+	for i := range msg.Profiles {
+		invalidNamespaceErr := validateNamespace(msg.Profiles[i].Namespace)
 		if invalidNamespaceErr != nil {
 			err = multierror.Append(err, invalidNamespaceErr)
 		}

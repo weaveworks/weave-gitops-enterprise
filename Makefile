@@ -256,7 +256,6 @@ swagger-docs:
 user-guide-apis:
 	cp cmd/clusters-service/api/cluster_services.swagger.json ../weave-gitops/website/static/swagger/
 	cp api/gitauth/gitauth.swagger.json ../weave-gitops/website/static/swagger/
-	cp api/gitopssets/gitopssets.swagger.json ../weave-gitops/website/static/swagger/
 	cp api/pipelines/pipelines.swagger.json ../weave-gitops/website/static/swagger/
 	cp api/query/query.swagger.json ../weave-gitops/website/static/swagger/
 	cp api/terraform/terraform.swagger.json ../weave-gitops/website/static/swagger/

@@ -87,8 +87,10 @@ type AuthenticateRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ProviderName string `protobuf:"bytes,1,opt,name=provider_name,json=providerName,proto3" json:"provider_name,omitempty"` // The name of the git provider
-	AccessToken  string `protobuf:"bytes,2,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`    // The token of the git provider
+	// The name of the git provider. E.g. "github", "gitlab", "bitbucketserver", "azuredevops".
+	ProviderName string `protobuf:"bytes,1,opt,name=provider_name,json=providerName,proto3" json:"provider_name,omitempty"`
+	// The token of the git provider.
+	AccessToken string `protobuf:"bytes,2,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 }
 
 func (x *AuthenticateRequest) Reset() {
@@ -142,8 +144,7 @@ type AuthenticateResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The jwt token that was generated using git provider name
-	// and git provider token
+	// The jwt token that was generated using git provider name and git provider token.
 	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 }
 
@@ -229,12 +230,14 @@ type GetGithubDeviceCodeResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The Github Device Flow code that will be shown to the user
-	UserCode   string `protobuf:"bytes,1,opt,name=user_code,json=userCode,proto3" json:"user_code,omitempty"`
-	DeviceCode string `protobuf:"bytes,2,opt,name=device_code,json=deviceCode,proto3" json:"device_code,omitempty"` // A code that uniquely identifies a device
-	// The URI that the user will visit to complete the flow
+	// The Github Device Flow code that will be shown to the user.
+	UserCode string `protobuf:"bytes,1,opt,name=user_code,json=userCode,proto3" json:"user_code,omitempty"`
+	// A code that uniquely identifies a device.
+	DeviceCode string `protobuf:"bytes,2,opt,name=device_code,json=deviceCode,proto3" json:"device_code,omitempty"`
+	// The URI that the user will visit to complete the flow.
 	ValidationUri string `protobuf:"bytes,3,opt,name=validation_uri,json=validationUri,proto3" json:"validation_uri,omitempty"`
-	Interval      int32  `protobuf:"varint,4,opt,name=interval,proto3" json:"interval,omitempty"` // How often the client should retry the request
+	// How often the client should retry the request.
+	Interval int32 `protobuf:"varint,4,opt,name=interval,proto3" json:"interval,omitempty"`
 }
 
 func (x *GetGithubDeviceCodeResponse) Reset() {
@@ -302,7 +305,7 @@ type GetGithubAuthStatusRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The deviceCode returned from a GetGithubDeviceCodeResponse
+	// The deviceCode returned from a GetGithubDeviceCodeResponse.
 	DeviceCode string `protobuf:"bytes,1,opt,name=device_code,json=deviceCode,proto3" json:"device_code,omitempty"`
 }
 
@@ -352,7 +355,8 @@ type GetGithubAuthStatusResponse struct {
 
 	// An access token that can be used to interact with the Weave GitOps API.
 	AccessToken string `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
-	Error       string `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"` // An error message.
+	// An error message.
+	Error string `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
 }
 
 func (x *GetGithubAuthStatusResponse) Reset() {
@@ -406,7 +410,8 @@ type ParseRepoURLRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Url string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"` // The URL to be parsed
+	// The URL to be parsed.
+	Url string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
 }
 
 func (x *ParseRepoURLRequest) Reset() {
@@ -453,9 +458,11 @@ type ParseRepoURLResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name     string      `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`                                      // The name of the git repository
-	Provider GitProvider `protobuf:"varint,2,opt,name=provider,proto3,enum=gitauth.v1.GitProvider" json:"provider,omitempty"` // The GitProvider for the repository
-	// The person or organization to which this repo belongs
+	// The name of the git repository.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The GitProvider for the repository.
+	Provider GitProvider `protobuf:"varint,2,opt,name=provider,proto3,enum=gitauth.v1.GitProvider" json:"provider,omitempty"`
+	// The person or organization to which this repo belongs.
 	Owner string `protobuf:"bytes,3,opt,name=owner,proto3" json:"owner,omitempty"`
 }
 
@@ -517,7 +524,7 @@ type GetGitlabAuthURLRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The URI that GitLab will use to send users back to GitOps.
+	// The URI that GitLab will use to send users back to Weave GitOps.
 	RedirectUri string `protobuf:"bytes,1,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
 }
 
@@ -613,9 +620,10 @@ type AuthorizeGitlabRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The challenge code obtained from the OAuth callback
-	Code        string `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	RedirectUri string `protobuf:"bytes,2,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"` // The redirect URI that originated the OAuth flow
+	// The challenge code obtained from the OAuth callback.
+	Code string `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	// The redirect URI that originated the OAuth flow.
+	RedirectUri string `protobuf:"bytes,2,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
 }
 
 func (x *AuthorizeGitlabRequest) Reset() {
@@ -669,7 +677,7 @@ type AuthorizeGitlabResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// A token that can be used to authenticate the GitOps API server.
+	// A token that can be used to authenticate the Weave GitOps API server.
 	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 }
 
@@ -811,7 +819,7 @@ type GetBitbucketServerAuthURLRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The URI that Bitbucket Server will use to send users back to GitOps.
+	// The URI that Bitbucket Server will use to send users back to Weave GitOps.
 	RedirectUri string `protobuf:"bytes,1,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
 }
 
@@ -859,8 +867,7 @@ type GetBitbucketServerAuthURLResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The URL that users must visit
-	// to authorize BitBucket Server authentication.
+	// The URL that users must visit to authorize BitBucket Server authentication.
 	Url string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
 }
 
@@ -908,11 +915,12 @@ type AuthorizeBitbucketServerRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The challenge code obtained from the OAuth callback
+	// The challenge code obtained from the OAuth callback.
 	Code string `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	// The state parameter provided in the authorization URL
-	State       string `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
-	RedirectUri string `protobuf:"bytes,3,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"` // The redirect URI that originated the OAuth flow
+	// The state parameter provided in the authorization URL.
+	State string `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	// The redirect URI that originated the OAuth flow.
+	RedirectUri string `protobuf:"bytes,3,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
 }
 
 func (x *AuthorizeBitbucketServerRequest) Reset() {
@@ -973,7 +981,7 @@ type AuthorizeBitbucketServerResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// A token that can be used to authenticate the GitOps API server.
+	// A token that can be used to authenticate the Weave GitOps API server.
 	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 }
 
@@ -1021,7 +1029,7 @@ type GetAzureDevOpsAuthURLRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The URI that Azure DevOps will use to send users back to GitOps.
+	// The URI that Azure DevOps will use to send users back to Weave GitOps.
 	RedirectUri string `protobuf:"bytes,1,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
 }
 
@@ -1117,11 +1125,12 @@ type AuthorizeAzureDevOpsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The challenge code obtained from the OAuth callback
+	// The challenge code obtained from the OAuth callback.
 	Code string `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	// The state parameter provided in the authorization URL
-	State       string `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
-	RedirectUri string `protobuf:"bytes,3,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"` // The redirect URI that originated the OAuth flow
+	// The state parameter provided in the authorization URL.
+	State string `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	// The redirect URI that originated the OAuth flow.
+	RedirectUri string `protobuf:"bytes,3,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
 }
 
 func (x *AuthorizeAzureDevOpsRequest) Reset() {
@@ -1182,7 +1191,7 @@ type AuthorizeAzureDevOpsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// A token that can be used to authenticate the GitOps API server.
+	// A token that can be used to authenticate the Weave GitOps API server.
 	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 }
 
@@ -1447,10 +1456,10 @@ var file_api_gitauth_gitauth_proto_rawDesc = []byte{
 	0x22, 0x25, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1f, 0x3a, 0x01, 0x2a, 0x22, 0x1a, 0x2f, 0x76, 0x31,
 	0x2f, 0x67, 0x69, 0x74, 0x61, 0x75, 0x74, 0x68, 0x2f, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74,
 	0x65, 0x2d, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x42, 0xd9, 0x01, 0x92, 0x41, 0x9a, 0x01, 0x12, 0x7c,
-	0x0a, 0x23, 0x57, 0x65, 0x61, 0x76, 0x65, 0x20, 0x47, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x20, 0x45,
+	0x0a, 0x23, 0x57, 0x65, 0x61, 0x76, 0x65, 0x20, 0x47, 0x69, 0x74, 0x4f, 0x70, 0x73, 0x20, 0x45,
 	0x6e, 0x74, 0x65, 0x72, 0x70, 0x72, 0x69, 0x73, 0x65, 0x20, 0x47, 0x69, 0x74, 0x41, 0x75, 0x74,
 	0x68, 0x20, 0x41, 0x50, 0x49, 0x12, 0x50, 0x57, 0x65, 0x61, 0x76, 0x65, 0x20, 0x47, 0x69, 0x74,
-	0x6f, 0x70, 0x73, 0x20, 0x45, 0x6e, 0x74, 0x65, 0x72, 0x70, 0x72, 0x69, 0x73, 0x65, 0x20, 0x47,
+	0x4f, 0x70, 0x73, 0x20, 0x45, 0x6e, 0x74, 0x65, 0x72, 0x70, 0x72, 0x69, 0x73, 0x65, 0x20, 0x47,
 	0x69, 0x74, 0x41, 0x75, 0x74, 0x68, 0x20, 0x41, 0x50, 0x49, 0x20, 0x68, 0x61, 0x6e, 0x64, 0x6c,
 	0x65, 0x73, 0x20, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f,
 	0x6e, 0x20, 0x76, 0x69, 0x61, 0x20, 0x47, 0x69, 0x74, 0x68, 0x75, 0x62, 0x20, 0x61, 0x6e, 0x64,
