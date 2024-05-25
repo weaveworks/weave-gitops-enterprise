@@ -6,12 +6,12 @@ import { ExternalSecret, SOPS } from '../Shared/utils';
 
 const data = ({
   formData,
-  validateForm,
   setFormData,
+  formError,
 }: {
   formData: SOPS | ExternalSecret;
-  validateForm: boolean;
   setFormData: Dispatch<React.SetStateAction<any>>;
+  formError: string;
 }) => {
   const handleSecretChange = (id: number, isKey: boolean, value: string) => {
     setFormData((f: ExternalSecret) => ({
@@ -58,7 +58,7 @@ const data = ({
             placeholder="Secret key"
             value={obj.key}
             handleFormData={val => handleSecretChange(obj.id, true, val)}
-            error={validateForm && !obj.key}
+            formError={formError}
           />
           <InputDebounced
             required
@@ -67,7 +67,7 @@ const data = ({
             placeholder="secret value"
             value={obj.value}
             handleFormData={val => handleSecretChange(obj.id, false, val)}
-            error={validateForm && !obj.value}
+            formError={formError}
           />
           {formData.data.length > 1 && (
             <RemoveCircleOutlineIcon

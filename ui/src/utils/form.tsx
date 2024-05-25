@@ -226,15 +226,17 @@ export const validateFormData = (
 
 interface InputDebounceProps extends InputProps {
   value?: string;
+  formError?: string;
   handleFormData: (value: any) => void;
 }
 
 export const InputDebounced: FC<InputDebounceProps> = ({
   value,
-  error,
+  formError,
   handleFormData,
   ...rest
 }) => {
+  const error = formError === rest.name && !value;
   const [data, setData] = useState<string>(value || '');
   const [inputError, setInputError] = useState<boolean>(error || false);
 
@@ -263,6 +265,7 @@ export const InputDebounced: FC<InputDebounceProps> = ({
 
   return (
     <Input
+      required={rest.required}
       className="form-section"
       {...rest}
       value={data}

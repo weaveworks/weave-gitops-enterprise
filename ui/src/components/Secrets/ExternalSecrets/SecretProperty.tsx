@@ -14,12 +14,12 @@ const PropertiesSwitch = styled(Switch)`
 
 export const SecretProperty = ({
   formData,
-  validateForm,
   setFormData,
+  formError,
 }: {
   formData: ExternalSecret;
-  validateForm: boolean;
   setFormData: Dispatch<React.SetStateAction<any>>;
+  formError: string;
 }) => {
   const handleSecretChange = (id: number, isKey: boolean, value: string) => {
     setFormData((f: ExternalSecret) => ({
@@ -80,7 +80,7 @@ export const SecretProperty = ({
                 placeholder="Secret Property"
                 value={obj.key}
                 handleFormData={val => handleSecretChange(obj.id, true, val)}
-                error={validateForm && !obj.key}
+                formError={formError}
               />
               <InputDebounced
                 name="dataSecretValue"
